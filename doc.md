@@ -1,5 +1,63 @@
+## Setup and Instructions
 
+I followed the tutorial shown here more or less (https://docs.openfaas.com/tutorials/first-python-function/).
 
+You need to install:
+ * `openfaas-cli`: to be able to control openfaas from your local machine
+ * `k3d`: to be able to run openfaas on a Kubernetes backend locally (you could also use different kubernetes backends)
+ * `arkade`: to install openfaas in kubernetes
+ * `docker`: since k3d works on docker
+
+### Prepare deployment
+
+After having everything installed, you can run the following to make sure that the infrastructure is ready to deploy functions.
+
+```sh
+## Unclear what this does
+kubectl rollout status -n openfaas deploy/gateway
+
+## Forwards the gateway port to the local machine port so that the function can be invoked
+kubectl port-forward -n openfaas svc/gateway 8080:8080 & 
+
+## This is for metrics and not necessary
+kubectl port-forward -n openfaas svc/prometheus 9090:9090 &
+
+## Unclear when this is needed
+PASSWORD=$(kubectl get secret -n openfaas basic-auth -o jsonpath="{.data.basic-auth-password}" | base64 --decode; echo)
+echo -n $PASSWORD | faas-cli login --username admin --password-stdin
+```
+
+Sometimes you might have to do (unclear when it is rerequired):
+```sh
+docker login --username konstantinoskallas
+```
+where you replace your username to be able to push and pull from the docker hub repository.
+
+### Building a function
+
+Assuming that you are in a folder that contains sources for a serverless function, e.g., one created by `faas-cli new hello-python3 --lang python3`, and that `./hello-python3.yml` contains an openfaas configuration (that also contains the name of an image and a public repository).
+
+By running:
+
+```sh
+## Build
+faas-cli build -f ./hello-python3.yml
+
+## Push to a repository (haven't managed to make it work locally)
+faas-cli push -f ./hello-python3.yml
+
+## Deploy the function
+faas-cli deploy -f ./hello-python3.yml
+
+## Q: Sometimes removing it is required before deploying
+faas-cli remove hello-python3
+```
+
+The function is ready to accept trafic and can be invoked using `faas-cli invoke` or `curl`.
+
+## Experimental and exploratory scripting to make the openfaas experiment work
+
+```sh
 ## Installs openfaas
 curl -sSL https://cli.openfaas.com | sudo sh
 
@@ -149,3 +207,4 @@ curl 127.0.0.1:8080/function/hello-python3 --data-binary '{
  "url": "https://www.kubernetes.io/",
  "term": "docker"
 }'
+```
