@@ -101,7 +101,7 @@ gen_py_path = os.path.join(os.path.dirname(__file__), 'gen-py')
 sys.path.append(gen_py_path)
 ```
 
-### Testing HTTP Thrift Client
+### Interfacing with HTTP
 
 In order to interface the serverless function to be called using thrift, we need to slightly modify the microservice to not be a server (since serving is now handled by the OpenFaaS infrastructure) and we then need to modify the transport layer so that is interfaces directly with the input and output of the serverless function.
 
