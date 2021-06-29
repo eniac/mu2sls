@@ -79,13 +79,35 @@ faas-cli new compose-post --lang python3
 
 ### Setting up the container
 
-TODO: Figure out whether it is better to do it by using a custom template, or by simply copying the necessary code in the function container.
+In order to properly set up the container, I added the following in the YAML file of the function `compose-post.yml`.
+
+```yml
+configuration:
+  copy:
+    - ./gen-py
+```
+
+In addition, I added the following line in the `requirements.txt` file so that the python thrift library is included in the container:
+```
+thrift
+```
+
+Finally, I added the following lines in the beginning of the handler so that it finds the copied `gen-py` directory:
+```python
+import os
+import sys
+
+gen_py_path = os.path.join(os.path.dirname(__file__), 'gen-py')
+sys.path.append(gen_py_path)
+```
 
 ### Testing HTTP Thrift Client
 
 I need to run a function that simply prints out what it receives, and then make a client that calls it using an HTTP Thrift Client. 
 
 On the receiver side, i need to make sure that I can deserialize the input by calling Thrift Functions and then calling the client code.
+
+For this I need to create a processor, which requires a protocol, which requires a transport. However, part of the transport is already done through the gateway, so I just need to create a dummy transport that can just return the data.
 
 ## Experimental and exploratory scripting to make the openfaas experiment work
 
