@@ -55,6 +55,38 @@ faas-cli remove hello-python3
 
 The function is ready to accept trafic and can be invoked using `faas-cli invoke` or `curl`.
 
+## ComposePost Experiment
+
+We now need to interface the serverless function with the rest of the social network.
+
+The first requirement for this is to have adequate code in the function container (Thrift generated code etc).
+
+An additional big requirement is to modify the Thrift Client to make requests that are understood by the serverless function. Maybe the HTTPClient can do the trick?
+
+To build, push, and deploy:
+```sh
+faas-cli up -f compose-post.yml
+```
+
+### Preparation
+
+```sh
+mkdir compose-post-test
+cd compose-post-test
+
+faas-cli new compose-post --lang python3
+```
+
+### Setting up the container
+
+TODO: Figure out whether it is better to do it by using a custom template, or by simply copying the necessary code in the function container.
+
+### Testing HTTP Thrift Client
+
+I need to run a function that simply prints out what it receives, and then make a client that calls it using an HTTP Thrift Client. 
+
+On the receiver side, i need to make sure that I can deserialize the input by calling Thrift Functions and then calling the client code.
+
 ## Experimental and exploratory scripting to make the openfaas experiment work
 
 ```sh
