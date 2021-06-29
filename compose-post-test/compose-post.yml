@@ -1,0 +1,12 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:8080
+functions:
+  compose-post:
+    lang: python3
+    handler: ./compose-post
+    image: konstantinoskallas/compose-post:latest
+    environment:
+      write_debug: true
+      combine_output: false
