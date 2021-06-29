@@ -103,11 +103,14 @@ sys.path.append(gen_py_path)
 
 ### Testing HTTP Thrift Client
 
-I need to run a function that simply prints out what it receives, and then make a client that calls it using an HTTP Thrift Client. 
+In order to interface the serverless function to be called using thrift, we need to slightly modify the microservice to not be a server (since serving is now handled by the OpenFaaS infrastructure) and we then need to modify the transport layer so that is interfaces directly with the input and output of the serverless function.
 
-On the receiver side, i need to make sure that I can deserialize the input by calling Thrift Functions and then calling the client code.
+So we need to do the following:
+  * Create an input transport that instead of actually reading from a transport it takes the function invocation input and spits it our little by little (as if it was reading it from a transport). (see `DummyReadHttpTransport`)
+  * Create a fake transport that instead of actually writing to a transport it accumulates the output and then returns it through the function output. (see `DummyWriteTransport`)
+  * Create a processor object that uses these two transports.
 
-For this I need to create a processor, which requires a protocol, which requires a transport. However, part of the transport is already done through the gateway, so I just need to create a dummy transport that can just return the data.
+I also created a client `compose-post-client.py` to test out that this interfacing works!
 
 ## Experimental and exploratory scripting to make the openfaas experiment work
 

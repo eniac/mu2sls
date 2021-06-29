@@ -81,8 +81,6 @@ def handle(req):
     processor = TextService.Processor(handler)
 
     ## Process an object
-    ##
-    ## TODO: Actually the process should return the value instead of ending.
     processor.process(input_protocol, output_protocol)
     
     ret = output_transport.output
