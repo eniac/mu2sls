@@ -4,7 +4,7 @@ provider:
   gateway: http://127.0.0.1:8080
 functions:
   hello-python:
-    lang: python
+    lang: python3-flask
     handler: ./hello-python
-    image: hello-python:latest
+    image: konstantinoskallas/hello-python:latest
 
