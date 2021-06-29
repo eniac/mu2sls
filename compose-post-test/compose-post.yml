@@ -10,3 +10,6 @@ functions:
     environment:
       write_debug: true
       combine_output: false
+configuration:
+  copy:
+    - ./gen-py
