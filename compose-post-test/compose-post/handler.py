@@ -63,7 +63,7 @@ def set_up_tracer(config_file_path, service):
     except:
         log("WTF")
         exit(1)
-
+ 
 ## Both of those transports are very naive and have bad performance
 ##
 ## TODO: Improve them!!!
@@ -98,8 +98,20 @@ class DummyWriteTransport(TTransport.TTransportBase):
 def setup():
     set_up_tracer("TODO", 'text-service')
 
+def check_dir():
+    pid = os.getpid()
+    for root, dirs, files in os.walk("/tmp"):
+        for filename in files:
+            logging.debug("file: " + filename)
+    
+    pid_fname = "/tmp/" + str(pid) + ".txt"
+    with open(pid_fname, "w") as f:
+        f.write(str(pid) + "\n")
+    
+    logging.debug("wrote file: " + pid_fname)
 
 ## TODO: Write a proper handler!!!
+## TODO: Figure out what to do with handler fields, and how they differ from the original ones
 class TextHandler:
     def __init__(self):
         pass
@@ -126,12 +138,16 @@ def handle(req):
     """
     # print(req)
     logging.debug("Input: " + str(req))
+    logging.debug("Pid: " + str(os.getpid()))
 
     global global_cnt
     global_cnt += 1
     # logging.debug("Global cnt: " + str(global_cnt))
 
     setup()
+
+    ## Inspect the directory to determine how many functions are spawned
+    # check_dir()
 
     ## Create a protocol object
     input_transport = DummyReadHttpTransport(str(req))
