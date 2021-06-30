@@ -59,7 +59,7 @@ faas-cli remove hello-python3
 
 The function is ready to accept trafic and can be invoked using `faas-cli invoke` or `curl`.
 
-## ComposePost Experiment
+## TextService Experiment
 
 We now need to interface the serverless function with the rest of the social network.
 
@@ -71,6 +71,8 @@ To build, push, and deploy:
 ```sh
 faas-cli up -f compose-post.yml
 ```
+
+> Note: The service is actually text service but I initially intended for it to be compose post and so naming might be inconsistent at some places.
 
 ### Preparation
 
@@ -116,13 +118,45 @@ So we need to do the following:
 
 I also created a client `compose-post-client.py` to test out that this interfacing works!
 
-### Interfacing with the rest of the microservices application
+### Interfacing with the rest of the microservices application (on the receiving end)
 
 We need to make sure that the microservices all run and then that OpenFaaS is running, and then that the openfaas port is forwarded in the host (but not in 8080, but rather in 8090).
 
 Note that since we forward the gateway port in the host, we need to make sure that the HttpClient in the mciroservice connects to the host.
 
 > WARNING: There is a bug with buffered transport, I am not sure what exactly it is, but it leads to parsing of responses failing due to a \n in the middle of requests.
+
+### Experiment with colocation
+
+An important thing that we need to understand is how colocated are different serverless invocations, i.e., do they share VM or runtime.
+
+Therefore I did an experiment to observe that for OpenFaaS (since I couldn't find it in the documentation).
+
+It seems that its invocation is a different process (therefore having a different python runtime) meaning that different invocations do not share runtime specific values like globals.
+
+However, it seems that different processes run on the same VM. I observed that by writing a script that writes the pid of the process in a file with the same name in the `/tmp` directory, and then printed the directory contents, and I found that as execution progresses, more and more pid files are stored in that common `/tmp` directory.
+
+## Completing the serverless version Text Service
+
+We are now ready to complete the implementation of the text service, making clients to call further backend microservices as well.
+
+TODO
+
+
+
+## TODO Items
+
+* TODO: The HTTP transport also needs to be modified so that it can understand the error messages that OpenFaaS returns.
+
+* TODO: For performance measurements, I need to make a timing function with python decorators to time different parts of the process, such as my transport layers, etc.
+
+* TODO: Think about how to have proper tests. Jaeger is not enough: it requires manual effort, and also it doesn't work atm.
+
+* TODO: Make sure that all setup for an experiment can be run with a single shell script.
+
+* TODO: Package all python helper code (thrift, general helpers) in one or more libraries
+
+* TODO: Investigate why kubectl port-forward stops and how to fix that.
 
 ## Experimental and exploratory scripting to make the openfaas experiment work
 
