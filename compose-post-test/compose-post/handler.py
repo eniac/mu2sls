@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import sys
 
 ## Not sure whether logging needs to happen like this, but this certainly works and prints output to the logs
@@ -11,10 +12,10 @@ gen_py_path = os.path.join(os.path.dirname(__file__), 'gen-py')
 # logging.debug("Path: " + str(gen_py_path))
 sys.path.append(gen_py_path)
 
-from thrift.transport import TTransport
-from thrift.protocol import TJSONProtocol
+from thrift.transport import TSocket, TTransport
+from thrift.protocol import TBinaryProtocol, TJSONProtocol
 
-from social_network import TextService, ttypes
+from social_network import TextService, UrlShortenService, UserMentionService, ttypes
 
 ## For Jaeger
 from jaeger_client import Config
@@ -64,6 +65,29 @@ def set_up_tracer(config_file_path, service):
         log("WTF")
         exit(1)
  
+
+## TODO: This is copied...
+def SetupClient(service_client_class, service_addr, service_port):
+    return None
+    # ## Setup the socket
+    # transport = TSocket.TSocket(host=service_addr,
+    #                             port=service_port)
+    # ## Configure the transport layer to correspond to the expected transport
+    # transport = TTransport.TFramedTransport(transport)
+
+    # ## Configure the protocol to be binary as expected from the service
+    # protocol = TBinaryProtocol.TBinaryProtocol(transport)
+
+    # ## Create the client
+    # client = service_client_class.Client(protocol)
+
+    # ## Connect to the client
+    # ## TODO: Understand what this does
+    # ## TODO: Where do we need to catch errors?
+    # transport.open()
+
+    # return client
+
 ## Both of those transports are very naive and have bad performance
 ##
 ## TODO: Improve them!!!
@@ -113,8 +137,11 @@ def check_dir():
 ## TODO: Write a proper handler!!!
 ## TODO: Figure out what to do with handler fields, and how they differ from the original ones
 class TextHandler:
-    def __init__(self):
-        pass
+    def __init__(self, 
+                 url_shorten_service_client,
+                 user_mention_service_client):
+        self.url_shorten_service_client = url_shorten_service_client
+        self.user_mention_service_client = user_mention_service_client
 
     ## TODO: Dummy
     def ComposeText(self, req_id, text, carrier):
@@ -126,6 +153,12 @@ class TextHandler:
         # log("ParentContext:", parent_span_context)
         with tracer.start_span(operation_name='compose_text_server', 
                                child_of=parent_span_context) as span:
+
+            ## Gather a list of all mentioned usernames
+            matches = re.findall('@[a-zA-Z0-9-_]+', text)
+            mention_usernames = [match[1:] for match in matches]
+            logging.debug("Mentioned usernames: " + str(mention_usernames))
+
             ret = ttypes.TextServiceReturn("",
                                            [],
                                            [])
@@ -158,9 +191,13 @@ def handle(req):
     input_protocol = TJSONProtocol.TJSONProtocol(input_transport)
     output_protocol = TJSONProtocol.TJSONProtocol(output_transport)
 
+    ## Initialize the clients, 
+    url_shorten_service_client = SetupClient(UrlShortenService, "url-shorten-service", 9090)
+    user_mention_service_client = SetupClient(UserMentionService, "user-mention-service", 9090)
 
     ## Create a processor object
-    handler = TextHandler()
+    handler = TextHandler(url_shorten_service_client=url_shorten_service_client,
+                          user_mention_service_client=user_mention_service_client)
     processor = TextService.Processor(handler)
 
     ## Process an object
