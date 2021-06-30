@@ -172,6 +172,8 @@ To run a whole end-to-end experiment (that is not stable at all as it depends on
 
 ## TODO Items
 
+* Investigate Python native asyncio and use that instead of the concurrent futures.
+
 * TODO: The HTTP transport also needs to be modified so that it can understand the error messages that OpenFaaS returns.
 
 * TODO: For performance measurements, I need to make a timing function with python decorators to time different parts of the process, such as my transport layers, etc.
@@ -183,6 +185,51 @@ To run a whole end-to-end experiment (that is not stable at all as it depends on
 * TODO: Package all python helper code (thrift, general helpers) in one or more libraries. These can all be in the same repo for now (different directories).
 
 * TODO: Investigate why kubectl port-forward stops and how to fix that.
+
+## Compilation Sketch
+
+### Calls to external Services
+
+We could handle calls through Thrift differently than the rest, since we can compile both the caller's and the callee's Thrift to add a layer to ensure idempotence. Essentially, thrift requests will be orchestrated like Beldi calls.
+
+For the rest fo the calls we should probably assume that they are idempotent, i.e., given the same inputs, the service state will be unaffected, therefore that we can perform them more than once without caring. Even if we interpose on the sender side of the request (through Beldi), it seems that exactly once cannot be guaranteed for external services, since network might fail/nodes might crash and therefore a request might need to be resent even if it has already been processed.
+
+### Data Objects
+
+The data objects that we need to make sure we control accesses to are the global variables and the fields of the Thrift Handler object.
+
+Out of these objects, I have (until now) identified two categories:
+ - Objects that are initialized every time (they are runtime local)
+ - Objects that are the state of the application and therefore need to be stored using Beldi
+
+For the initialize objects we can identify their initialization procedures either by making a dataflow analysis in the main function, or by asking explicitly for the initialization procedure through an annotation.
+
+Then, in serverless we simply initialize them in the header.
+
+For the rest of the objects we need to go through Beldi, simply by passing all of their accesses to Beldi
+
+### Determinism
+
+To ensure that the function is determinstic, we can ask a user to decorate all nondeterministic calls so that we send them through Beldi too.
+
+### Unique Invocation Identifier
+
+This is probably necessary to add an identifier in all requests that is unique per end-user call so that we can identify double executions etc.
+
+### Double Billing (Potentially big issue)
+
+There is an issue (that we might or might not care about). Naive compilation of each request handling to a serverless function will lead to multi-billing for the same request. More precisely, we will need to pay N times for each request, where N is the call path length. This is because while executing a request, we will make subrequests, waiting for both of them to finish executing. This keeps going until the end of the microservice graph.
+
+This is handled in microservice deployments by using thread pools and I assume that when a call blocks, te thread yields so that we achieve concurrency. To achieve a similar yielding in our case we would have to extend the serverless execution platform with a scheduler and an event loop so that blocking threads do not consume resources.
+
+### Potential Optimizations
+
+- Do not reinitialize init objects everytime
+- Do not go through Beldi everytime for all object accesses
+
+
+
+
 
 ## Ideas
 
