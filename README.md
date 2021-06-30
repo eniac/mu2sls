@@ -165,6 +165,11 @@ The hostname `host.k3d.internal` is provided by `k3d` and points to the host. Th
 
 __TODO:__ Add async calls in the text service serverless implementation.
 
+### Complete (but unstable) testing experiment
+
+To run a whole end-to-end experiment (that is not stable at all as it depends on the specific commit of the deathstar beanch too) run `./test.sh`. It mostly serves for documentation and an exploration checkpoint.
+
+
 ## TODO Items
 
 * TODO: The HTTP transport also needs to be modified so that it can understand the error messages that OpenFaaS returns.
@@ -178,6 +183,10 @@ __TODO:__ Add async calls in the text service serverless implementation.
 * TODO: Package all python helper code (thrift, general helpers) in one or more libraries. These can all be in the same repo for now (different directories).
 
 * TODO: Investigate why kubectl port-forward stops and how to fix that.
+
+## Ideas
+
+Compiler could also be helpful for testing, in principle it should decouple the platform specific details and it should abstract over calls to other services, therefore allowing for modular testing.
 
 ## Experimental and exploratory scripting to make the openfaas experiment work
 
