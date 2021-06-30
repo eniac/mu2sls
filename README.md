@@ -17,14 +17,18 @@ After having everything installed, you can run the following to make sure that t
 kubectl rollout status -n openfaas deploy/gateway
 
 ## Forwards the gateway port to the local machine port so that the function can be invoked
-kubectl port-forward -n openfaas svc/gateway 8080:8080 & 
+kubectl port-forward -n openfaas svc/gateway 8080:8080 &
+
+## Or the following for a different local port --- local:pod
+kubectl port-forward -n openfaas svc/gateway 8090:8080 & 
+## If you do this, you need to add this at the end of all commands: -g http://127.0.0.1:8090
 
 ## This is for metrics and not necessary
 kubectl port-forward -n openfaas svc/prometheus 9090:9090 &
 
 ## Unclear when this is needed
 PASSWORD=$(kubectl get secret -n openfaas basic-auth -o jsonpath="{.data.basic-auth-password}" | base64 --decode; echo)
-echo -n $PASSWORD | faas-cli login --username admin --password-stdin
+echo -n $PASSWORD | faas-cli login --username admin --password-stdin 
 ```
 
 Sometimes you might have to do (unclear when it is rerequired):
@@ -111,6 +115,14 @@ So we need to do the following:
   * Create a processor object that uses these two transports.
 
 I also created a client `compose-post-client.py` to test out that this interfacing works!
+
+### Interfacing with the rest of the microservices application
+
+We need to make sure that the microservices all run and then that OpenFaaS is running, and then that the openfaas port is forwarded in the host (but not in 8080, but rather in 8090).
+
+Note that since we forward the gateway port in the host, we need to make sure that the HttpClient in the mciroservice connects to the host.
+
+> WARNING: There is a bug with buffered transport, I am not sure what exactly it is, but it leads to parsing of responses failing due to a \n in the middle of requests.
 
 ## Experimental and exploratory scripting to make the openfaas experiment work
 

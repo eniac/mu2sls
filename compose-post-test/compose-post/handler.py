@@ -21,6 +21,8 @@ from jaeger_client import Config
 import opentracing
 from opentracing.propagation import Format
 
+global_cnt = 0
+
 ## TODO: For now we do this everytime this is called, 
 ##       but normally we would want to actually do it once and keep it initialized.
 ##
@@ -86,6 +88,7 @@ class DummyWriteTransport(TTransport.TTransportBase):
         self.output = ""
 
     def write(self, buf):
+        # logging.debug(" -- chars:" + str(buf))
         new_output = buf.decode('ascii')
         self.output += new_output
         return
@@ -111,7 +114,7 @@ class TextHandler:
         # log("ParentContext:", parent_span_context)
         with tracer.start_span(operation_name='compose_text_server', 
                                child_of=parent_span_context) as span:
-            ret = ttypes.TextServiceReturn(text + "popo",
+            ret = ttypes.TextServiceReturn("",
                                            [],
                                            [])
             return ret
@@ -123,6 +126,10 @@ def handle(req):
     """
     # print(req)
     logging.debug("Input: " + str(req))
+
+    global global_cnt
+    global_cnt += 1
+    # logging.debug("Global cnt: " + str(global_cnt))
 
     setup()
 
