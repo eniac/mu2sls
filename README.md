@@ -140,9 +140,30 @@ However, it seems that different processes run on the same VM. I observed that b
 
 We are now ready to complete the implementation of the text service, making clients to call further backend microservices as well.
 
-TODO
+This is not particularly difficult. The standard Thrift clients are used. An issue that needs to be investigated is whether reinitializing the clients incurs significant cost.
 
+__TODO:__ Investigate the cost of reinitializations of all clients and connection objects.
 
+The main difference was that hosts and ports are not visible from within the microservice docker container group to the host. Therefore the Kubernetes containers that are spanwed to execute functions do not have access to the services.
+
+__Solution:__ I addressed this by exposing the ports to the host in the `docker-compose.yml` file in the Social Network application as shown here for `user-mention-service`:
+
+```yaml
+user-mention-service:
+    ...
+    ports:
+      - 10009:9090
+```
+
+Then we can use the following hostname and port in the serverless function definition to access the `user-mention-service`:
+
+```py
+user_mention_service_client = SetupClient(UserMentionService, "host.k3d.internal", 10009)
+```
+
+The hostname `host.k3d.internal` is provided by `k3d` and points to the host. The port is the exposed one in the `docker-compose.yml`.
+
+__TODO:__ Add async calls in the text service serverless implementation.
 
 ## TODO Items
 
@@ -154,7 +175,7 @@ TODO
 
 * TODO: Make sure that all setup for an experiment can be run with a single shell script.
 
-* TODO: Package all python helper code (thrift, general helpers) in one or more libraries
+* TODO: Package all python helper code (thrift, general helpers) in one or more libraries. These can all be in the same repo for now (different directories).
 
 * TODO: Investigate why kubectl port-forward stops and how to fix that.
 

@@ -2,10 +2,10 @@ import sys
 sys.path.append('gen-py')
 
 from thrift.transport import THttpClient
-from thrift.transport import TTransport
-from thrift.protocol import TJSONProtocol
+from thrift.transport import TSocket, TTransport
+from thrift.protocol import TBinaryProtocol, TJSONProtocol
 
-from social_network import TextService
+from social_network import TextService, UrlShortenService
 
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import traceback
@@ -13,7 +13,6 @@ import inspect
 import pdb
 
 URL="http://127.0.0.1:8090/function/compose-post"
-
 
 ## An HTTP Client is necessary to interact with FaaS
 transport = THttpClient.THttpClient(URL)
@@ -48,10 +47,10 @@ def gather_res(res, i):
         # pdb.post_mortem(tb)
 
 ## Make a request
-max_workers = 5
+max_workers = 1
 with ThreadPoolExecutor(max_workers=max_workers) as executor:
     results = []
-    for i in range(10):
+    for i in range(1):
         print(i)
         results.append(executor.submit(client.ComposeText, i, "popopo", {}))
         res = results[i]

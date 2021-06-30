@@ -68,25 +68,24 @@ def set_up_tracer(config_file_path, service):
 
 ## TODO: This is copied...
 def SetupClient(service_client_class, service_addr, service_port):
-    return None
-    # ## Setup the socket
-    # transport = TSocket.TSocket(host=service_addr,
-    #                             port=service_port)
-    # ## Configure the transport layer to correspond to the expected transport
-    # transport = TTransport.TFramedTransport(transport)
+    ## Setup the socket
+    transport = TSocket.TSocket(host=service_addr,
+                                port=service_port)
+    ## Configure the transport layer to correspond to the expected transport
+    transport = TTransport.TFramedTransport(transport)
 
-    # ## Configure the protocol to be binary as expected from the service
-    # protocol = TBinaryProtocol.TBinaryProtocol(transport)
+    ## Configure the protocol to be binary as expected from the service
+    protocol = TBinaryProtocol.TBinaryProtocol(transport)
 
-    # ## Create the client
-    # client = service_client_class.Client(protocol)
+    ## Create the client
+    client = service_client_class.Client(protocol)
 
-    # ## Connect to the client
-    # ## TODO: Understand what this does
-    # ## TODO: Where do we need to catch errors?
-    # transport.open()
+    ## Connect to the client
+    ## TODO: Understand what this does
+    ## TODO: Where do we need to catch errors?
+    transport.open()
 
-    # return client
+    return client
 
 ## Both of those transports are very naive and have bad performance
 ##
@@ -134,6 +133,32 @@ def check_dir():
     
     logging.debug("wrote file: " + pid_fname)
 
+def shorten_urls(url_shorten_service_client, span, urls, req_id):
+    tracer = opentracing.global_tracer()
+    serialized_span_context = {}
+    tracer.inject(
+        span_context=span.context,
+        format=Format.TEXT_MAP,
+        carrier=serialized_span_context
+    )
+
+    ## Call the UrlShorten Service
+    shortened_urls = url_shorten_service_client.ComposeUrls(req_id, urls, serialized_span_context)
+    return shortened_urls
+
+def compose_user_mentions(user_mention_service_client, span, mention_usernames, req_id):
+    tracer = opentracing.global_tracer()
+    serialized_span_context = {}
+    tracer.inject(
+        span_context=span.context,
+        format=Format.TEXT_MAP,
+        carrier=serialized_span_context
+    )
+
+    ## Call the UrlShorten Service
+    return_user_mentions = user_mention_service_client.ComposeUserMentions(req_id, mention_usernames, serialized_span_context)
+    return return_user_mentions
+
 ## TODO: Write a proper handler!!!
 ## TODO: Figure out what to do with handler fields, and how they differ from the original ones
 class TextHandler:
@@ -159,9 +184,33 @@ class TextHandler:
             mention_usernames = [match[1:] for match in matches]
             logging.debug("Mentioned usernames: " + str(mention_usernames))
 
-            ret = ttypes.TextServiceReturn("",
-                                           [],
-                                           [])
+            ## Gather a list of urls
+            url_matches = re.findall("(http://|https://)([a-zA-Z0-9_!~*'().&=+$%-]+)", text)
+            urls = ["".join(match) for match in url_matches]
+            logging.debug("Urls: " + str(urls))
+
+            ## Shorten urls
+            return_urls = shorten_urls(self.url_shorten_service_client, span, urls, req_id)
+            logging.debug("Shortened Urls: " + str(return_urls))
+
+            ## Compose User Mentions
+            ##
+            ## TODO: This seems to return empty list so there might be a bug.
+            return_mentions = compose_user_mentions(self.user_mention_service_client, span, mention_usernames, req_id)
+            logging.debug("Composed Mentions: " + str(return_mentions))
+
+            ## Replace the big urls with the small ones
+            ##
+            ## TODO: Naive implementation... Optimize!
+            new_text = text
+            for i in range(len(urls)):
+                from_url = urls[i]
+                to_url = return_urls[i].shortened_url
+                new_text = new_text.replace(from_url, to_url, 1)
+
+            ret = ttypes.TextServiceReturn(new_text,
+                                           user_mentions=return_mentions,
+                                           urls=return_urls)
             return ret
 
 def handle(req):
@@ -192,8 +241,9 @@ def handle(req):
     output_protocol = TJSONProtocol.TJSONProtocol(output_transport)
 
     ## Initialize the clients, 
-    url_shorten_service_client = SetupClient(UrlShortenService, "url-shorten-service", 9090)
-    user_mention_service_client = SetupClient(UserMentionService, "user-mention-service", 9090)
+    ## TODO: Make these ports taken from some configuration this is very ad-hoc.
+    url_shorten_service_client = SetupClient(UrlShortenService, "host.k3d.internal", 10004)
+    user_mention_service_client = SetupClient(UserMentionService, "host.k3d.internal", 10009)
 
     ## Create a processor object
     handler = TextHandler(url_shorten_service_client=url_shorten_service_client,
