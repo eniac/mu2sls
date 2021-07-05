@@ -184,6 +184,18 @@ __TODO:__ Add async calls in the text service serverless implementation.
 
 To run a whole end-to-end experiment (that is not stable at all as it depends on the specific commit of the deathstar beanch too) run `./test.sh`. It mostly serves for documentation and an exploration checkpoint.
 
+## Backend Service Experiment
+
+We are now ready to reimplement a backend service in serverless, and figure out how to manage its state. This will probably uncover several issues.
+
+The UrlShortenService looks like a good candidate. It contains a lock, accesses to memcached, and accesses to MongoDB. The experiment is broken up in the following steps:
+- Experiment with `asyncio`, which is the defacto async python library. We might need to go back to the previous experiment and reimplement it using asyncio first to make that simpler.
+- Figure out how to interface python with a MongoDB client. Then implement the service as if it has no cache.
+- Figure out how to interface with memcached, then implement the service with a cache. Then we can think whether cache can also be automated (instead of having to be intertwined with application logic).
+
+### Experimenting with `asyncio`
+
+__TODO__
 
 ## TODO Items <a name="todo-items"></a>
 
