@@ -225,7 +225,9 @@ This is handled in microservice deployments by using thread pools and I assume t
 ### Potential Optimizations
 
 - Do not reinitialize init objects everytime
-- Do not go through Beldi everytime for all object accesses
+- Do not go through Beldi everytime for all object 
+- Sharing the runtime for state (see more in Photon paper)
+
 
 
 
