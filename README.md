@@ -187,6 +187,8 @@ To run a whole end-to-end experiment (that is not stable at all as it depends on
 
 ## TODO Items <a name="todo-items"></a>
 
+* Figure out the difficulties of stateful microservices and figure out if we can lift their implementation to be transparent persistence usage.
+
 * Investigate Python native asyncio and use that instead of the concurrent futures.
 
 * TODO: The HTTP transport also needs to be modified so that it can understand the error messages that OpenFaaS returns.
@@ -200,6 +202,8 @@ To run a whole end-to-end experiment (that is not stable at all as it depends on
 * TODO: Package all python helper code (thrift, general helpers) in one or more libraries. These can all be in the same repo for now (different directories).
 
 * TODO: Investigate why kubectl port-forward stops and how to fix that.
+
+* See if we can somehow leverage the Azure traces workload.
 
 ## Compilation Sketch <a name="compilation-sketch"></a>
 
@@ -259,16 +263,20 @@ This section contains pointers and references to related papers and software so 
 
 - [Photons](https://dl.acm.org/doi/10.1145/3419111.3421297): A framework that invokes serverless functions in the same runtime to improve performance and allow for state and data sharing.
   + This is very close to our work and we might need to compare with it. It is not clear if they provide automation with respect to compilation or whether they require the programmers to reimplement their applications.
-  + __TODO:__ We need to make sure we understand the exact difference with this.
+  + __Difference:__ Their work provides abstractions to developers for sharing state, while we will do that automatically. Also they assume their code is initially already in serverless, and therefore can provide small automation to isolate accesses to globals, but that's it.
+  + __Possible Backend__
 
 - [Nightcore](https://dl.acm.org/doi/10.1145/3445814.3446701): An alternative serverless engine that is focused on microservice applications.
   + It might be useful to have that as a backend for our experiments (since it will be significantly more efficient than FaaS).
   + __Possible Backend__
 
-- [Kappa](https://dl.acm.org/doi/10.1145/3419111.3421277): A framework that increases serverless capabilities with checkpoints and messages.
+- [Kappa](https://dl.acm.org/doi/10.1145/3419111.3421277): A framework that extends serverless capabilities with checkpoints and messages.
   + Kappa is a programming framework and therefore requires reimplementation of an application. It could be potentially used as a target for our compiler, meaning that our compiler could produce code that can be executed by kappa.
-  + __TODO:__ We need to make sure we understand the exact difference with this.
+  + They provide a lightweight pass that transforms input __python__ source code to continuation style, allowing them to pause and serialize execution at specific points of execution. They dont have any heuristics for picking the pause points though, and so we could use our compiler to come up with good points for pausing (e.g., blocking points). We can certainly reuse parts of that, or even all of it.
+  + __Possible shortcoming:__ Kappa provides a coordinator that ensures exactly once execution of effectul calls. If we implemented microservices naively on top of Kappa, we would end up with huge overhead as all calls (even the stateless ones) will have to go through there, leading to significant, unneccessary overhead.
+  + __Possible shortcoming:__ Their checkpointing and serialization seems to be very efficient and scalable (it only depends on the capabilities of the storage solution, where they use Redis) if the functions are independent. However, in a microservice application I would expect that checkpoints would require a Beldi like solution, therefore not being that scalable.
   + __Possible Backend__
+  + __TODO:__ Understanding its shortcomings might help if we compare to a naive solution against it.
 
 - [Fault Tolerance Shim](https://dl.acm.org/doi/10.1145/3342195.3387535): A framework that interposes serverless applications to guarantee read atomic isolation, i.e., visibility of partial writes in a transaction.
   + Orthogonal to our work, as this can be used instead of Beldi to provide different undelying guarantees if needed. In theory, our work now should be parametrizable by the underlying transactional store.
@@ -279,7 +287,9 @@ This section contains pointers and references to related papers and software so 
 
 ## Ideas <a name="ideas"></a>
 
-Compiler could also be helpful for testing, in principle it should decouple the platform specific details and it should abstract over calls to other services, therefore allowing for modular testing.
+* Compiler could also be helpful for testing, in principle it should decouple the platform specific details and it should abstract over calls to other services, therefore allowing for modular testing.
+
+* Lazy importing of code for latency critical applications that are short lived.
 
 ## Misc Experimental and exploratory scripting to make the openfaas experiment work <a name="misc-experiment-code"></a>
 
