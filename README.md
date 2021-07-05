@@ -8,8 +8,9 @@ A playground and repository that contains all my experiments using OpenFaaS and 
 3. [Complete TextService Experiment](#textservice-experiment-complete)
 4. [TODO Items](#todo-items)
 5. [Compilation Sketch](#compilation-sketch)
-6. [Ideas](#ideas)
-7. [Miscellaneous Experiment Code](#misc-experiment-code)
+6. [Related Work](#related-work)
+7. [Ideas](#ideas)
+8. [Miscellaneous Experiment Code](#misc-experiment-code)
 
 
 ## Setup and Instructions <a name="setup-instructions"></a>
@@ -236,6 +237,8 @@ There is an issue (that we might or might not care about). Naive compilation of 
 
 This is handled in microservice deployments by using thread pools and I assume that when a call blocks, te thread yields so that we achieve concurrency. To achieve a similar yielding in our case we would have to extend the serverless execution platform with a scheduler and an event loop so that blocking threads do not consume resources.
 
+__Note:__ This issue can potentially be solved by compiling to continuations, so that we can yield and schedule different function invocations across blocking actions.
+
 ### Potential Optimizations
 
 - Do not reinitialize init objects everytime
@@ -243,8 +246,26 @@ This is handled in microservice deployments by using thread pools and I assume t
 - Sharing the runtime for state (see more in Photon paper)
 
 
+## Related Work <a name="related-work"></a>
 
+This section contains pointers and references to related papers and software so that we don't forget it:
 
+- [Photons](https://dl.acm.org/doi/10.1145/3419111.3421297): A framework that invokes serverless functions in the same runtime to improve performance and allow for state and data sharing.
+  + This is very close to our work and we might need to compare with it. It is not clear if they provide automation with respect to compilation or whether they require the programmers to reimplement their applications.
+
+- [Nightcore](https://dl.acm.org/doi/10.1145/3445814.3446701): An alternative serverless engine that is focused on microservice applications.
+  + It might be useful to have that as a backend for our experiments (since it will be significantly more efficient than FaaS).
+  + __Possible Backend__
+
+- [Kappa](https://dl.acm.org/doi/10.1145/3419111.3421277): A framework that increases serverless capabilities with checkpoints and messages.
+  + Kappa is a programming framework and therefore requires reimplementation of an application. It could be potentially used as a target for our compiler, meaning that our compiler could produce code that can be executed by kappa.
+  + __Possible Backend__
+
+- [Fault Tolerance Shim](https://dl.acm.org/doi/10.1145/3342195.3387535): A framework that interposes serverless applications to guarantee read atomic isolation, i.e., visibility of partial writes in a transaction.
+  + Orthogonal to our work, as this can be used instead of Beldi to provide different undelying guarantees if needed. In theory, our work now should be parametrizable by the underlying transactional store.
+
+- [gg](https://www.usenix.org/system/files/atc19-fouladi.pdf): A compiler/framework that implements pure computational applications on top serverless. 
+  + It is only vaguely related as it focuses on a completely different type of applications.
 
 
 ## Ideas <a name="ideas"></a>
