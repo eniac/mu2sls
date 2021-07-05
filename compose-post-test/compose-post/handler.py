@@ -231,15 +231,6 @@ def handle(req):
     ## Inspect the directory to determine how many functions are spawned
     # check_dir()
 
-    ## Create a protocol object
-    input_transport = DummyReadHttpTransport(str(req))
-    output_transport = DummyWriteTransport()
-
-    ## Maybe this is not needed either
-    # transport = TTransport.TBufferedTransport(transport)
-    input_protocol = TJSONProtocol.TJSONProtocol(input_transport)
-    output_protocol = TJSONProtocol.TJSONProtocol(output_transport)
-
     ## Initialize the clients, 
     ## TODO: Make these ports taken from some configuration this is very ad-hoc.
     url_shorten_service_client = SetupClient(UrlShortenService, "host.k3d.internal", 10004)
@@ -249,6 +240,28 @@ def handle(req):
     handler = TextHandler(url_shorten_service_client=url_shorten_service_client,
                           user_mention_service_client=user_mention_service_client)
     processor = TextService.Processor(handler)
+
+    ## Up to this point all the code is run in the microservice version too
+    ##
+    ###########################################################################
+
+    ## Assumption: At this point all fields and globals have been initialized.
+
+    ###########################################################################
+    ##
+    ## The following code replaces the setup of a Thrift server 
+    ## and the call to .serve()
+    ##
+
+    ## Create a protocol object
+    input_transport = DummyReadHttpTransport(str(req))
+    output_transport = DummyWriteTransport()
+
+    ## Maybe this is not needed either
+    # transport = TTransport.TBufferedTransport(transport)
+    input_protocol = TJSONProtocol.TJSONProtocol(input_transport)
+    output_protocol = TJSONProtocol.TJSONProtocol(output_transport)
+   
 
     ## Process an object
     processor.process(input_protocol, output_protocol)
