@@ -205,9 +205,16 @@ To run a whole end-to-end experiment (that is not stable at all as it depends on
 
 ### Calls to external Services
 
-We could handle calls through Thrift differently than the rest, since we can compile both the caller's and the callee's Thrift to add a layer to ensure idempotence. Essentially, thrift requests will be orchestrated like Beldi calls.
+#### Thrift calls (Exactly-Once)
+
+We could handle calls through Thrift differently than the rest, since we can compile both the caller's and the callee's Thrift to add a layer to ensure idempotence. Essentially, thrift requests will be orchestrated like Beldi calls. This means that the client will perform a Beldi-invoke.
+
+__Note:__ Since Beldi logs invocations using a callback (to ensure that the caller has the result before the calle marks itself as done), we need to ensure that this is possible using the communication that is offered by Thrift.
+
+#### Rest of external services (at-least once)
 
 For the rest fo the calls we should probably assume that they are idempotent, i.e., given the same inputs, the service state will be unaffected, therefore that we can perform them more than once without caring. Even if we interpose on the sender side of the request (through Beldi), it seems that exactly once cannot be guaranteed for external services, since network might fail/nodes might crash and therefore a request might need to be resent even if it has already been processed.
+
 
 ### Data Objects
 
@@ -252,6 +259,7 @@ This section contains pointers and references to related papers and software so 
 
 - [Photons](https://dl.acm.org/doi/10.1145/3419111.3421297): A framework that invokes serverless functions in the same runtime to improve performance and allow for state and data sharing.
   + This is very close to our work and we might need to compare with it. It is not clear if they provide automation with respect to compilation or whether they require the programmers to reimplement their applications.
+  + __TODO:__ We need to make sure we understand the exact difference with this.
 
 - [Nightcore](https://dl.acm.org/doi/10.1145/3445814.3446701): An alternative serverless engine that is focused on microservice applications.
   + It might be useful to have that as a backend for our experiments (since it will be significantly more efficient than FaaS).
@@ -259,6 +267,7 @@ This section contains pointers and references to related papers and software so 
 
 - [Kappa](https://dl.acm.org/doi/10.1145/3419111.3421277): A framework that increases serverless capabilities with checkpoints and messages.
   + Kappa is a programming framework and therefore requires reimplementation of an application. It could be potentially used as a target for our compiler, meaning that our compiler could produce code that can be executed by kappa.
+  + __TODO:__ We need to make sure we understand the exact difference with this.
   + __Possible Backend__
 
 - [Fault Tolerance Shim](https://dl.acm.org/doi/10.1145/3342195.3387535): A framework that interposes serverless applications to guarantee read atomic isolation, i.e., visibility of partial writes in a transaction.
