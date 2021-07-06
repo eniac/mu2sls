@@ -182,7 +182,7 @@ __TODO:__ Add async calls in the text service serverless implementation.
 
 ### Complete (but unstable) testing experiment
 
-To run a whole end-to-end experiment (that is not stable at all as it depends on the specific commit of the deathstar beanch too) run `./test.sh`. It mostly serves for documentation and an exploration checkpoint.
+To run a whole end-to-end experiment (that is not stable at all as it depends on the specific commit of the deathstar beanch too) run `compose-post/test.sh`. It mostly serves for documentation and an exploration checkpoint.
 
 ## Backend Service Experiment
 
