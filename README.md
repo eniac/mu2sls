@@ -1,4 +1,18 @@
-## Setup and Instructions
+# OpenFaaS Playground
+
+A playground and repository that contains all my experiments using OpenFaaS and description of the compilation project.
+
+## Table of contents
+1. [Setup and Instructions](#setup-instructions)
+2. [TextService Experiment](#textservice-experiment)
+3. [Complete TextService Experiment](#textservice-experiment-complete)
+4. [TODO Items](#todo-items)
+5. [Compilation Sketch](#compilation-sketch)
+6. [Ideas](#ideas)
+7. [Miscellaneous Experiment Code](#misc-experiment-code)
+
+
+## Setup and Instructions <a name="setup-instructions"></a>
 
 I followed the tutorial shown here more or less (https://docs.openfaas.com/tutorials/first-python-function/).
 
@@ -59,7 +73,7 @@ faas-cli remove hello-python3
 
 The function is ready to accept trafic and can be invoked using `faas-cli invoke` or `curl`.
 
-## TextService Experiment
+## TextService Experiment <a name="textservice-experiment"></a>
 
 We now need to interface the serverless function with the rest of the social network.
 
@@ -136,7 +150,7 @@ It seems that its invocation is a different process (therefore having a differen
 
 However, it seems that different processes run on the same VM. I observed that by writing a script that writes the pid of the process in a file with the same name in the `/tmp` directory, and then printed the directory contents, and I found that as execution progresses, more and more pid files are stored in that common `/tmp` directory.
 
-## Completing the serverless version Text Service
+## Completing the serverless version Text Service <a name="textservice-experiment-complete"></a>
 
 We are now ready to complete the implementation of the text service, making clients to call further backend microservices as well.
 
@@ -170,7 +184,7 @@ __TODO:__ Add async calls in the text service serverless implementation.
 To run a whole end-to-end experiment (that is not stable at all as it depends on the specific commit of the deathstar beanch too) run `./test.sh`. It mostly serves for documentation and an exploration checkpoint.
 
 
-## TODO Items
+## TODO Items <a name="todo-items"></a>
 
 * Investigate Python native asyncio and use that instead of the concurrent futures.
 
@@ -186,7 +200,7 @@ To run a whole end-to-end experiment (that is not stable at all as it depends on
 
 * TODO: Investigate why kubectl port-forward stops and how to fix that.
 
-## Compilation Sketch
+## Compilation Sketch <a name="compilation-sketch"></a>
 
 ### Calls to external Services
 
@@ -233,11 +247,11 @@ This is handled in microservice deployments by using thread pools and I assume t
 
 
 
-## Ideas
+## Ideas <a name="ideas"></a>
 
 Compiler could also be helpful for testing, in principle it should decouple the platform specific details and it should abstract over calls to other services, therefore allowing for modular testing.
 
-## Experimental and exploratory scripting to make the openfaas experiment work
+## Misc Experimental and exploratory scripting to make the openfaas experiment work <a name="misc-experiment-code"></a>
 
 ```sh
 ## Installs openfaas
