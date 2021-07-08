@@ -195,21 +195,31 @@ The UrlShortenService looks like a good candidate. It contains a lock, accesses 
 - Figure out how to interface python with a MongoDB client. Then implement the service as if it has no cache.
 - Figure out how to interface with memcached, then implement the service with a cache. Then we can think whether cache can also be automated (instead of having to be intertwined with application logic).
 
+__Note:__ Maybe the jaeger address also has to change in serverless
+
 ### Experimenting with `asyncio` in TextService
 
 Since the serverless function processes a single request, we only need concurrency in the handler, and therefore we can simply wrap the handler in `asyncio.run`. Then the handler can use `asyncio.gather` to wait on concurrent tasks.
 
 If we actually need concurrency on the processing too, then we might need some form of asyncio wrapping all around Thrift (to allow for concurrency across different requests that are `serve`d).
 
+### Preparation
+
+As before, make a new directory and then use `faas-cli new url-shorten-service --lang python3` to initialize a handler. Then modify the `handler.py`, `requirements.txt`, and the `.yml` file to have a running copy.
+
 ### Python MongoDB bindings
 
-TODO
+We can use [pymongo](https://pymongo.readthedocs.io/en/stable/tutorial.html) and [motor](https://motor.readthedocs.io/en/stable/) for asynchronous. I think that pymongo should be enough to start.
+
+
 
 ## TODO Items <a name="todo-items"></a>
 
 * Figure out the difficulties of stateful microservices and figure out if we can lift their implementation to be transparent persistence usage.
 
 * TODO: The HTTP transport also needs to be modified so that it can understand the error messages that OpenFaaS returns.
+
+* TODO: Check performance improvements by using python3-flask or python3-http template for serverless.
 
 * TODO: For performance measurements, I need to make a timing function with python decorators to time different parts of the process, such as my transport layers, etc.
 
