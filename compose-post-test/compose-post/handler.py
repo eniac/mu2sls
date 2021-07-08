@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import re
@@ -133,7 +134,8 @@ def check_dir():
     
     logging.debug("wrote file: " + pid_fname)
 
-def shorten_urls(url_shorten_service_client, span, urls, req_id):
+## TODO: Do we actually need the async keywords here?
+async def shorten_urls(url_shorten_service_client, span, urls, req_id):
     tracer = opentracing.global_tracer()
     serialized_span_context = {}
     tracer.inject(
@@ -146,7 +148,7 @@ def shorten_urls(url_shorten_service_client, span, urls, req_id):
     shortened_urls = url_shorten_service_client.ComposeUrls(req_id, urls, serialized_span_context)
     return shortened_urls
 
-def compose_user_mentions(user_mention_service_client, span, mention_usernames, req_id):
+async def compose_user_mentions(user_mention_service_client, span, mention_usernames, req_id):
     tracer = opentracing.global_tracer()
     serialized_span_context = {}
     tracer.inject(
@@ -168,8 +170,10 @@ class TextHandler:
         self.url_shorten_service_client = url_shorten_service_client
         self.user_mention_service_client = user_mention_service_client
 
-    ## TODO: Dummy
     def ComposeText(self, req_id, text, carrier):
+        return asyncio.run(self.ComposeTextAIO(req_id, text, carrier))
+
+    async def ComposeTextAIO(self, req_id, text, carrier):
         logging.debug("Processing request: " + str(req_id))
         tracer = opentracing.global_tracer()
 
@@ -189,14 +193,16 @@ class TextHandler:
             urls = ["".join(match) for match in url_matches]
             logging.debug("Urls: " + str(urls))
 
-            ## Shorten urls
-            return_urls = shorten_urls(self.url_shorten_service_client, span, urls, req_id)
-            logging.debug("Shortened Urls: " + str(return_urls))
+            ## Shorten urls and compose user mentions
 
-            ## Compose User Mentions
-            ##
-            ## TODO: This seems to return empty list so there might be a bug.
-            return_mentions = compose_user_mentions(self.user_mention_service_client, span, mention_usernames, req_id)
+            ## TODO: The `compose user mentions` seems to return empty list so there might be a bug.
+            results = await asyncio.gather(
+                shorten_urls(self.url_shorten_service_client, span, urls, req_id),
+                compose_user_mentions(self.user_mention_service_client, span, mention_usernames, req_id),
+            )
+            return_urls, return_mentions = results
+            
+            logging.debug("Shortened Urls: " + str(return_urls))
             logging.debug("Composed Mentions: " + str(return_mentions))
 
             ## Replace the big urls with the small ones
@@ -270,3 +276,4 @@ def handle(req):
     logging.debug("Output: " + str(ret))
 
     return ret
+    
