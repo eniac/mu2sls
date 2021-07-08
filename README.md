@@ -3,14 +3,16 @@
 A playground and repository that contains all my experiments using OpenFaaS and description of the compilation project.
 
 ## Table of contents
-1. [Setup and Instructions](#setup-instructions)
-2. [TextService Experiment](#textservice-experiment)
-3. [Complete TextService Experiment](#textservice-experiment-complete)
-4. [TODO Items](#todo-items)
-5. [Compilation Sketch](#compilation-sketch)
-6. [Related Work](#related-work)
-7. [Ideas](#ideas)
-8. [Miscellaneous Experiment Code](#misc-experiment-code)
+1.  [Setup and Instructions](#setup-instructions)
+2.  [TextService Experiment](#textservice-experiment)
+3.  [Complete TextService Experiment](#textservice-experiment-complete)
+4.  [Backend Service Experiment](#backend-service-experiment)
+5.  [TODO Items](#todo-items)
+6.  [Compilation Sketch](#compilation-sketch)
+7.  [Related Work](#related-work)
+8.  [Ideas](#ideas)
+9.  [Troubleshooting](#troubleshooting)
+10. [Miscellaneous Experiment Code](#misc-experiment-code)
 
 
 ## Setup and Instructions <a name="setup-instructions"></a>
@@ -184,7 +186,7 @@ __TODO:__ Add async calls in the text service serverless implementation.
 
 To run a whole end-to-end experiment (that is not stable at all as it depends on the specific commit of the deathstar beanch too) run `compose-post/test.sh`. It mostly serves for documentation and an exploration checkpoint.
 
-## Backend Service Experiment
+## Backend Service Experiment <a name="backend-service-experiment"></a>
 
 We are now ready to reimplement a backend service in serverless, and figure out how to manage its state. This will probably uncover several issues.
 
@@ -302,6 +304,15 @@ This section contains pointers and references to related papers and software so 
 * Compiler could also be helpful for testing, in principle it should decouple the platform specific details and it should abstract over calls to other services, therefore allowing for modular testing.
 
 * Lazy importing of code for latency critical applications that are short lived.
+
+## Troubleshooting <a name="troubleshooting"></a>
+
+This section includes unexpected issues that and how they can be addressed
+
+### `kubectl` not found
+
+That sometimes happens on my WSL Ubuntu distribution and the way to solve this is to restart Docker. It seems that `kubectl` requires docker to be running properly for it to work.
+
 
 ## Misc Experimental and exploratory scripting to make the openfaas experiment work <a name="misc-experiment-code"></a>
 
