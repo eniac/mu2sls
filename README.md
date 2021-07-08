@@ -195,15 +195,19 @@ The UrlShortenService looks like a good candidate. It contains a lock, accesses 
 - Figure out how to interface python with a MongoDB client. Then implement the service as if it has no cache.
 - Figure out how to interface with memcached, then implement the service with a cache. Then we can think whether cache can also be automated (instead of having to be intertwined with application logic).
 
-### Experimenting with `asyncio`
+### Experimenting with `asyncio` in TextService
 
-__TODO__
+Since the serverless function processes a single request, we only need concurrency in the handler, and therefore we can simply wrap the handler in `asyncio.run`. Then the handler can use `asyncio.gather` to wait on concurrent tasks.
+
+If we actually need concurrency on the processing too, then we might need some form of asyncio wrapping all around Thrift (to allow for concurrency across different requests that are `serve`d).
+
+### Python MongoDB bindings
+
+TODO
 
 ## TODO Items <a name="todo-items"></a>
 
 * Figure out the difficulties of stateful microservices and figure out if we can lift their implementation to be transparent persistence usage.
-
-* Investigate Python native asyncio and use that instead of the concurrent futures.
 
 * TODO: The HTTP transport also needs to be modified so that it can understand the error messages that OpenFaaS returns.
 
