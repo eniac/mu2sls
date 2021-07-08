@@ -211,6 +211,7 @@ As before, make a new directory and then use `faas-cli new url-shorten-service -
 
 We can use [pymongo](https://pymongo.readthedocs.io/en/stable/tutorial.html) and [motor](https://motor.readthedocs.io/en/stable/) for asynchronous. I think that pymongo should be enough to start.
 
+Interfacing with MongoDB is actually very simple, we get a client (the client has a pool by default) and then get a database, a collection, and then we perform the operations that we need.
 
 
 ## TODO Items <a name="todo-items"></a>
