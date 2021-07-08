@@ -1,7 +1,8 @@
 import asyncio
 import logging
 import os
-import re
+import random
+import string
 import sys
 
 ## Not sure whether logging needs to happen like this, but this certainly works and prints output to the logs
@@ -22,6 +23,9 @@ from social_network import UrlShortenService, ttypes
 from jaeger_client import Config
 import opentracing
 from opentracing.propagation import Format
+
+## For MongoDB
+from pymongo import MongoClient
 
 ## TODO: For now we do this everytime this is called, 
 ##       but normally we would want to actually do it once and keep it initialized.
@@ -87,7 +91,7 @@ def SetupClient(service_client_class, service_addr, service_port):
     return client
 
 def SetupMongoDBClient(addr, port):
-    pass
+    return MongoClient(addr,port)
 
 ## Both of those transports are very naive and have bad performance
 ##
@@ -158,6 +162,31 @@ class UrlShortenHandler:
         with tracer.start_span(operation_name='compose_urls_server', 
                                child_of=parent_span_context) as span:
 
+            ## Get a database
+            db = self.mogodb_client['url-shorten']
+
+            logging.debug("Collections: " + str(db.list_collection_names()))
+
+            ## Get the collection
+            url_collection = db['url-shorten']
+
+            target_urls = []
+            for url in urls:
+                ## NonDeterministic!!!!
+                random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits + string.ascii_lowercase, k=10))
+                short_url = "http://short-url/" + random_suffix
+                target_url = ttypes.Url(shortened_url=short_url, expanded_url=url)
+                target_urls.append(target_url)
+
+            ## TODO: Make this a bulk insert
+            for target_url in target_urls:
+                logging.debug("Dealing with url: " + str(target_url))
+                url_object = {"shortened_url": target_url.shortened_url,
+                              "expanded_url": target_url.expanded_url}
+                url_collection.insert_one(url_object)
+
+            ## Just print one random entry to see
+            # logging.debug("Random entry: " + str(url_collection.find_one()))
 
             ## Perform concurrent calls
             # results = await asyncio.gather(
@@ -169,7 +198,7 @@ class UrlShortenHandler:
             # logging.debug("Shortened Urls: " + str(return_urls))
 
 
-            return []
+            return target_urls
 
 def handle(req):
     """handle a request to the function
@@ -185,7 +214,7 @@ def handle(req):
 
     ## Initialize the clients, 
     ## TODO: Make these ports taken from some configuration this is very ad-hoc.
-    mongodb_client = SetupMongoDBClient("host.k3d.internal", "TODO")
+    mongodb_client = SetupMongoDBClient("host.k3d.internal", 27021)
 
     ## Create a processor object
     handler = UrlShortenHandler(mongodb_client=mongodb_client)
