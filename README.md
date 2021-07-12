@@ -10,6 +10,7 @@ A playground and repository that contains all my experiments using OpenFaaS and 
 5.  [TODO Items](#todo-items)
 6.  [Compilation Sketch](#compilation-sketch)
 7.  [Related Work](#related-work)
+8.  [Potential Benchmarks](#benchmarks)
 8.  [Ideas](#ideas)
 9.  [Troubleshooting](#troubleshooting)
 10. [Miscellaneous Experiment Code](#misc-experiment-code)
@@ -213,10 +214,19 @@ We can use [pymongo](https://pymongo.readthedocs.io/en/stable/tutorial.html) and
 
 Interfacing with MongoDB is actually very simple, we get a client (the client has a pool by default) and then get a database, a collection, and then we perform the operations that we need.
 
+### Interface two serverless services together
+
+We are now ready to interface TextService with UrlShortenService (they are both implemented in serverless).
+
+__TODO:__ Debug why that doesn't work!
 
 ## TODO Items <a name="todo-items"></a>
 
+* Figure out what correctness means for a persistent serverless implementation. This means sketch the spec of the translation; what is it trying to achieve. Then we can decide what to do with each call and invocation, and response.
+
 * Figure out the difficulties of stateful microservices and figure out if we can lift their implementation to be transparent persistence usage.
+
+* Investigate services that would require non-persistent state. Authentication service (session variable), service that gets paginated results and has next pointer.
 
 * TODO: The HTTP transport also needs to be modified so that it can understand the error messages that OpenFaaS returns.
 
@@ -313,6 +323,23 @@ This section contains pointers and references to related papers and software so 
 - [gg](https://www.usenix.org/system/files/atc19-fouladi.pdf): A compiler/framework that implements pure computational applications on top serverless. 
   + It is only vaguely related as it focuses on a completely different type of applications.
 
+## Potential Benchmarks <a name="benchmarks"></a>
+
+This section contains pointers to potential benchmarks/applications/workloads that we might want to use:
+
+- [DeathstarBench](https://github.com/delimitrou/DeathStarBench) A benchmark of microservice applications that are mostly stateless (except for the backends) and contain a lot of small microservices that comprise a big graph.
+  + This application sets contains the biggest graphs of services showcasing some important properties.
+  + They are all written in a very similar style (which might be bad for the generality of our approaches).
+  + They are mostly easy to run and the code is easy to read.
+
+- [μSuite](https://akshithasriraman.eecs.umich.edu/publication/iiswc/) An OLDI (whatever that means) microservice benchmark suite that contains 4 applications that all follow a two level pattern: a mid-tier service that fans out requests to leafs and then aggregates their responses to make a response.
+  + (+) These applications are good candidates (if I understand correctly the mid-tier service also has state) and are different than the DeathstarBench ones
+  + (-) The implementations look very hacky and would require reimplementation probably
+  + (-) All the applications follow a simple 2-layer pattern
+
+- Potential Alternatives
+  + RPC applications and benchmarks (maybe look at the RPC HotOS 2021 papers?)
+  + Vincent proposed to look for authentication services (they create sessions, i.e., non-persistent state) or services that return pages of results (and therefore give you a pointer to fetch the rest of the results with every query).
 
 ## Ideas <a name="ideas"></a>
 
