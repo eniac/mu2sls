@@ -356,6 +356,16 @@ This section includes unexpected issues that and how they can be addressed
 
 That sometimes happens on my WSL Ubuntu distribution and the way to solve this is to restart Docker. It seems that `kubectl` requires docker to be running properly for it to work.
 
+### Gateway hostname issues
+
+There are two common issues with the gateway and accessing it. When accessing it from the host machine, we need to make sure that its port is forwarded to a localhost port, otherwise it is not accessible. I usually use 8090 as the port since the microservice benchmark uses 8080 for its own purposes. The port can be forwarded as follows:
+
+```sh
+kubectl port-forward -n openfaas svc/gateway 8090:8080 & 
+```
+
+The second issue is when accessing the gateway through a serverless function (to be able to invoke another function). In the OpenFaaS tutorials the gateway hostname is said to be accessible through `gateway`, but if you use kubernetes to deploy OpenFaaS then the gateway hostname is actually `gateway.openfaas`. See [this tutorial](https://github.com/openfaas/workshop/blob/master/lab1b.md) for more.
+
 
 ## Misc Experimental and exploratory scripting to make the openfaas experiment work <a name="misc-experiment-code"></a>
 
