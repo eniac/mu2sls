@@ -52,7 +52,7 @@ with ThreadPoolExecutor(max_workers=max_workers) as executor:
     results = []
     for i in range(1):
         print(i)
-        results.append(executor.submit(client.ComposeText, i, "popopo", {}))
+        results.append(executor.submit(client.ComposeText, i, "popopo http://google.com", {}))
         res = results[i]
         executor.submit(gather_res, res, i)
     # ret = client.ComposeText(5, "popopo", {})

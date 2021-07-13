@@ -218,7 +218,8 @@ Interfacing with MongoDB is actually very simple, we get a client (the client ha
 
 We are now ready to interface TextService with UrlShortenService (they are both implemented in serverless).
 
-__TODO:__ Debug why that doesn't work!
+In order to invoke a function through another function we need to get the OpenFaaS gateway hostname, and if we use k3d (or other kubernetes) this is `gateway.openfaas`. For reference, this is explained [here](https://github.com/openfaas/workshop/blob/master/lab1b.md).
+
 
 ## TODO Items <a name="todo-items"></a>
 
