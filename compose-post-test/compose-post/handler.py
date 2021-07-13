@@ -13,7 +13,7 @@ gen_py_path = os.path.join(os.path.dirname(__file__), 'gen-py')
 # logging.debug("Path: " + str(gen_py_path))
 sys.path.append(gen_py_path)
 
-from thrift.transport import TSocket, TTransport
+from thrift.transport import TSocket, TTransport, THttpClient
 from thrift.protocol import TBinaryProtocol, TJSONProtocol
 
 from social_network import TextService, UrlShortenService, UserMentionService, ttypes
@@ -88,6 +88,22 @@ def SetupClient(service_client_class, service_addr, service_port):
 
     return client
 
+def SetupHttpClient(service_client_class, service_url):
+    ## An HTTP Client is necessary to interact with FaaS
+    transport = THttpClient.THttpClient(service_url)
+
+    ## TODO: This leads to a bug, probably because it is not mirrored on the serverless side (I am not even sure it can be).
+    # transport = TTransport.TBufferedTransport(transport)
+
+    ## The protocol also probably doesn't matter, but it is good to start with JSON for better observability.
+    protocol = TJSONProtocol.TJSONProtocol(transport)
+    client = service_client_class.Client(protocol)
+
+    # TODO: Unclear if this is necessary. 
+    transport.open()
+
+    return client
+
 ## Both of those transports are very naive and have bad performance
 ##
 ## TODO: Improve them!!!
@@ -116,6 +132,7 @@ class DummyWriteTransport(TTransport.TTransportBase):
         new_output = buf.decode('ascii')
         self.output += new_output
         return
+
 
 
 ## This is the setup function that is called before the body of the handle
@@ -239,7 +256,14 @@ def handle(req):
 
     ## Initialize the clients, 
     ## TODO: Make these ports taken from some configuration this is very ad-hoc.
-    url_shorten_service_client = SetupClient(UrlShortenService, "host.k3d.internal", 10004)
+    # url_shorten_service_client = SetupClient(UrlShortenService, "host.k3d.internal", 10004)
+    ## Initialize the serverless http client instead of the original one
+    ##
+    ## WARNING: In Kubernetes, the gateway hostname changes to gateway.openfaas
+    gateway_hostname = os.getenv("gateway_hostname", "gateway.openfaas") 
+    url_shorten_service_client = SetupHttpClient(UrlShortenService, 
+                                                 "http://" + gateway_hostname + ":8080/function/url-shorten-service")
+
     user_mention_service_client = SetupClient(UserMentionService, "host.k3d.internal", 10009)
 
     ## Create a processor object
