@@ -1,3 +1,4 @@
+import decorators
 
 class Client:
     def request():
@@ -6,6 +7,8 @@ class Client:
 def init_thrift_client():
     return Client()
 
+## Q: Maybe there is a better way to identify services (as a subclass)?
+@decorators.service
 class Handler:
     ## Question: Should we allow any argument in the init? 
     ##           Probably not, because we wouldn't know how to get them
