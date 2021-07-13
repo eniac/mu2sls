@@ -146,8 +146,11 @@ async def shorten_urls(url_shorten_service_client, span, urls, req_id):
 class UrlShortenHandler:
     def __init__(self, 
                  mongodb_client):
-        self.mogodb_client = mongodb_client
+        self.mongodb_client = mongodb_client
         ## TODO: Do the rest of the initializations
+        # @persistent
+        # self.collection = {}
+        
 
     def ComposeUrls(self, req_id, urls, carrier):
         return asyncio.run(self.ComposeUrlsAIO(req_id, urls, carrier))
@@ -163,7 +166,7 @@ class UrlShortenHandler:
                                child_of=parent_span_context) as span:
 
             ## Get a database
-            db = self.mogodb_client['url-shorten']
+            db = self.mongodb_client['url-shorten']
 
             logging.debug("Collections: " + str(db.list_collection_names()))
 
