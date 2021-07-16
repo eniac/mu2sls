@@ -75,7 +75,7 @@ class Handler:
 
         target_urls = []
         for url in urls:
-            ## NonDeterministic!!!!
+            ## TODO: NonDeterministic!!!!
             random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits + string.ascii_lowercase, k=10))
             short_url = "http://short-url/" + random_suffix
             target_url = ttypes.Url(shortened_url=short_url, expanded_url=url)

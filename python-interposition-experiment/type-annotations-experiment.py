@@ -41,12 +41,17 @@ for service_state in service_states:
 ## I don't think we need this object.
 _decompiled = backend.ast_to_source(test_ast, out_file)
 
+collection = []
+
+
+## Use that to find the methods of an object. Then we can wrap them (either dynamically, or statically)
+## with beldi get, set and transactions.
+object_methods = [method_name for method_name in dir(collection)
+                  if callable(getattr(collection, method_name))]
+print(object_methods)
+
+
 ## TODO: Start with a rudimentary backend that simply prints back the code, making sure that initializations happens in the beginning.
-##
-## Q: Do we need anything else in the header?
-##
-## Q: As shown below in more detail. Let's not make the transformation yet, since it is unclear whether we want to do it at load-time
-##    or at compile time.
 
 ## TODO: Make a trivial extension where accesses to the persistent fields go through getters and setters. Test it.
 

@@ -307,8 +307,12 @@ Our compiler takes a service handler that has data fields, and then it transform
  - For the static objects (like the thrift client) the only thing that needs to be done is to initialize them so there are no issues.
 
  - However, for the persistent objects we start having correctness issues. 
-   + First of all, there is concurrency, where we lose atomicity over accesses. This is bad for primitives, e.g., incrementing a counter, but even worse for collections, where method calls perform the updates. One way to address that would be to ask from the user to add begin/end tx in their code, and delegate finding these begin/end  to other frameworks and techniques, such as Blazes.
+   + First of all, there is concurrency, where we lose atomicity over accesses. This is bad for primitives, e.g., incrementing a counter, but even worse for collections, where method calls perform the updates. One way to address that would be to ask from the user to add begin/end tx in their code, and delegate finding these begin/end  to other frameworks and techniques, such as Blazes. I think we can expect users to add begin/end tx/atomic when they need atomicity. 
    + Even if we address this, then we need to somehow make this efficient, since we cannot access Beldi everytime we need to load.
+  
+__IDEA:__ Actually, if persistent objects are only accessed through methods (and not primitive actions), then we can actually wrap all of their methods with transactions (so that at least each operation is atomic) and checks to ensure that after each operation is done, if there was an update to the object, then it is immediately propagated to Beldi.
+
+__Proposal:__ All method calls to persistent objects are expected to be linearizable. If the user needs more guarantees, then they can add locks/transactions/critical sections around the code where they need more. Primitive operations are expected to be atomic. (an increment is not atomic since it requires get+set). The user can bypass standard linearizability in objects by implementing their own methods with critical sections so that things work. 
 
 Also, storing collections in Beldi might require rethinking of its mechanisms to be efficient. We don't want to serialize a whole object and deserialize it.
 
