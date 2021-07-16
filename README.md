@@ -272,7 +272,7 @@ For the initialize objects we can identify their initialization procedures eithe
 
 Then, in serverless we simply initialize them in the header.
 
-For the rest of the objects we need to go through Beldi, simply by passing all of their accesses to Beldi
+For the rest of the objects we need to go through Beldi, simply by passing all of their accesses to Beldi.
 
 ### Determinism
 
@@ -296,6 +296,21 @@ __Note:__ This issue can potentially be solved by compiling to continuations, so
 - Do not go through Beldi everytime for all object 
 - Sharing the runtime for state (see more in Photon paper)
 
+### Dataflow Analysis
+
+__TODO:__ We need to decide whether we want to perform some form of dataflow analysis on the code, or whether we want to avoid it. This is not straightforward to answer. Dataflow analyses can be complex and imprecise in dynamic languages like Python. 
+
+## Handling data objects (object fields)
+
+Our compiler takes a service handler that has data fields, and then it transforms this object to an object where the accesses to these fields can happen safely in a serverless setting.
+
+ - For the static objects (like the thrift client) the only thing that needs to be done is to initialize them so there are no issues.
+
+ - However, for the persistent objects we start having correctness issues. 
+   + First of all, there is concurrency, where we lose atomicity over accesses. This is bad for primitives, e.g., incrementing a counter, but even worse for collections, where method calls perform the updates. One way to address that would be to ask from the user to add begin/end tx in their code, and delegate finding these begin/end  to other frameworks and techniques, such as Blazes.
+   + Even if we address this, then we need to somehow make this efficient, since we cannot access Beldi everytime we need to load.
+
+Also, storing collections in Beldi might require rethinking of its mechanisms to be efficient. We don't want to serialize a whole object and deserialize it.
 
 ## Related Work <a name="related-work"></a>
 
@@ -323,6 +338,12 @@ This section contains pointers and references to related papers and software so 
 
 - [gg](https://www.usenix.org/system/files/atc19-fouladi.pdf): A compiler/framework that implements pure computational applications on top serverless. 
   + It is only vaguely related as it focuses on a completely different type of applications.
+
+- [Durable Functions]() __TODO__
+
+- [Ambrosia]() __TODO__
+
+- [Orleans]() __TODO__
 
 ## Potential Benchmarks <a name="benchmarks"></a>
 
