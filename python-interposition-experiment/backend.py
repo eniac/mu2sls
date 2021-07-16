@@ -5,6 +5,8 @@ from uncompyle6.main import decompile
 ## This function takes an AST and saves python_source code in the out_file
 def ast_to_source(ast_node, out_file):
     ## TODO: Do we need the filename
+    ##
+    ## TODO: This is very wasteful, we should not need to first compile to bytecode before deparsing.
     code_object = compile(ast_node, filename="<ast>", mode="exec")
 
     ## TODO: Do we actually need the bytecode version?
