@@ -15,7 +15,14 @@ class Handler:
     ##
     ## In contrast, by having well defined initialization functions for each field, we can
     ## call them on demand.
+    ##
+    ## That way, they can depend on environment variables or files,
+    ##   which we can copy in the container.
     def __init__(self):
+        ## This is a simple primitive persistent object that tracks how many requests have been processed for statistics.
+        self.counter = 0 # type: Persistent[int]
+
+        ## This contains a list/set of short-long url pairs
         self.collection = [] # type: Persistent[list]
 
         ## Represents a Thrift client 
@@ -26,8 +33,14 @@ class Handler:
     ## Decision: Either do annotations in type comments, or in a function or field of the handler that contains
     ##           the external call names, and the persistent field names.
 
+    ## Investigate doing that with property
+    def collection(self):
+        ret = beldi.read('collection')
+        return ret
+
     def ComposeUrls(self, req_id, urls, carrier):
         logging.debug("Processing request: " + str(req_id))
+        self.counter += 1
 
         target_urls = []
         for url in urls:
