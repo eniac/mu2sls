@@ -295,10 +295,17 @@ __Note:__ This issue can potentially be solved by compiling to continuations, so
 - Do not reinitialize init objects everytime
 - Do not go through Beldi everytime for all object 
 - Sharing the runtime for state (see more in Photon paper)
+- Cross service transactions (normally this is very difficult)
 
 ### Dataflow Analysis
 
 __TODO:__ We need to decide whether we want to perform some form of dataflow analysis on the code, or whether we want to avoid it. This is not straightforward to answer. Dataflow analyses can be complex and imprecise in dynamic languages like Python. 
+
+### Transactions that involve requests too
+
+Cross service transactions cannot normally be done. If we include all services and their thrift code through Beldi though they might be able to be done.
+
+__TODO:__ Investigate
 
 ## Handling data objects (object fields)
 
@@ -342,6 +349,10 @@ This section contains pointers and references to related papers and software so 
 
 - [gg](https://www.usenix.org/system/files/atc19-fouladi.pdf): A compiler/framework that implements pure computational applications on top serverless. 
   + It is only vaguely related as it focuses on a completely different type of applications.
+
+- [Diamond](https://www.usenix.org/conference/osdi16/technical-sessions/presentation/zhang-irene): A framework that offers ACID guarantees and reactive updates for application state in a WAN setting. The particularity of the setting is reactivity and the wide area, which requires combining the storage with the reactive framework to ensure consistency.
+  + __Key take away:__ System has to be data-aware to be able to provide consistency. In their setting too the developer has to annotate the important fields.
+  + __Note:__ Interposition is simple and not a technical challenge. Therefore, our work needs to focus on something technical!
 
 - [Durable Functions]() __TODO__
 
