@@ -46,9 +46,17 @@ _decompiled = backend.ast_to_source(test_ast, out_file)
 beldi = beldi_stub.Beldi()
 collection = []
 
-wrappers.wrap_terminal(collection, beldi)
+print(dir(collection))
+
+wrapped_collection = wrappers.wrap_terminal(collection, beldi)
 
 
+
+print(wrapped_collection.__repr__())
+print(dir(wrapped_collection))
+
+wrapped_collection.append(0)
+print(wrapped_collection.pop())
 
 ## TODO: Start with a rudimentary backend that simply prints back the code, making sure that initializations happens in the beginning.
 

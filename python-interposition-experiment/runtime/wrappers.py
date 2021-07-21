@@ -29,7 +29,6 @@ from runtime import serde
 ##
 ## Q: What about the fields (non callable attributes)?
 ##
-## TODO: Look at __getattr__ 
 ## TODO: Investigate slots and descriptors
 class WrapperTerminal(object):
     '''
@@ -57,6 +56,7 @@ class WrapperTerminal(object):
 
         ## Store beldi client for later use
         self._wrapper_beldi = beldi
+        print("yaya")
 
     ## This function returns whether an attribute is wrapper specific 
     ## (and not of the internal object). At the moment this is done simply
@@ -67,6 +67,17 @@ class WrapperTerminal(object):
     def is_wrapper_attr(attr_name: str) -> bool:
         return attr_name.startswith("_wrapper_")
 
+    ## 
+    def __repr__(self) -> str:
+        print("yoyo")
+        beldi = self._wrapper_beldi
+
+        ## Get the object from Beldi. This should never fail
+        serialized_obj = beldi.get(self._wrapper_obj_key)
+
+        ## Deserialize the object
+        obj = serde.deserialize(serialized_obj)
+        return obj.__repr__
 
     ## This method overrides the original object's getattr,
     ## making sure that attributes are accessed through Beldi.
@@ -75,10 +86,11 @@ class WrapperTerminal(object):
     ##
     ## If it is a method, we actually need to 
     def __getattr__(self, attr):
+        print("Get:", attr)
         # see if this object has attr
         # NOTE do not use hasattr, it goes into
         # infinite recursion
-        if attr in self.__dict__:
+        if(WrapperTerminal.is_wrapper_attr(attr)):
             # this object has it (for example, Beldi)
             return self.__dict__[attr]
         
@@ -112,6 +124,7 @@ class WrapperTerminal(object):
 
     ## Wraps a callable by delaying the get until it is actually called
     def _wrap_callable(self, _callable, attr_name):
+        print("Attr name:", attr_name)
     
         ## This function is returned instead of the callable.
         ## When called, it retrieves the callable object from Beldi and calls it.
@@ -148,9 +161,9 @@ class WrapperTerminal(object):
 
     ## TODO: Implement __setattr__
     def __setattr__(self, attr: str, val) -> None:
+        print("Set:", attr)
         ## If it is a wrapper specific method
-        if(attr in self.__dict__ 
-           or WrapperTerminal.is_wrapper_attr(attr)):
+        if(WrapperTerminal.is_wrapper_attr(attr)):
             self.__dict__[attr] = val
             return
             # return setattr(self, attr, val)
@@ -161,9 +174,9 @@ class WrapperTerminal(object):
 
     ## TODO: Implement __delattr__
     def __delattr__(self, attr: str) -> None:
+        print("Del:", attr)
         ## If it is a wrapper specific method
-        if(attr in self.__dict__
-           or WrapperTerminal.is_wrapper_attr(attr)):
+        if(WrapperTerminal.is_wrapper_attr(attr)):
             del self.__dict__[attr]
             return
             # return delattr(self, attr)
