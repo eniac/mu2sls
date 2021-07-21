@@ -4,6 +4,7 @@ import os
 
 
 from compiler import frontend, backend
+from runtime import beldi_stub, wrappers
 
 ## This might be needed for the decompiler
 PYTHON_VERSION="3.8"
@@ -40,14 +41,13 @@ for service_state in service_states:
 ## I don't think we need this object.
 _decompiled = backend.ast_to_source(test_ast, out_file)
 
+
+## Initialize a beldi_stub instance
+beldi = beldi_stub.Beldi()
 collection = []
 
+wrappers.wrap_terminal(collection, beldi)
 
-## Use that to find the methods of an object. Then we can wrap them (either dynamically, or statically)
-## with beldi get, set and transactions.
-object_methods = [method_name for method_name in dir(collection)
-                  if callable(getattr(collection, method_name))]
-print(object_methods)
 
 
 ## TODO: Start with a rudimentary backend that simply prints back the code, making sure that initializations happens in the beginning.

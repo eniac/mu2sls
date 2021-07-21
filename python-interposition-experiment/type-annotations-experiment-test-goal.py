@@ -38,8 +38,18 @@ class Handler:
         ##
         ## It should be illegal. We should only allow setting through methods.
 
+    ## TODO: Think how we would wrap all accesses to the collection object through beldi.
+    ##       I don't think it can be done statically actually. It probably needs to be done
+    ##       dynamically.
+    ##
+    ## Sketch: In the initialization initialize the persistent object normally, 
+    ##         and then wrap it with a beldi object.
+    ##         Depending on what type the object is (primitive, stdlib, custom) do something
+    ##         different with the wrapping. 
+
     ###############################################################################
 
+    ## Note: Very easy for the compiler
     # self.counter = 0 # type: Persistent[int]
     @property
     def counter(self):
