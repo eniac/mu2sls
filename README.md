@@ -323,6 +323,8 @@ __Proposal:__ All method calls to persistent objects are expected to be lineariz
 
 Also, storing collections in Beldi might require rethinking of its mechanisms to be efficient. We don't want to serialize a whole object and deserialize it.
 
+__TODO:__ How can we start measuring implementation of lists on Beldi and whether it is efficient.
+
 ## Related Work <a name="related-work"></a>
 
 This section contains pointers and references to related papers and software so that we don't forget it:
@@ -377,6 +379,8 @@ This section contains pointers to potential benchmarks/applications/workloads th
 - Potential Alternatives
   + RPC applications and benchmarks (maybe look at the RPC HotOS 2021 papers?)
   + Vincent proposed to look for authentication services (they create sessions, i.e., non-persistent state) or services that return pages of results (and therefore give you a pointer to fetch the rest of the results with every query).
+  + Sock Shop
+  + Ignis Benchmarks
 
 ## Ideas <a name="ideas"></a>
 
