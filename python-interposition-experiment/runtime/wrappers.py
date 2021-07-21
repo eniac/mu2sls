@@ -168,9 +168,35 @@ class WrapperTerminal(object):
             return
             # return setattr(self, attr, val)
 
-        ## TODO: Implement it for the wrapped object
-        print("Attr name:", attr)
-        raise NotImplementedError
+        ## In this case the attribute is part of the original object and therefore we need to access it through Beldi.
+        beldi = self._wrapper_beldi
+
+        beldi.begin_tx()
+
+        ## TODO: Can we optimize away this get and deserialize?
+        ##
+        ## Get the object from Beldi. This should never fail
+        serialized_obj = beldi.get(self._wrapper_obj_key)
+        ## Deserialize the object
+        obj = serde.deserialize(serialized_obj)
+
+        ## This should never happen if the attribute is callable, i.e., a method should
+        ## never be replaced.
+        ##
+        ## This will allow us an optimization that only does the method wrapping once.
+        if(hasattr(obj, attr)):
+            assert(not callable(getattr(obj, attr)))
+
+        ## Get the attribute of the object
+        ret = setattr(obj, attr, val)
+
+        ## Resave the object
+        new_serialized_obj = serde.serialize(obj)
+        beldi.set(self._wrapper_obj_key, new_serialized_obj)
+
+        beldi.end_tx()
+
+        return ret
 
     ## TODO: Implement __delattr__
     def __delattr__(self, attr: str) -> None:
