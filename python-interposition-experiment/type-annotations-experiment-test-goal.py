@@ -34,6 +34,9 @@ class Handler:
     @collection.setter
     def collection(self, collection):
         beldi.set('collection', collection)
+        ## TODO: For non-primitives we need to raise an exception when setting.
+        ##
+        ## It should be illegal. We should only allow setting through methods.
 
     ###############################################################################
 
