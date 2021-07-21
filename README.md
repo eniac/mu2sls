@@ -229,9 +229,13 @@ In order to invoke a function through another function we need to get the OpenFa
 
 * Investigate services that would require non-persistent state. Authentication service (session variable), service that gets paginated results and has next pointer.
 
+* Think about an optimization that keeps beldi transaction calls lazy and fuses transactions that are next to each other.
+
 * TODO: The HTTP transport also needs to be modified so that it can understand the error messages that OpenFaaS returns.
 
 * TODO: Check performance improvements by using python3-flask or python3-http template for serverless.
+
+* TODO: Write Frontend tests
 
 * TODO: For performance measurements, I need to make a timing function with python decorators to time different parts of the process, such as my transport layers, etc.
 
@@ -324,6 +328,25 @@ __Proposal:__ All method calls to persistent objects are expected to be lineariz
 Also, storing collections in Beldi might require rethinking of its mechanisms to be efficient. We don't want to serialize a whole object and deserialize it.
 
 __TODO:__ How can we start measuring implementation of lists on Beldi and whether it is efficient.
+
+__Point:__ I think that we can avoid thinking about adding transactions for now, and let the users have to deal with it. There is work on that, and it has nothing to do with us. If you have an object that you want to access in a concurrent way, then you need to add locks in your code.
+
+### Wrapping objects 
+
+Wrapping an object requires wrapping all its fields and methods (attributes). 
+
+__Method-only access objects:__ If an object is only accessed through methods, then it is very simple to wrap it. It is as if we had an RPC proxy item. Simply find all its methods (using `dir`, `getattr`, and the `callable` check) and rewrite all of them with methods that instead first do something else, then do the method, and then do something else. 
+
+__Field access objects:__ Objects that have accesses through fields are not that straightforward. What is the correct way to rewrite an object's field accesses? We can wrap the whole object in a wrapper object that overrides its getattr and setattr methods to get them from beldi. However, if the attribute is callable, then we need to make sure that we wrap it using a beldi transaction too, since we have only gotten the method of the function.
+
+Q: Is that correct? Or do we need to delay a call to a method and get the method again when the time comes?
+
+
+If we solve wrapping, then there are correctness questions that are involved. If an object is only accessed through methods, then it is very simple to ensure that each method is atomic. If an object is accessed through its fields, then it is quite likely that the user needs to add beldi transactions in their code (or we add it by default around each request). Otherwise, a set after a get will not happen atomically, and therefore all concurrency issues might happen.
+
+
+
+
 
 ## Related Work <a name="related-work"></a>
 
