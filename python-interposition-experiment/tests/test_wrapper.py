@@ -1,4 +1,8 @@
+import logging
+
 from runtime import wrappers, beldi_stub
+
+logging.basicConfig(level=logging.WARNING)
 
 class Counter:
     def __init__(self):

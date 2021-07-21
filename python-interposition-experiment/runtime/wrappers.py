@@ -1,3 +1,4 @@
+import logging
 
 from runtime import serde
 
@@ -56,7 +57,6 @@ class WrapperTerminal(object):
 
         ## Store beldi client for later use
         self._wrapper_beldi = beldi
-        print("yaya")
 
     ## This function returns whether an attribute is wrapper specific 
     ## (and not of the internal object). At the moment this is done simply
@@ -67,9 +67,9 @@ class WrapperTerminal(object):
     def is_wrapper_attr(attr_name: str) -> bool:
         return attr_name.startswith("_wrapper_")
 
-    ## 
+    ## TODO: Do we need to reimplement all default functions?
     def __repr__(self) -> str:
-        print("yoyo")
+        logging.debug("__repr__")
         beldi = self._wrapper_beldi
 
         ## Get the object from Beldi. This should never fail
@@ -86,7 +86,7 @@ class WrapperTerminal(object):
     ##
     ## If it is a method, we actually need to 
     def __getattr__(self, attr):
-        print("Get:", attr)
+        logging.debug("Get: " + attr)
         # see if this object has attr
         # NOTE do not use hasattr, it goes into
         # infinite recursion
@@ -124,7 +124,7 @@ class WrapperTerminal(object):
 
     ## Wraps a callable by delaying the get until it is actually called
     def _wrap_callable(self, _callable, attr_name):
-        print("Attr name:", attr_name)
+        logging.debug("Attr name: " + attr_name)
     
         ## This function is returned instead of the callable.
         ## When called, it retrieves the callable object from Beldi and calls it.
@@ -161,7 +161,7 @@ class WrapperTerminal(object):
 
     ## TODO: Implement __setattr__
     def __setattr__(self, attr: str, val) -> None:
-        print("Set:", attr)
+        logging.debug("Set: " + attr)
         ## If it is a wrapper specific method
         if(WrapperTerminal.is_wrapper_attr(attr)):
             self.__dict__[attr] = val
@@ -200,12 +200,11 @@ class WrapperTerminal(object):
 
     ## TODO: Implement __delattr__
     def __delattr__(self, attr: str) -> None:
-        print("Del:", attr)
+        logging.debug("Del: " + attr)
         ## If it is a wrapper specific method
         if(WrapperTerminal.is_wrapper_attr(attr)):
             del self.__dict__[attr]
             return
-            # return delattr(self, attr)
 
         ## TODO: Implement it for the wrapped object
         raise NotImplementedError
@@ -215,14 +214,3 @@ def wrap_terminal(object, beldi):
     wrapped_object = WrapperTerminal(object, beldi)
     return wrapped_object
 
-    ## Old code:
-    # ## Use that to find the methods of an object. Then we can wrap them (either dynamically, or statically)
-    # ## with beldi get, set and transactions.
-    # object_methods = [method_name for method_name in dir(object)
-    #                 if callable(getattr(object, method_name))]
-    
-    # print("Object Methods:", object_methods)
-
-    # object_fields = [field_name for field_name in dir(object)
-    #                  if not callable(getattr(object, field_name))]
-    # print("Object Fields:", object_fields)

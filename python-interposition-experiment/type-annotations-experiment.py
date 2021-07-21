@@ -62,8 +62,6 @@ print(wrapped_collection.pop())
 
 ## TODO: Make a trivial extension where accesses to the persistent fields go through getters and setters. Test it.
 
-## TODO: Package these things in a normal library
-
 ## High level Q: Is it possible to perform all changes dynamically? That is, instead of
 ##               compiling the AST, simply decorating the class and making sure that it implements
 ##               methods that give us this information? For example, if it implements a static method that
