@@ -1,5 +1,17 @@
 from runtime import wrappers, beldi_stub
 
+class Counter:
+    def __init__(self):
+        self.value = 0
+
+    def get(self):
+        return self.value
+    
+    def set(self, value):
+        self.value = value
+
+    def increment(self):
+        self.value += 1
 
 def test_list():
     ## Initialize a beldi_stub instance
@@ -28,3 +40,27 @@ def test_list():
 
     el = wrapped_collection.pop()
     assert el == 0
+
+def test_counter():
+    beldi = beldi_stub.Beldi()
+
+    prewrapped_counter = Counter()
+    counter = wrappers.wrap_terminal(prewrapped_counter, beldi)
+
+    assert counter.value == 0
+    assert counter.get() == 0
+
+    counter.increment()
+
+    assert counter.value == 1
+    assert counter.get() == 1
+
+    counter.set(5)
+
+    assert counter.value == 5
+    assert counter.get() == 5
+
+    counter.value = 4
+
+    assert counter.value == 4
+    assert counter.get() == 4
