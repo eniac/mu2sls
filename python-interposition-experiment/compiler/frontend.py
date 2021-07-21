@@ -1,7 +1,7 @@
 import ast
 import logging
 
-from service import ServiceState
+from compiler.service import ServiceState
 
 ## TODO: Maybe move all the static methods to an ast_util file
 

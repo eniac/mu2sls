@@ -3,8 +3,7 @@ import logging
 import os
 
 
-import frontend
-import backend
+from compiler import frontend, backend
 
 ## This might be needed for the decompiler
 PYTHON_VERSION="3.8"
