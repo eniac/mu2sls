@@ -61,6 +61,9 @@ class WrapperTerminal(object):
         ## Store beldi client for later use
         self._wrapper_beldi = beldi
 
+        ## Keep the init_value around, to use it to check the dir for special methods and so on.
+        self._wrapper_init_value = init_val
+
     ## This function returns whether an attribute is wrapper specific 
     ## (and not of the internal object). At the moment this is done simply
     ## by checking whether it starts with _wrapper.
@@ -210,6 +213,32 @@ class WrapperTerminal(object):
 
         ## TODO: Implement it for the wrapped object
         raise NotImplementedError
+    
+    def __add__(self, other):
+        logging.debug("__add__: " + str(other))
+        if (not hasattr(self._wrapper_init_value, '__add__')):
+            raise TypeError()
+        
+        ## In this case the special method is part of the original object and therefore we need to access it through Beldi.
+        beldi = self._wrapper_beldi
+
+        beldi.begin_tx()
+
+        ## Get the object from Beldi. This should never fail
+        serialized_obj = beldi.get(self._wrapper_obj_key)
+
+        ## Deserialize the object
+        obj = serde.deserialize(serialized_obj)
+
+        ## Get the attribute of the object
+        ret_value = obj.__add__(other)
+
+        new_serialized_obj = serde.serialize(obj)
+        beldi.set(self._wrapper_obj_key, new_serialized_obj)
+
+        beldi.end_tx()
+
+        return ret_value
         
 
 ## TODO: Rename this to Object Client/Interface since it doesn't actually wrap

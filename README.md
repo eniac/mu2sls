@@ -340,13 +340,41 @@ __Method-only access objects:__ If an object is only accessed through methods, t
 __Field access objects:__ Objects that have accesses through fields are not that straightforward. What is the correct way to rewrite an object's field accesses? We can wrap the whole object in a wrapper object that overrides its getattr and setattr methods to get them from beldi. However, if the attribute is callable, then we need to make sure that we wrap it using a beldi transaction too, since we have only gotten the method of the function.
 
 Q: Is that correct? Or do we need to delay a call to a method and get the method again when the time comes?
-
+A: This is how I do it now.
 
 If we solve wrapping, then there are correctness questions that are involved. If an object is only accessed through methods, then it is very simple to ensure that each method is atomic. If an object is accessed through its fields, then it is quite likely that the user needs to add beldi transactions in their code (or we add it by default around each request). Otherwise, a set after a get will not happen atomically, and therefore all concurrency issues might happen.
 
+### Laziness and Dynamic Optimization
+
+Is it possible to use laziness to somehow dynamically optimize calls to Beldi and object accesses while the code runs? Essentially instead of performing calls, return unevaluated objects and only when needing the value performing requests. This might help since it might allow for batching requests, or not reading writing of the same value, etc.
+
+This is an interesting possibility, and could make a lot of sense. To achieve this, it requires a program representation where effects are separated from simple computation, and therefore we can perform optimizations on the objects.
+
+An interesting optimizations is performing only the last of two subsequent sets.
+
+__NOTE:__ This is even more relevant when there are consecutive method invocations, and by default we would have to do cascading gets and cascading sets before and after each method invocation. Actually this is wrong, since wrapping is only done on a surface level.
+
+__Question:__ Do we actually need to wrap deeper than just the surface level? Probably not, as long as we wrap the external layer we are good.
+
+### Overriding special methods
+
+Special methods, such as `__len__` or `__add__` cannot be overriden and they have to be defined in the class object. If we have the source code of the definition of a class, we might be able to do something about this, using the compiler to create a new class (or a subclass) that rewrites these methods to go through beldi. However, that is certainly not straightforward.
+
+__IDEA:__ Actually, we might be able to simply conservatively, add all special methods to the wrapped object and send them through a special method function that checks if the underlying object has it, and calls it instead. Since there is a finite number of special methods we can do that. It works for `__add__`.
+
+### Setting an object
+
+Setting an object is kinda important. Especially for primitives. In order to do that, we need to wrap sets to the wrapped object.
+
+__TODO:__ Investigate whether descriptors can help with this. Fix sets to an object using descriptors.
 
 
 
+__Alternatives:__
+
+1. Either implement special versions of classes such as integers and lists, overriding all the special methods that they support.
+
+2. Otherwise (or in addition), if we have the source code of special method definitions, we can print it out modified in the modified code, so that even the special methods go through the classes.
 
 ## Related Work <a name="related-work"></a>
 
