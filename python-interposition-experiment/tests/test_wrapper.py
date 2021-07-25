@@ -71,3 +71,30 @@ def test_counter():
 
     assert counter.value == 4
     assert counter.get() == 4
+
+def test_int_counter():
+    beldi = beldi_stub.Beldi()
+
+    ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
+    counter_key = "test-int-counter"
+    counter_init_val = 0
+    counter = wrappers.wrap_terminal(counter_key, counter_init_val, beldi)
+
+    print(counter + 1)
+    assert counter == 0
+    assert counter == 0
+
+    counter += 1
+
+    assert counter == 1
+    assert counter == 1
+
+    counter = 5
+
+    assert counter == 5
+    assert counter == 5
+
+    counter = 4
+
+    assert counter == 4
+    assert counter == 4
