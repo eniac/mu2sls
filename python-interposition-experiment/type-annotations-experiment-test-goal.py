@@ -1,5 +1,7 @@
 ## This file contains the goal of what our compiler should produce.
 
+from runtime import wrappers, beldi_stub
+
 class Client:
     def request():
         return "hi"
@@ -9,47 +11,22 @@ def init_thrift_client():
 
 class Handler:
     def __init__(self):
-        pass
-
+        beldi = beldi_stub.Beldi()
+        
+        self.init_collection(beldi)
+        
     ###############################################################################
 
-    ## The following function implements the getter for collection
+    ## The initialization function for the collection that wraps it using Beldi
     # self.collection = [] # type: Persistent[list]
-    ##
-    ## TODO: It is infuiriatingly naive, since for every load(!) it calls beldi get.
-    ##       There needs to be some caching behavior here.
-    @property
-    def collection(self):
-        ret = beldi.get('collection')
-        return ret
-
-    ## TODO: Do we ever need to set for non-primitive types?
-    ##       This is something that we need to investigate. Changes in python
-    ##       happen most of the time when calling object methods, and not when setting.
-    ##       This means that we need to:
-    ##         1. Update Beldi 'collection' whenever a method on it is called.
-    ##         2. Develop concurrent versions of non-primitive data structures 
-    ##            that can be used in place of the normal ones.
-    ##         3. Update Beldi 'collection' in the end too.
-    @collection.setter
-    def collection(self, collection):
-        beldi.set('collection', collection)
-        ## TODO: For non-primitives we need to raise an exception when setting.
-        ##
-        ## It should be illegal. We should only allow setting through methods.
-
-    ## TODO: Think how we would wrap all accesses to the collection object through beldi.
-    ##       I don't think it can be done statically actually. It probably needs to be done
-    ##       dynamically.
-    ##
-    ## Sketch: In the initialization initialize the persistent object normally, 
-    ##         and then wrap it with a beldi object.
-    ##         Depending on what type the object is (primitive, stdlib, custom) do something
-    ##         different with the wrapping. 
+    def init_collection(self, beldi):
+            collection_key = "test-collection"
+            ## TODO: We might need to only pass the init_value if needed (so that we don't evaluate it unnecessarily).
+            collection_init_val = []
+            self.collection = wrappers.wrap_terminal(collection_key, collection_init_val, beldi)
 
     ###############################################################################
 
-    ## Note: Very easy for the compiler
     # self.counter = 0 # type: Persistent[int]
     @property
     def counter(self):
