@@ -28,8 +28,6 @@ from runtime import serde
 ##      d. Set the object to Beldi
 ##      e. Close the transaction
 ##
-## Q: What about the fields (non callable attributes)?
-##
 ## TODO: Investigate slots and descriptors
 class WrapperTerminal(object):
     '''
@@ -41,20 +39,25 @@ class WrapperTerminal(object):
     Taken from: https://code.activestate.com/recipes/577555-object-wrapper-class/
     '''
     ## TODO: Figure out if `beldi` is a shared or a Beldi client per object.
-    def __init__(self, obj, beldi):
+    def __init__(self, obj_key, init_val, beldi):
         '''
         Wrapper constructor.
-        @param obj: object to wrap
+        @param obj_key: the key of the object to wrap the accesses to
+        @param init_val: the initial value for the object (if it doesn't exist in Beldi)
         '''
-        ## Serialize the whole object
-        serialized_obj = serde.serialize(obj)
 
-        ## TODO: How to correctly get a key. Use the class name? Maybe the object hash?
-        ## TODO: `id()` is not correct since different objects might have the same
-        self._wrapper_obj_key = id(obj)
+        ## Save the key    
+        self._wrapper_obj_key = obj_key
 
-        beldi.set(self._wrapper_obj_key, serialized_obj)
+        ## TODO: Since Python is not lazy, the init_val is always evaluated and we might want to avoid that if it is a performance bottleneck.
 
+        ## Initialize the collection if it doesn't already exist in Beldi
+        if(not beldi.contains(self._wrapper_obj_key)):
+            ## Serialize the whole object (we do this here to avoid unneccessary overhead)
+            serialized_init_val = serde.serialize(init_val)
+            ## NOTE: We need to use set_if_not_exists to ensure atomicity
+            beldi.set_if_not_exists(self._wrapper_obj_key, serialized_init_val)
+    
         ## Store beldi client for later use
         self._wrapper_beldi = beldi
 
@@ -159,7 +162,6 @@ class WrapperTerminal(object):
 
         return wrapper
 
-    ## TODO: Implement __setattr__
     def __setattr__(self, attr: str, val) -> None:
         logging.debug("Set: " + attr)
         ## If it is a wrapper specific method
@@ -210,7 +212,8 @@ class WrapperTerminal(object):
         raise NotImplementedError
         
 
-def wrap_terminal(object, beldi):
-    wrapped_object = WrapperTerminal(object, beldi)
+## TODO: Rename this to Object Client/Interface since it doesn't actually wrap
+def wrap_terminal(object_key, object_init_val, beldi):
+    wrapped_object = WrapperTerminal(object_key, object_init_val, beldi)
     return wrapped_object
 

@@ -20,36 +20,39 @@ class Counter:
 def test_list():
     ## Initialize a beldi_stub instance
     beldi = beldi_stub.Beldi()
-    collection = []
+
+    ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
+    collection_key = "test-collection"
+    collection_init_val = []
+    collection = wrappers.wrap_terminal(collection_key, collection_init_val, beldi)
 
     # print(dir(collection))
-
-    wrapped_collection = wrappers.wrap_terminal(collection, beldi)
-
     
     # print(wrapped_collection.__repr__())
     # print(dir(wrapped_collection))
 
-    wrapped_collection.append(0)
+    collection.append(0)
 
-    assert wrapped_collection.index(0) == 0
+    assert collection.index(0) == 0
 
-    wrapped_collection.append(1)
-    assert wrapped_collection.index(0) == 0
-    assert wrapped_collection.index(1) == 1
+    collection.append(1)
+    assert collection.index(0) == 0
+    assert collection.index(1) == 1
 
-    el = wrapped_collection.pop()
+    el = collection.pop()
     assert el == 1
-    assert wrapped_collection.index(0) == 0
+    assert collection.index(0) == 0
 
-    el = wrapped_collection.pop()
+    el = collection.pop()
     assert el == 0
 
 def test_counter():
     beldi = beldi_stub.Beldi()
 
-    prewrapped_counter = Counter()
-    counter = wrappers.wrap_terminal(prewrapped_counter, beldi)
+    ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
+    counter_key = "test-counter"
+    counter_init_val = Counter()
+    counter = wrappers.wrap_terminal(counter_key, counter_init_val, beldi)
 
     assert counter.value == 0
     assert counter.get() == 0

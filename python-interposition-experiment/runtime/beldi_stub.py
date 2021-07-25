@@ -22,3 +22,12 @@ class Beldi:
     
     def set(self, key, value):
         self.store[key] = value
+    
+    def contains(self, key):
+        return key in self.store
+
+    def set_if_not_exists(self, key, value):
+        self.begin_tx()
+        if (not self.contains(key)):
+            self.set(key, value)
+        self.end_tx()
