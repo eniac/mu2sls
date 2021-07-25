@@ -2,7 +2,7 @@ import logging
 
 from runtime import wrappers, beldi_stub
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 class Counter:
     def __init__(self):
@@ -46,6 +46,14 @@ def test_list():
     el = collection.pop()
     assert el == 0
 
+    assert collection + [5] == [5]
+
+    collection += [5]
+    assert collection.index(0) == 5
+
+    el = collection.pop()
+    assert el == 5
+
 def test_counter():
     beldi = beldi_stub.Beldi()
 
@@ -72,6 +80,7 @@ def test_counter():
     assert counter.value == 4
     assert counter.get() == 4
 
+## TODO: For this test to pass, we need to wrap integers (and other primitives differently)
 def test_int_counter():
     beldi = beldi_stub.Beldi()
 
