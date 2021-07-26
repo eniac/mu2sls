@@ -73,6 +73,15 @@ class WrapperTerminal(object):
     def is_wrapper_attr(attr_name: str) -> bool:
         return attr_name.startswith("_wrapper_")
 
+    ## Replaces the value of the wrapped object (useful for assignments)
+    def _wrapper_set(self, new_value):
+        beldi = self._wrapper_beldi
+
+        ## Save the object
+        new_serialized_obj = serde.serialize(new_value)
+        beldi.set(self._wrapper_obj_key, new_serialized_obj)
+
+
     ## TODO: Do we need to reimplement all default functions?
     def __repr__(self) -> str:
         logging.debug("__repr__")

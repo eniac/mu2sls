@@ -366,7 +366,7 @@ __IDEA:__ Actually, we might be able to simply conservatively, add all special m
 
 Setting an object is kinda important. Especially for primitives. In order to do that, we need to wrap sets to the wrapped object.
 
-__TODO:__ Investigate whether descriptors can help with this. Fix sets to an object using descriptors.
+__Done:__ using descriptors. 
 
 
 

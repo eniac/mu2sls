@@ -1,8 +1,8 @@
 import logging
 
-from runtime import wrappers, beldi_stub
+from runtime import wrappers, beldi_stub, serde
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 class Counter:
     def __init__(self):
@@ -17,42 +17,70 @@ class Counter:
     def increment(self):
         self.value += 1
 
+class WrapperCollection:
+
+    def __get__(self, obj, objtype=None):
+        value = obj._wrapper_collection
+        logging.info('Accessing collection')
+        return value
+
+    def __set__(self, obj, value):
+        logging.info('Setting collection')
+        # print('Setting collection', obj.beldi.get('test-collection'), 'with value:',  value)
+        if(isinstance(value, wrappers.WrapperTerminal)):
+            obj._wrapper_collection = value
+        else:
+            logging.info('Collection %r with value: %r', serde.deserialize(obj.beldi.get('test-collection')), value)
+            obj._wrapper_collection._wrapper_set(value)
+        
+
 def test_list():
-    ## Initialize a beldi_stub instance
-    beldi = beldi_stub.Beldi()
 
-    ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
-    collection_key = "test-collection"
-    collection_init_val = []
-    collection = wrappers.wrap_terminal(collection_key, collection_init_val, beldi)
+    class TestObject:
+        collection = WrapperCollection()
+        def __init__(self):
 
-    # print(dir(collection))
-    
-    # print(wrapped_collection.__repr__())
-    # print(dir(wrapped_collection))
+            ## Initialize a beldi_stub instance
+            self.beldi = beldi_stub.Beldi()
 
-    collection.append(0)
+            ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
+            collection_key = "test-collection"
+            collection_init_val = []
+            self.collection = wrappers.wrap_terminal(collection_key, collection_init_val, self.beldi)
 
-    assert collection.index(0) == 0
+            # print(dir(collection))
+            
+            # print(wrapped_collection.__repr__())
+            # print(dir(wrapped_collection))
 
-    collection.append(1)
-    assert collection.index(0) == 0
-    assert collection.index(1) == 1
+            self.collection.append(0)
 
-    el = collection.pop()
-    assert el == 1
-    assert collection.index(0) == 0
+            assert self.collection.index(0) == 0
 
-    el = collection.pop()
-    assert el == 0
+            self.collection.append(1)
+            assert self.collection.index(0) == 0
+            assert self.collection.index(1) == 1
 
-    assert collection + [5] == [5]
+            el = self.collection.pop()
+            assert el == 1
+            assert self.collection.index(0) == 0
 
-    collection += [5]
-    assert collection.index(0) == 5
+            el = self.collection.pop()
+            assert el == 0
 
-    el = collection.pop()
-    assert el == 5
+            assert self.collection + [5] == [5]
+
+            self.collection = [1]
+            assert self.collection.index(1) == 0
+
+            self.collection += [5]
+            assert self.collection.index(1) == 0
+            assert self.collection.index(5) == 1
+
+            el = self.collection.pop()
+            assert el == 5
+    ## We need a TestObject to check descriptors (since all execution will happen in a service anyway).    
+    _ = TestObject()
 
 def test_counter():
     beldi = beldi_stub.Beldi()
