@@ -378,7 +378,18 @@ __Alternatives:__
 
 ## Related Work <a name="related-work"></a>
 
-This section contains pointers and references to related papers and software so that we don't forget it:
+This section first contains a discussion of the serverless domain particularities, as well as pointers and references to related papers and software so that we don't forget it:
+
+### Particularities of serverless
+
+Here we briefly enumerate the particular characteristics that make the serverless domain different than standard traditional distributed systems.
+
+1. In the serverless domain there is no relation between the host and the function invocation, namely the user does not have any control over the host that the invocation is executed. This disallows the development of protocols such as consensus since there is a requirement to know the hosts.
+2. Serverless function invocations are particularly volatile and they are only guaranteed to execute at-least-once, possibly failing in the middle. This requires stronger than usual state backends since they need to be "idempotent" (whatever that means).
+3. Serverless scales faster and to higher levels (e.g., lambda up to 1000 concurrent invocations), which means that contention becomes a serious issue.
+4. Serverless functions usually execute with a time limit. Systems like Kappa and gg try to tackle that.
+
+### Related Papers
 
 - [Boki](NOT YET OUT): A serverless runtime that exports a shared log to functions. 
   + This log can be used to get durability, fault-tolerance for the application state without sacrificing performance. Durable objects and workflows can be implemented on top of it.
