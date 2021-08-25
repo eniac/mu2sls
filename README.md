@@ -385,7 +385,7 @@ This section first contains a discussion of the serverless domain particularitie
 Here we briefly enumerate the particular characteristics that make the serverless domain different than standard traditional distributed systems.
 
 1. In the serverless domain there is no relation between the host and the function invocation, namely the user does not have any control over the host that the invocation is executed. This disallows the development of protocols such as consensus since there is a requirement to know the hosts.
-2. Serverless function invocations are particularly volatile and they are only guaranteed to execute at-least-once, possibly failing in the middle. This requires stronger than usual state backends since they need to be "idempotent" (whatever that means).
+2. Serverless function invocations are particularly volatile and they are only guaranteed to execute at-least-once, possibly failing in the middle. This requires stronger than usual state backends since they need to be "idempotent" (whatever that means). Usual distributed systems need to be fault-tolerant (the backend needs to not return trash when one of its nodes fails) but it doesn't need to take care about the faults of the client code.
 3. Serverless scales faster and to higher levels (e.g., lambda up to 1000 concurrent invocations), which means that contention becomes a serious issue.
 4. Serverless functions usually execute with a time limit. Systems like Kappa and gg try to tackle that.
 
