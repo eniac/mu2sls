@@ -380,6 +380,13 @@ __Alternatives:__
 
 This section contains pointers and references to related papers and software so that we don't forget it:
 
+- [Boki](NOT YET OUT): A serverless runtime that exports a shared log to functions. 
+  + This log can be used to get durability, fault-tolerance for the application state without sacrificing performance. Durable objects and workflows can be implemented on top of it.
+  + __Difference__ This paper focuses on providing a low level efficient primitive to applications, and not on a high-level interface for writing serverless programs. Users still have to implement their application using the Boki libraries. 
+  + __Q:__ How does this differ from Badrish's work and FASTER?
+  + __Q:__ Can all data structures with strong guarantees be implemented on top of a log?
+  + __Possible Backend__ -- Especially since it builds on top of Nightcore. 
+
 - [Photons](https://dl.acm.org/doi/10.1145/3419111.3421297): A framework that invokes serverless functions in the same runtime to improve performance and allow for state and data sharing.
   + This is very close to our work and we might need to compare with it. It is not clear if they provide automation with respect to compilation or whether they require the programmers to reimplement their applications.
   + __Difference:__ Their work provides abstractions to developers for sharing state, while we will do that automatically. Also they assume their code is initially already in serverless, and therefore can provide small automation to isolate accesses to globals, but that's it.
