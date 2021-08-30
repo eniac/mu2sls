@@ -35,7 +35,7 @@ class ServiceClassFinder(ast.NodeVisitor):
         # print(node.name)
         # print(node.decorator_list)
         if(ServiceClassFinder.is_service_class(node)):
-            print("Service:", node.name)
+            logging.debug("Service: " + node.name)
             self.services.append(node)
 
         ## Necessary to visit all the children 
@@ -140,7 +140,9 @@ def find_methods(service_ast):
 def parse_service(service_raw):
     service_state = find_service_state(service_raw)
     methods = find_methods(service_raw)
-    return Service(service_state, methods)
+    return Service(state=service_state, 
+                   methods=methods,
+                   service_ast=service_raw)
 
 def parse_services(ast_node):
     all_services_raw = find_services(ast_node)

@@ -33,13 +33,19 @@ test_ast = ast.parse(test_source,
 
 
 ## Parse the AST to acquire the services and their states.
-service_states = frontend.parse_services(test_ast)
-for service_state in service_states:
-    print("Service State:", service_state)
+services = frontend.parse_services(test_ast)
+# for service in services:
+#     print("Service:", service)
 
+
+## TODO: This is only a surface level restriction
+assert(len(services) == 1)
+service = services[0]
+
+target_ast = backend.service_to_ast(service)
 
 ## I don't think we need this object.
-_decompiled = backend.ast_to_source(test_ast, out_file)
+_decompiled = backend.ast_to_source(target_ast, out_file)
 
 
 ## TODO: Start with a rudimentary backend that simply prints back the code, making sure that initializations happens in the beginning.

@@ -38,15 +38,36 @@ class ServiceState:
             assert(False)
 
 class Service:
-    def __init__(self, state: ServiceState, methods):
+    def __init__(self, state: ServiceState, methods, service_ast: ast.ClassDef):
         self.state = state
         self.methods = methods
+        self.service_ast = service_ast
+
+        ## TODO: Lift these assumptions
+        assert(len(service_ast.keywords) == 0)
+        assert(len(service_ast.keywords) == 0)
     
+    def name(self):
+        return self.service_ast.name
+    
+    def bases(self):
+        return self.service_ast.bases
+
+    def keywords(self):
+        assert(len(self.service_ast.keywords) == 0)
+        return self.service_ast.keywords
+
+    ## Maybe we need to remove the service decorator
+    def decorator_list(self):
+        return self.service_ast.decorator_list
+
     def __repr__(self):
-        out = self.state.__repr__() + '\n'
+        out = "Service: " + self.name() + '\n'
+        out += self.state.__repr__() + '\n'
         out += 'Service Methods:\n'
         for method in self.methods:
             # print("Method: " + method)
             # out += ast.dump(method) + '\n'
             out += '|-- ' + method.name + '\n'
         return out
+    
