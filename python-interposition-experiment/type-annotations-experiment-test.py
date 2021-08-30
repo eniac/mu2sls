@@ -33,11 +33,6 @@ class Handler:
     ## Decision: Either do annotations in type comments, or in a function or field of the handler that contains
     ##           the external call names, and the persistent field names.
 
-    ## Investigate doing that with property
-    def collection(self):
-        ret = beldi.read('collection')
-        return ret
-
     def ComposeUrls(self, req_id, urls, carrier):
         logging.debug("Processing request: " + str(req_id))
         self.counter += 1

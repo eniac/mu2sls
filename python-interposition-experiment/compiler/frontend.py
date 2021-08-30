@@ -1,7 +1,7 @@
 import ast
 import logging
 
-from compiler.service import ServiceState
+from compiler.service import Service, ServiceState
 
 ## TODO: Maybe move all the static methods to an ast_util file
 
@@ -114,8 +114,36 @@ def find_service_state(service_ast):
     service_state = field_finder.service_state
     return service_state
 
+## A class that finds all the methods of a service object
+##
+## Assumption: __init__ does not contain any useful code
+class MethodFinder(ast.NodeVisitor):
+    def __init__(self):
+        ## Contains the state of a service, namely its persistent and non-persistent fields,
+        ## as well as its thrift clients (which are also non-persistent fields).
+        self.methods = []
+
+    ## This function finds the __init__ and then searches for all field initializations in it.
+    def visit_FunctionDef(self, node: ast.FunctionDef):
+        ## ASSUMPTION: __init__ doesn't contain any useful code except for objects
+        if(node.name != '__init__'):
+            logging.debug("Function init: " + node.name)
+            self.methods.append(node)
+
+def find_methods(service_ast):
+    finder = MethodFinder()
+    finder.visit(service_ast)
+    methods = finder.methods
+    return methods
+
+
+def parse_service(service_raw):
+    service_state = find_service_state(service_raw)
+    methods = find_methods(service_raw)
+    return Service(service_state, methods)
+
 def parse_services(ast_node):
-    all_services = find_services(ast_node)
-    all_service_states = [find_service_state(service) for service in all_services]
-    return all_service_states
+    all_services_raw = find_services(ast_node)
+    all_services = [parse_service(service) for service in all_services_raw]
+    return all_services
 

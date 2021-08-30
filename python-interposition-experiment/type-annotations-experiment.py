@@ -42,22 +42,6 @@ for service_state in service_states:
 _decompiled = backend.ast_to_source(test_ast, out_file)
 
 
-## Initialize a beldi_stub instance
-beldi = beldi_stub.Beldi()
-collection = []
-
-print(dir(collection))
-
-wrapped_collection = wrappers.wrap_terminal(collection, beldi)
-
-
-
-print(wrapped_collection.__repr__())
-print(dir(wrapped_collection))
-
-wrapped_collection.append(0)
-print(wrapped_collection.pop())
-
 ## TODO: Start with a rudimentary backend that simply prints back the code, making sure that initializations happens in the beginning.
 
 ## TODO: Make a trivial extension where accesses to the persistent fields go through getters and setters. Test it.
