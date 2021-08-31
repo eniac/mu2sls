@@ -34,8 +34,11 @@ def extract_single_stmt_from_module(module_ast: ast.Module):
     assert(len(module_ast.body) == 1)
     return module_ast.body[0]
 
-def descriptor_class_name(field_name: str):
+def descriptor_class_name(field_name: str) -> str:
     return "Wrapper" + field_name
+
+def field_store_key_name(field_name: str) -> str:
+    return "test-" + field_name
 
 def construct_descriptor_ast(field_name: str):
     descriptor_module_ast = ast.parse("class " + descriptor_class_name(field_name) + ":" """
@@ -68,8 +71,6 @@ def persistent_object_target_init_ast(persistent_object_name, _persistent_object
 def service_to_ast(service: Service):
     print(service)
 
-    ## TODO: Make sure to fix locations
-
     ## TODO: For now only work for persistent fields and thrift
     persistent_objects = service.state.persistent_fields
     assignments = []
@@ -83,6 +84,8 @@ def service_to_ast(service: Service):
         assignments += [descriptor_ast, target_ast]
 
     ## TODO: Do something about thrift
+
+    ## TODO: Create an init function that initializes beldi and all the objects
     
     body = assignments + service.methods
     
