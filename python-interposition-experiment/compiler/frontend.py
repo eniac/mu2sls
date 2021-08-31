@@ -30,6 +30,12 @@ class ServiceClassFinder(ast.NodeVisitor):
         return any([ServiceClassFinder._is_service_decorator(decorator) 
                     for decorator in decorators])
     
+    @staticmethod
+    def is_service_class_with_name(node, service_name: str):
+        if ServiceClassFinder.is_service_class(node):
+            # print(ast.dump(node))
+            return node.name == service_name
+    
     ## Override the FunctionDef visitor
     def visit_ClassDef(self, node):
         # print(node.name)
@@ -40,6 +46,23 @@ class ServiceClassFinder(ast.NodeVisitor):
 
         ## Necessary to visit all the children 
         self.generic_visit(node)
+
+## This class replaces a service in a module with the compiled service
+class ServiceClassReplacer(ast.NodeTransformer):
+    def __init__(self, service_name: str, compiled_service_ast: ast.AST):
+        self.service_name = service_name
+        self.compiled_service_ast = compiled_service_ast
+    
+    ## TODO: At the moment this only works for a single service that is at the top level
+    def visit_ClassDef(self, node: ast.ClassDef):
+        # print(node.name)
+        # print(node.decorator_list)
+        if(ServiceClassFinder.is_service_class_with_name(node, self.service_name)):
+            logging.debug("Service: " + node.name)
+            return self.compiled_service_ast
+
+        ## Necessary to visit all the children 
+        return node
 
 ## Find all service definitions in the source file.
 ##

@@ -19,6 +19,10 @@ def compile_service_module(in_file: str, out_file: str):
     assert(len(services) == 1)
     service = services[0]
 
-    target_ast = backend.service_to_ast(service)
+    target_service_ast = backend.service_to_ast(service)
 
-    _decompiled = backend.ast_to_source(target_ast, out_file)
+    ## Replace the service in the original module ast
+    replacer = frontend.ServiceClassReplacer(service.name, target_service_ast)
+    final_ast = replacer.visit(test_ast)
+
+    _decompiled = backend.ast_to_source(final_ast, out_file)
