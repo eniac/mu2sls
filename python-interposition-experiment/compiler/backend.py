@@ -30,8 +30,15 @@ def ast_to_source(ast_node, out_file):
     return decompiled_code
 
 ## TODO: Make that more principled. What is the most principled way to generate this code?
-def construct_descriptor_ast(field_name):
-    descriptor_module_ast = ast.parse("class Wrapper" + field_name + ":" """
+def extract_single_stmt_from_module(module_ast: ast.Module):
+    assert(len(module_ast.body) == 1)
+    return module_ast.body[0]
+
+def descriptor_class_name(field_name: str):
+    return "Wrapper" + field_name
+
+def construct_descriptor_ast(field_name: str):
+    descriptor_module_ast = ast.parse("class " + descriptor_class_name(field_name) + ":" """
         def __get__(self, obj, objtype=None):
             value = obj._wrapper_""" + field_name + """
             return value
@@ -41,13 +48,18 @@ def construct_descriptor_ast(field_name):
                 obj._wrapper_""" + field_name + """ = value
             else:
                 obj._wrapper_""" + field_name + """._wrapper_set(value)""")
-    assert(len(descriptor_module_ast.body) == 1)
-    descriptor_ast = descriptor_module_ast.body[0]
-    return descriptor_ast
-    
+    return extract_single_stmt_from_module(descriptor_module_ast)
+
+def descriptor_init_value_ast(field_name: str):
+    init_val_ast = ast.Call(func=ast.Name(id=descriptor_class_name(field_name),
+                                          ctx=ast.Load()),
+                            args=[],
+                            keywords=[])
+    return init_val_ast
+
 def persistent_object_target_init_ast(persistent_object_name, _persistent_object_init_ast):
     ## TODO: Replace that with the proper descriptor initialization value
-    value = ast.Constant(value=1)
+    value = descriptor_init_value_ast(persistent_object_name)
     assign_node = ast.Assign(targets=[ast.Name(id=persistent_object_name, ctx=ast.Store())],
                              value=value)
     return assign_node
@@ -70,8 +82,6 @@ def service_to_ast(service: Service):
         target_ast = persistent_object_target_init_ast(per_obj_name, per_obj_init_ast)
         assignments += [descriptor_ast, target_ast]
 
-    ## TODO: Fix the assignment value to be correct
-    ## TODO: Add a decorator object for each persistent object
     ## TODO: Do something about thrift
     
     body = assignments + service.methods
