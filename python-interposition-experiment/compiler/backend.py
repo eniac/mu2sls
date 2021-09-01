@@ -43,14 +43,14 @@ def field_store_key_name(field_name: str) -> str:
 def construct_descriptor_ast(field_name: str):
     descriptor_module_ast = ast.parse("class " + descriptor_class_name(field_name) + ":" """
         def __get__(self, obj, objtype=None):
-            logging.info('Accessing collection')
+            # logging.info('Accessing collection')
             value = obj._wrapper_""" + field_name + """
             return value
 
         def __set__(self, obj, value):
-            logging.info('Setting collection')
+            # logging.info('Setting collection')
             if(isinstance(value, wrappers.WrapperTerminal)):
-                logging.info('Collection initialized')
+                # logging.info('Collection initialized')
                 obj._wrapper_""" + field_name + """ = value
             else:
                 obj._wrapper_""" + field_name + """._wrapper_set(value)""")
@@ -86,7 +86,7 @@ def construct_init_method_persistent_object_ast(per_obj_name: str, per_obj_init_
                         value=ast.Call(func=ast.Attribute(value=ast.Name(id='wrappers', ctx=ast.Load()), attr='wrap_terminal', ctx=ast.Load()), 
                                        args=[ast.Name(id=beldi_key_var_name, ctx=ast.Load()), 
                                              ast.Name(id=init_val_var_name, ctx=ast.Load()),
-                                             ast.Attribute(value=ast.Name(id='self', ctx=ast.Load()), attr='beldi', ctx=ast.Load())],
+                                             ast.Name(id="beldi", ctx=ast.Load())],
                                        keywords=[]), 
                         type_comment=None)
 
