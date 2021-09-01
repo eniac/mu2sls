@@ -125,7 +125,7 @@ class StateFinder(ast.NodeVisitor):
         assert(StateFinder.is_self_name(target.value))
         field_name = target.attr
         logging.debug("Field name: " + field_name)
-        init_ast = target.value
+        init_ast = node.value
         logging.debug("Init AST: " + ast.dump(init_ast))
         self.service_state.add_field(field_name, init_ast, node.type_comment)
 
