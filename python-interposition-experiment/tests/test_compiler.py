@@ -1,11 +1,12 @@
 import importlib
+import logging
 import os
 import sys
 
 from compiler import compiler
 
 def test_compiler_list_service():
-
+    logging.basicConfig(level=logging.DEBUG)
     test_source_file = "tests/source_specs/list-service.py"
     out_dir = "target"
     out_file = os.path.join(out_dir, "test_list.py")
