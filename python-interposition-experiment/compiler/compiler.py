@@ -23,6 +23,11 @@ def compile_service_module(in_file: str, out_file: str):
 
     ## Replace the service in the original module ast
     replacer = frontend.ServiceClassReplacer(service.name(), target_service_ast)
-    final_ast = replacer.visit(test_ast)
+    replaced_ast = replacer.visit(test_ast)
 
-    _decompiled = backend.ast_to_source(final_ast, out_file)
+    # Add imports
+    import_adder = backend.AddImports()
+    final_ast = import_adder.visit(test_ast)
+    fixed_lines_final_ast = ast.fix_missing_locations(final_ast)
+
+    _decompiled = backend.ast_to_source(fixed_lines_final_ast, out_file)

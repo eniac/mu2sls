@@ -148,3 +148,19 @@ def service_to_ast(service: Service):
     fixed_lines_class = ast.fix_missing_locations(new_class)
     return fixed_lines_class
 
+
+## This class adds the necessary imports to the final module
+class AddImports(ast.NodeTransformer):
+    def __init__(self):
+        self.modules = 0
+
+    ## TODO: At the moment this only works for a single module that is at the top level
+    def visit_Module(self, node: ast.Module):
+        ## TODO: Do we need this assumption that there is only one module?
+        assert(self.modules == 0)
+
+        import_stmt = ast.ImportFrom(module='runtime', names=[ast.alias(name='wrappers', asname=None), ast.alias(name='beldi_stub', asname=None)], level=0)
+        node.body = [import_stmt] + node.body
+
+        self.modules += 1
+        return node
