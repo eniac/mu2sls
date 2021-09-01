@@ -96,10 +96,6 @@ def service_to_ast(service: Service):
                              decorator_list=service.decorator_list())
     
     # print(ast.dump(new_class))  
-
-    ## TODO: Instead of creating a module from scratch, we better just transform it, so that we can at least keep all the rest of the code intact.
-    new_module = ast.Module(body=[new_class],
-                            type_ignores=[])
-    fixed_lines_module = ast.fix_missing_locations(new_module)
-    return fixed_lines_module
+    fixed_lines_class = ast.fix_missing_locations(new_class)
+    return fixed_lines_class
 
