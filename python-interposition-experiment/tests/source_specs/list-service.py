@@ -34,3 +34,4 @@ class Service:
         el = self.collection.pop()
         assert el == 5
 
+        # assert(False)
