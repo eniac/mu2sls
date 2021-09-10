@@ -45,7 +45,6 @@ class Service:
 
         ## TODO: Lift these assumptions
         assert(len(service_ast.keywords) == 0)
-        assert(len(service_ast.keywords) == 0)
     
     def name(self):
         return self.service_ast.name

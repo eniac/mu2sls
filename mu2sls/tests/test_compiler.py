@@ -16,7 +16,7 @@ def test_compiler_list_service():
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    compiler.compile_service_module(test_source_file, out_file)
+    compiler.compile_single_method_service_module(test_source_file, out_file)
 
     ## Add the output dir to the system path
     sys.path.append(out_dir)

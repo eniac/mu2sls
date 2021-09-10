@@ -44,7 +44,7 @@ def main():
 
     set_logging_level(args)
 
-    compiler.compile_service_module(source_file, out_file, args.sls_backend)
+    compiler.compile_single_method_service_module(source_file, out_file, args.sls_backend)
 
 if __name__ == "__main__":
     main()
