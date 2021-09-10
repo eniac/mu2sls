@@ -3,7 +3,7 @@ import ast
 from compiler import frontend, backend
 
 ## This function compiles a python module containing the definition of a service
-def compile_service_module(in_file: str, out_file: str):
+def compile_service_module(in_file: str, out_file: str, sls_backend: str):
      ## Read the input file and parse it
     with open(in_file) as f:
         test_source = f.read()
@@ -19,6 +19,8 @@ def compile_service_module(in_file: str, out_file: str):
     assert(len(services) == 1)
     service = services[0]
 
+    ## TODO: Potentially extend this
+    assert(sls_backend == 'openfaas')
     target_service_ast = backend.service_to_ast(service)
 
     ## Replace the service in the original module ast

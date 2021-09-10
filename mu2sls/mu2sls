@@ -42,10 +42,9 @@ def main():
     source_file = args.input
     out_file = args.output
 
-    ## TODO: Do something with the -s and -l args
     set_logging_level(args)
 
-    compiler.compile_service_module(source_file, out_file)
+    compiler.compile_service_module(source_file, out_file, args.sls_backend)
 
 if __name__ == "__main__":
     main()
