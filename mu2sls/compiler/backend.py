@@ -1,4 +1,5 @@
-import sys
+import logging
+logger = logging.getLogger(__name__)
 
 from compiler.service import Service
 
@@ -115,7 +116,7 @@ def construct_init_method_ast(persistent_objects):
 
 ## TODO: Not sure if this should be a method of Service or a function here
 def service_to_ast(service: Service):
-    print(service)
+    logger.info(str(service))
 
     ## TODO: For now only work for persistent fields and thrift
     persistent_objects = service.state.persistent_fields

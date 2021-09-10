@@ -26,6 +26,16 @@ def parse_args():
     logging.debug("-" * 40)
     return args
 
+def set_logging_level(args):
+    logger = logging.getLogger()
+    if args.log_level == 'debug':
+        logger.setLevel(logging.DEBUG)
+    elif args.log_level == 'info':
+        logger.setLevel(logging.INFO)
+    elif args.log_level == 'warn':
+        logger.setLevel(logging.WARN)
+    elif args.log_level == 'error':
+        logger.setLevel(logging.ERROR)
 
 def main():
     args = parse_args()
@@ -33,6 +43,7 @@ def main():
     out_file = args.output
 
     ## TODO: Do something with the -s and -l args
+    set_logging_level(args)
 
     compiler.compile_service_module(source_file, out_file)
 
