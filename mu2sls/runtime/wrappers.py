@@ -39,7 +39,7 @@ class WrapperTerminal(object):
     Taken from: https://code.activestate.com/recipes/577555-object-wrapper-class/
     '''
     ## TODO: Figure out if `beldi` is a shared or a Beldi client per object.
-    def __init__(self, obj_key, init_val, beldi):
+    def __init__(self, obj_key, init_val, store):
         '''
         Wrapper constructor.
         @param obj_key: the key of the object to wrap the accesses to
@@ -52,14 +52,14 @@ class WrapperTerminal(object):
         ## TODO: Since Python is not lazy, the init_val is always evaluated and we might want to avoid that if it is a performance bottleneck.
 
         ## Initialize the collection if it doesn't already exist in Beldi
-        if(not beldi.contains(self._wrapper_obj_key)):
+        if(not store.contains(self._wrapper_obj_key)):
             ## Serialize the whole object (we do this here to avoid unneccessary overhead)
             serialized_init_val = serde.serialize(init_val)
             ## NOTE: We need to use set_if_not_exists to ensure atomicity
-            beldi.set_if_not_exists(self._wrapper_obj_key, serialized_init_val)
+            store.set_if_not_exists(self._wrapper_obj_key, serialized_init_val)
     
         ## Store beldi client for later use
-        self._wrapper_beldi = beldi
+        self._wrapper_store = store
 
         ## Keep the init_value around, to use it to check the dir for special methods and so on.
         self._wrapper_init_value = init_val
@@ -75,20 +75,20 @@ class WrapperTerminal(object):
 
     ## Replaces the value of the wrapped object (useful for assignments)
     def _wrapper_set(self, new_value):
-        beldi = self._wrapper_beldi
+        store = self._wrapper_store
 
         ## Save the object
         new_serialized_obj = serde.serialize(new_value)
-        beldi.set(self._wrapper_obj_key, new_serialized_obj)
+        store.eos_write(self._wrapper_obj_key, new_serialized_obj)
 
 
     ## TODO: Do we need to reimplement all default functions?
     def __repr__(self) -> str:
         logging.debug("__repr__")
-        beldi = self._wrapper_beldi
+        store = self._wrapper_store
 
         ## Get the object from Beldi. This should never fail
-        serialized_obj = beldi.get(self._wrapper_obj_key)
+        serialized_obj = store.eos_read(self._wrapper_obj_key)
 
         ## Deserialize the object
         obj = serde.deserialize(serialized_obj)
@@ -111,10 +111,10 @@ class WrapperTerminal(object):
         
         
         ## In this case the attribute is part of the original object and therefore we need to access it through Beldi.
-        beldi = self._wrapper_beldi
+        store = self._wrapper_store
 
         ## Get the object from Beldi. This should never fail
-        serialized_obj = beldi.get(self._wrapper_obj_key)
+        serialized_obj = store.eos_read(self._wrapper_obj_key)
 
         ## Deserialize the object
         obj = serde.deserialize(serialized_obj)
@@ -147,15 +147,15 @@ class WrapperTerminal(object):
         ## The actual _callable is dropped.
         ## TODO: Is that fine? 
         def wrapper(*args, **kwargs):
-            beldi = self._wrapper_beldi
+            store = self._wrapper_store
 
             ## TODO: Do we actually need the transaction here?
             ##
             ## I think we do because we perform a `get` and `set`
-            beldi.begin_tx()
+            store.begin_tx()
 
             ## Get the object and deserialize it
-            serialized_obj = beldi.get(self._wrapper_obj_key)
+            serialized_obj = store.eos_read(self._wrapper_obj_key)
             obj = serde.deserialize(serialized_obj)
 
             ## Call the method
@@ -167,9 +167,9 @@ class WrapperTerminal(object):
             
             ## Update the object in Beldi
             new_serialized_obj = serde.serialize(obj)
-            beldi.set(self._wrapper_obj_key, new_serialized_obj)
+            store.eos_write(self._wrapper_obj_key, new_serialized_obj)
 
-            beldi.end_tx()
+            store.end_tx()
             return ret
 
         return wrapper
@@ -183,14 +183,14 @@ class WrapperTerminal(object):
             # return setattr(self, attr, val)
 
         ## In this case the attribute is part of the original object and therefore we need to access it through Beldi.
-        beldi = self._wrapper_beldi
+        store = self._wrapper_store
 
-        beldi.begin_tx()
+        store.begin_tx()
 
         ## TODO: Can we optimize away this get and deserialize?
         ##
         ## Get the object from Beldi. This should never fail
-        serialized_obj = beldi.get(self._wrapper_obj_key)
+        serialized_obj = store.eos_read(self._wrapper_obj_key)
         ## Deserialize the object
         obj = serde.deserialize(serialized_obj)
 
@@ -206,9 +206,9 @@ class WrapperTerminal(object):
 
         ## Resave the object
         new_serialized_obj = serde.serialize(obj)
-        beldi.set(self._wrapper_obj_key, new_serialized_obj)
+        store.eos_write(self._wrapper_obj_key, new_serialized_obj)
 
-        beldi.end_tx()
+        store.end_tx()
 
         return ret
 
@@ -237,12 +237,12 @@ class WrapperTerminal(object):
             raise TypeError()
         
         ## In this case the special method is part of the original object and therefore we need to access it through Beldi.
-        beldi = self._wrapper_beldi
+        store = self._wrapper_store
 
-        beldi.begin_tx()
+        store.begin_tx()
 
         ## Get the object from Beldi. This should never fail
-        serialized_obj = beldi.get(self._wrapper_obj_key)
+        serialized_obj = store.eos_read(self._wrapper_obj_key)
 
         ## Deserialize the object
         obj = serde.deserialize(serialized_obj)
@@ -251,9 +251,9 @@ class WrapperTerminal(object):
         ret_value = obj.__add__(other)
 
         new_serialized_obj = serde.serialize(obj)
-        beldi.set(self._wrapper_obj_key, new_serialized_obj)
+        store.eos_write(self._wrapper_obj_key, new_serialized_obj)
 
-        beldi.end_tx()
+        store.end_tx()
 
         return ret_value
         
@@ -263,12 +263,12 @@ class WrapperTerminal(object):
             raise TypeError()
         
         ## In this case the special method is part of the original object and therefore we need to access it through Beldi.
-        beldi = self._wrapper_beldi
+        store = self._wrapper_store
 
-        beldi.begin_tx()
+        store.begin_tx()
 
         ## Get the object from Beldi. This should never fail
-        serialized_obj = beldi.get(self._wrapper_obj_key)
+        serialized_obj = store.eos_read(self._wrapper_obj_key)
 
         ## Deserialize the object
         obj = serde.deserialize(serialized_obj)
@@ -277,14 +277,14 @@ class WrapperTerminal(object):
         ret_value = obj.__eq__(other)
 
         new_serialized_obj = serde.serialize(obj)
-        beldi.set(self._wrapper_obj_key, new_serialized_obj)
+        store.eos_write(self._wrapper_obj_key, new_serialized_obj)
 
-        beldi.end_tx()
+        store.end_tx()
 
         return ret_value
 
 ## TODO: Rename this to Object Client/Interface since it doesn't actually wrap
-def wrap_terminal(object_key, object_init_val, beldi):
-    wrapped_object = WrapperTerminal(object_key, object_init_val, beldi)
+def wrap_terminal(object_key, object_init_val, store):
+    wrapped_object = WrapperTerminal(object_key, object_init_val, store)
     return wrapped_object
 

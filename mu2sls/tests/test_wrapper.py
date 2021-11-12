@@ -1,6 +1,6 @@
 import logging
 
-from runtime import wrappers, beldi_stub, serde
+from runtime import wrappers, store_stub, serde
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -31,11 +31,11 @@ def test_list():
 
         def __set__(self, obj, value):
             logging.info('Setting collection')
-            # print('Setting collection', obj.beldi.get('test-collection'), 'with value:',  value)
+            # print('Setting collection', obj.beldi.eos_read('test-collection'), 'with value:',  value)
             if(isinstance(value, wrappers.WrapperTerminal)):
                 obj._wrapper_collection = value
             else:
-                logging.info('Collection %r with value: %r', serde.deserialize(obj.beldi.get('test-collection')), value)
+                logging.info('Collection %r with value: %r', serde.deserialize(obj.store.eos_read('test-collection')), value)
                 obj._wrapper_collection._wrapper_set(value)
 
     class TestObject:
@@ -43,12 +43,13 @@ def test_list():
         def __init__(self):
 
             ## Initialize a beldi_stub instance
-            self.beldi = beldi_stub.Beldi()
+            self.store = store_stub.Store()
+            self.store.init_env()
 
             ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
             collection_key = "test-collection"
             collection_init_val = []
-            self.collection = wrappers.wrap_terminal(collection_key, collection_init_val, self.beldi)
+            self.collection = wrappers.wrap_terminal(collection_key, collection_init_val, self.store)
 
             # print(dir(collection))
             
@@ -100,18 +101,19 @@ def test_counter():
             if(isinstance(value, wrappers.WrapperTerminal)):
                 obj._wrapper_counter = value
             else:
-                logging.info('counter %r with value: %r', serde.deserialize(obj.beldi.get(counter_key)), value)
+                logging.info('counter %r with value: %r', serde.deserialize(obj.store.eos_read(counter_key)), value)
                 obj._wrapper_counter._wrapper_set(value)
 
     class TestObject:
         counter = WrapperCounter()
         def __init__(self):
-            beldi = beldi_stub.Beldi()
+            store = store_stub.Store()
+            store.init_env()
 
             ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
             
             counter_init_val = Counter()
-            counter = wrappers.wrap_terminal(counter_key, counter_init_val, beldi)
+            counter = wrappers.wrap_terminal(counter_key, counter_init_val, store)
 
             assert counter.value == 0
             assert counter.get() == 0
@@ -152,17 +154,18 @@ def test_int_counter():
             if(isinstance(value, wrappers.WrapperTerminal)):
                 obj._wrapper_counter = value
             else:
-                logging.info('counter %r with value: %r', serde.deserialize(obj.beldi.get(counter_key)), value)
+                logging.info('counter %r with value: %r', serde.deserialize(obj.store.eos_read(counter_key)), value)
                 obj._wrapper_counter._wrapper_set(value)
 
     class TestObject:
         counter = WrapperCounter()
         def __init__(self):
-            beldi = beldi_stub.Beldi()
+            store = store_stub.Store()
+            store.init_env()
 
             ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
             counter_init_val = 0
-            counter = wrappers.wrap_terminal(counter_key, counter_init_val, beldi)
+            counter = wrappers.wrap_terminal(counter_key, counter_init_val, store)
 
             # print(counter + 1)
             

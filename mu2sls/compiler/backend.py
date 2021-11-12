@@ -7,6 +7,8 @@ import ast
 
 from uncompyle6.main import decompile
 
+STORE_FIELD_NAME="store"
+
 ## TODO: Check ast.unparse in python 3.9
 ##
 ## This function takes an AST and saves python_source code in the out_file
@@ -87,7 +89,7 @@ def construct_init_method_persistent_object_ast(per_obj_name: str, per_obj_init_
                         value=ast.Call(func=ast.Attribute(value=ast.Name(id='wrappers', ctx=ast.Load()), attr='wrap_terminal', ctx=ast.Load()), 
                                        args=[ast.Name(id=beldi_key_var_name, ctx=ast.Load()), 
                                              ast.Name(id=init_val_var_name, ctx=ast.Load()),
-                                             ast.Name(id="beldi", ctx=ast.Load())],
+                                             ast.Name(id=STORE_FIELD_NAME, ctx=ast.Load())],
                                        keywords=[]), 
                         type_comment=None)
 
@@ -97,7 +99,7 @@ def construct_init_method_ast(persistent_objects):
     body = []
 
     ## First initialize Beldi
-    beldi_ass_module_ast = ast.parse("beldi = beldi_stub.Beldi()")
+    beldi_ass_module_ast = ast.parse("store = store_stub.Store()")
     beldi_ass_ast = extract_single_stmt_from_module(beldi_ass_module_ast)
     body.append(beldi_ass_ast)
 
@@ -160,7 +162,7 @@ class AddImports(ast.NodeTransformer):
         ## TODO: Do we need this assumption that there is only one module?
         assert(self.modules == 0)
 
-        import_stmt = ast.ImportFrom(module='runtime', names=[ast.alias(name='wrappers', asname=None), ast.alias(name='beldi_stub', asname=None)], level=0)
+        import_stmt = ast.ImportFrom(module='runtime', names=[ast.alias(name='wrappers', asname=None), ast.alias(name='store_stub', asname=None)], level=0)
         node.body = [import_stmt] + node.body
 
         self.modules += 1
