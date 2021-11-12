@@ -98,8 +98,8 @@ def construct_init_method_persistent_object_ast(per_obj_name: str, per_obj_init_
 def construct_init_method_ast(persistent_objects):
     body = []
 
-    ## First initialize Beldi
-    beldi_ass_module_ast = ast.parse("store = store_stub.Store()")
+    # First initialize Beldi's environment
+    beldi_ass_module_ast = ast.parse("store.init_env()")
     beldi_ass_ast = extract_single_stmt_from_module(beldi_ass_module_ast)
     body.append(beldi_ass_ast)
 
@@ -110,7 +110,8 @@ def construct_init_method_ast(persistent_objects):
     ## Create the function
     function_ast = ast.FunctionDef(name='__init__', 
                                    args=ast.arguments(posonlyargs=[], 
-                                                      args=[ast.arg(arg='self', annotation=None, type_comment=None)], 
+                                                      args=[ast.arg(arg='self', annotation=None, type_comment=None),
+                                                            ast.arg(arg='store', annotation=None, type_comment=None)], 
                                                       vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]), 
                                    body=body, 
                                    decorator_list=[], returns=None, type_comment=None)
@@ -162,7 +163,7 @@ class AddImports(ast.NodeTransformer):
         ## TODO: Do we need this assumption that there is only one module?
         assert(self.modules == 0)
 
-        import_stmt = ast.ImportFrom(module='runtime', names=[ast.alias(name='wrappers', asname=None), ast.alias(name='store_stub', asname=None)], level=0)
+        import_stmt = ast.ImportFrom(module='runtime', names=[ast.alias(name='wrappers', asname=None)], level=0)
         node.body = [import_stmt] + node.body
 
         self.modules += 1

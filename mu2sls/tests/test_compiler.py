@@ -4,6 +4,7 @@ import os
 import sys
 
 from compiler import compiler
+from runtime import store_stub
 
 def test_compiler_list_service():
     logging.basicConfig(level=logging.DEBUG)
@@ -27,5 +28,6 @@ def test_compiler_list_service():
     test_module = importlib.import_module("test_list")
 
     ## These are included in the test_code_object
-    service = test_module.Service()
+    store = store_stub.Store()
+    service = test_module.Service(store)
     service.test()
