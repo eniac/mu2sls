@@ -7,7 +7,9 @@ import ast
 
 from uncompyle6.main import decompile
 
-STORE_FIELD_NAME="store"
+STORE_FIELD_NAME = "store"
+STORE_INIT_ENV_METHOD = "init_env"
+STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}()'
 
 ## TODO: Check ast.unparse in python 3.9
 ##
@@ -99,7 +101,7 @@ def construct_init_method_ast(persistent_objects):
     body = []
 
     # First initialize Beldi's environment
-    beldi_ass_module_ast = ast.parse("store.init_env()")
+    beldi_ass_module_ast = ast.parse(STORE_INIT_ENV_INVOCATION)
     beldi_ass_ast = extract_single_stmt_from_module(beldi_ass_module_ast)
     body.append(beldi_ass_ast)
 
