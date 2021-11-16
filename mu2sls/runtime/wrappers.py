@@ -2,6 +2,9 @@ import logging
 
 from runtime import serde
 
+## TODO: Remove serialization/deserialization from the wrapper. 
+##       This functionality should be done in the store
+
 ##
 ## This is the main wrapper method that wraps an object to enforce correctness guarantees.
 ##
