@@ -12,8 +12,10 @@ class Service:
     def method(self, long_url):
         
         ## TODO: Add transactions
-        if not long_url in self.urls:
+        if not long_url in self.urls.keys():
             ## TODO: Do that in a separate method
             short_url = long_url + "+hash"
-            self.urls[long_url] = short_url
-        return self.urls[long_url]
+            self.urls.update([(long_url, short_url)])
+            return ("NotFound", short_url)
+        else:
+            return ("Found", self.urls.get(long_url))
