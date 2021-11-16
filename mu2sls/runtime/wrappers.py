@@ -1,10 +1,5 @@
 import logging
 
-from runtime import serde
-
-## TODO: Remove serialization/deserialization from the wrapper. 
-##       This functionality should be done in the store
-
 ##
 ## This is the main wrapper method that wraps an object to enforce correctness guarantees.
 ##
@@ -56,10 +51,8 @@ class WrapperTerminal(object):
 
         ## Initialize the collection if it doesn't already exist in Beldi
         if(not store.contains(self._wrapper_obj_key)):
-            ## Serialize the whole object (we do this here to avoid unneccessary overhead)
-            serialized_init_val = serde.serialize(init_val)
             ## NOTE: We need to use set_if_not_exists to ensure atomicity
-            store.set_if_not_exists(self._wrapper_obj_key, serialized_init_val)
+            store.set_if_not_exists(self._wrapper_obj_key, init_val)
     
         ## Store beldi client for later use
         self._wrapper_store = store
@@ -81,8 +74,7 @@ class WrapperTerminal(object):
         store = self._wrapper_store
 
         ## Save the object
-        new_serialized_obj = serde.serialize(new_value)
-        store.eos_write(self._wrapper_obj_key, new_serialized_obj)
+        store.eos_write(self._wrapper_obj_key, new_value)
 
 
     ## TODO: Do we need to reimplement all default functions?
@@ -91,10 +83,8 @@ class WrapperTerminal(object):
         store = self._wrapper_store
 
         ## Get the object from Beldi. This should never fail
-        serialized_obj = store.eos_read(self._wrapper_obj_key)
+        obj = store.eos_read(self._wrapper_obj_key)
 
-        ## Deserialize the object
-        obj = serde.deserialize(serialized_obj)
         return obj.__repr__
 
     ## This method overrides the original object's getattr,
@@ -117,10 +107,7 @@ class WrapperTerminal(object):
         store = self._wrapper_store
 
         ## Get the object from Beldi. This should never fail
-        serialized_obj = store.eos_read(self._wrapper_obj_key)
-
-        ## Deserialize the object
-        obj = serde.deserialize(serialized_obj)
+        obj = store.eos_read(self._wrapper_obj_key)
 
         ## Get the attribute of the object
         ret_attribute = getattr(obj, attr)
@@ -157,9 +144,8 @@ class WrapperTerminal(object):
             ## I think we do because we perform a `get` and `set`
             store.begin_tx()
 
-            ## Get the object and deserialize it
-            serialized_obj = store.eos_read(self._wrapper_obj_key)
-            obj = serde.deserialize(serialized_obj)
+            ## Get the object
+            obj = store.eos_read(self._wrapper_obj_key)
 
             ## Call the method
             callable_attr = getattr(obj, attr_name)
@@ -169,8 +155,7 @@ class WrapperTerminal(object):
             ## I assume that by calling the method like above the object does get updated.
             
             ## Update the object in Beldi
-            new_serialized_obj = serde.serialize(obj)
-            store.eos_write(self._wrapper_obj_key, new_serialized_obj)
+            store.eos_write(self._wrapper_obj_key, obj)
 
             store.end_tx()
             return ret
@@ -193,10 +178,8 @@ class WrapperTerminal(object):
         ## TODO: Can we optimize away this get and deserialize?
         ##
         ## Get the object from Beldi. This should never fail
-        serialized_obj = store.eos_read(self._wrapper_obj_key)
-        ## Deserialize the object
-        obj = serde.deserialize(serialized_obj)
-
+        obj = store.eos_read(self._wrapper_obj_key)
+        
         ## This should never happen if the attribute is callable, i.e., a method should
         ## never be replaced.
         ##
@@ -208,8 +191,7 @@ class WrapperTerminal(object):
         ret = setattr(obj, attr, val)
 
         ## Resave the object
-        new_serialized_obj = serde.serialize(obj)
-        store.eos_write(self._wrapper_obj_key, new_serialized_obj)
+        store.eos_write(self._wrapper_obj_key, obj)
 
         store.end_tx()
 
@@ -245,16 +227,12 @@ class WrapperTerminal(object):
         store.begin_tx()
 
         ## Get the object from Beldi. This should never fail
-        serialized_obj = store.eos_read(self._wrapper_obj_key)
-
-        ## Deserialize the object
-        obj = serde.deserialize(serialized_obj)
+        obj = store.eos_read(self._wrapper_obj_key)
 
         ## Get the attribute of the object
         ret_value = obj.__add__(other)
 
-        new_serialized_obj = serde.serialize(obj)
-        store.eos_write(self._wrapper_obj_key, new_serialized_obj)
+        store.eos_write(self._wrapper_obj_key, obj)
 
         store.end_tx()
 
@@ -271,16 +249,12 @@ class WrapperTerminal(object):
         store.begin_tx()
 
         ## Get the object from Beldi. This should never fail
-        serialized_obj = store.eos_read(self._wrapper_obj_key)
-
-        ## Deserialize the object
-        obj = serde.deserialize(serialized_obj)
+        obj = store.eos_read(self._wrapper_obj_key)
 
         ## Get the attribute of the object
         ret_value = obj.__eq__(other)
 
-        new_serialized_obj = serde.serialize(obj)
-        store.eos_write(self._wrapper_obj_key, new_serialized_obj)
+        store.eos_write(self._wrapper_obj_key, obj)
 
         store.end_tx()
 

@@ -1,6 +1,6 @@
 import logging
 
-from runtime import wrappers, store_stub, serde
+from runtime import wrappers, store_stub
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -35,7 +35,7 @@ def test_list():
             if(isinstance(value, wrappers.WrapperTerminal)):
                 obj._wrapper_collection = value
             else:
-                logging.info('Collection %r with value: %r', serde.deserialize(obj.store.eos_read('test-collection')), value)
+                logging.info('Collection %r with value: %r', obj.store.eos_read('test-collection'), value)
                 obj._wrapper_collection._wrapper_set(value)
 
     class TestObject:
@@ -101,7 +101,7 @@ def test_counter():
             if(isinstance(value, wrappers.WrapperTerminal)):
                 obj._wrapper_counter = value
             else:
-                logging.info('counter %r with value: %r', serde.deserialize(obj.store.eos_read(counter_key)), value)
+                logging.info('counter %r with value: %r', obj.store.eos_read(counter_key), value)
                 obj._wrapper_counter._wrapper_set(value)
 
     class TestObject:
@@ -154,7 +154,7 @@ def test_int_counter():
             if(isinstance(value, wrappers.WrapperTerminal)):
                 obj._wrapper_counter = value
             else:
-                logging.info('counter %r with value: %r', serde.deserialize(obj.store.eos_read(counter_key)), value)
+                logging.info('counter %r with value: %r', obj.store.eos_read(counter_key), value)
                 obj._wrapper_counter._wrapper_set(value)
 
     class TestObject:
