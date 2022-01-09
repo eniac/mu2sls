@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from compiler.ast_utils import *
 from compiler.service import Service
 
 import ast
@@ -10,6 +11,8 @@ from uncompyle6.main import decompile
 STORE_FIELD_NAME = "store"
 STORE_INIT_ENV_METHOD = "init_env"
 STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}()'
+
+CLIENTS_ARG_NAME = 'clients'
 
 ## TODO: Check ast.unparse in python 3.9
 ##
@@ -79,21 +82,19 @@ def construct_init_method_persistent_object_ast(per_obj_name: str, per_obj_init_
     init_val_var_name = per_obj_name + "_init_val"
 
     # collection_key = "test-collection"
-    assgn1 = ast.Assign(targets=[ast.Name(id=beldi_key_var_name, ctx=ast.Store())], 
-                        value=ast.Constant(value=field_store_key_name(per_obj_name), kind=None), type_comment=None)
+    assgn1 = make_var_assign(beldi_key_var_name, 
+                             ast.Constant(value=field_store_key_name(per_obj_name), kind=None))
     
     # collection_init_val = []
-    assgn2 = ast.Assign(targets=[ast.Name(id=init_val_var_name, ctx=ast.Store())], 
-                        value=per_obj_init_ast, type_comment=None)
+    assgn2 = make_var_assign(init_val_var_name, per_obj_init_ast)
     
     # self.collection = wrappers.wrap_terminal(collection_key, collection_init_val, self.beldi)
-    assgn3 = ast.Assign(targets=[ast.Attribute(value=ast.Name(id='self', ctx=ast.Load()), attr=per_obj_name, ctx=ast.Store())], 
-                        value=ast.Call(func=ast.Attribute(value=ast.Name(id='wrappers', ctx=ast.Load()), attr='wrap_terminal', ctx=ast.Load()), 
-                                       args=[ast.Name(id=beldi_key_var_name, ctx=ast.Load()), 
-                                             ast.Name(id=init_val_var_name, ctx=ast.Load()),
-                                             ast.Name(id=STORE_FIELD_NAME, ctx=ast.Load())],
-                                       keywords=[]), 
-                        type_comment=None)
+    assgn3 = make_field_assign(per_obj_name,
+                               ast.Call(func=ast.Attribute(value=ast.Name(id='wrappers', ctx=ast.Load()), attr='wrap_terminal', ctx=ast.Load()), 
+                                        args=[ast.Name(id=beldi_key_var_name, ctx=ast.Load()), 
+                                              ast.Name(id=init_val_var_name, ctx=ast.Load()),
+                                              ast.Name(id=STORE_FIELD_NAME, ctx=ast.Load())],
+                                        keywords=[]))
 
     return [assgn1, assgn2, assgn3]
 
@@ -112,9 +113,34 @@ def construct_init_method_ast(persistent_objects):
     ## Create the function
     function_ast = ast.FunctionDef(name='__init__', 
                                    args=ast.arguments(posonlyargs=[], 
-                                                      args=[ast.arg(arg='self', annotation=None, type_comment=None),
-                                                            ast.arg(arg='store', annotation=None, type_comment=None)], 
+                                                      args=[make_arg('self'),
+                                                            make_arg('store')],
                                                       vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]), 
+                                   body=body, 
+                                   decorator_list=[], returns=None, type_comment=None)
+    return function_ast
+
+def construct_init_clients_method_ast(clients):
+    body = []
+
+    ## Initialize the clients
+    for field_name, client in clients.items():
+        _init_ast, client_name = client
+
+        ## Assign the client based on the clients dictionary
+        assignment = make_field_assign(field_name, make_constant_subscript(CLIENTS_ARG_NAME, client_name))
+        body.append(assignment)
+    else:
+        ## If there are no clients, make an empty function
+        body.append(ast.Pass())
+
+    ## Create the function
+    function_ast = ast.FunctionDef(name='init_clients', 
+                                   args=ast.arguments(posonlyargs=[], 
+                                                      args=[make_arg('self'),
+                                                            make_arg(CLIENTS_ARG_NAME)],
+                                                      vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, 
+                                                      defaults=[make_empty_dict()]), 
                                    body=body, 
                                    decorator_list=[], returns=None, type_comment=None)
     return function_ast
@@ -142,7 +168,10 @@ def service_to_ast(service: Service):
     ## TODO: This should take some form of configuration to use beldi or not
     init_method = construct_init_method_ast(persistent_objects)
 
-    body = assignments + [init_method] + service.methods
+    ## Create the method that initializes clients
+    init_clients_method = construct_init_clients_method_ast(service.state.clients)
+
+    body = assignments + [init_method] + [init_clients_method] + service.methods
     
     new_class = ast.ClassDef(name=service.name(),
                              bases=service.bases(),

@@ -6,6 +6,8 @@
 ##       These initialization ASTs need to be deterministic and pure.
 import ast
 
+from compiler.ast_utils import *
+
 class ServiceState:
     def __init__(self):
         self.persistent_fields = {}
@@ -24,8 +26,17 @@ class ServiceState:
         self.persistent_fields[name] = init_ast
 
     ## TODO: What other fields do we need here? Maybe the actual client name?
-    def add_client(self, name, init_ast):
-        self.clients[name] = init_ast
+    def add_client(self, field_name, init_ast):
+        ## The call function name should be client factory
+        assert(call_func_name(init_ast) == 'clientFactory')
+
+        ## There should be only one arg, containing a name
+        args_asts = call_func_args(init_ast)
+        assert(len(args_asts) == 1)
+
+        client_name = expr_constant_value(args_asts[0])
+
+        self.clients[field_name] = (init_ast, client_name)
 
     ## This function determines what kind of field that is (based on the type annotation)    
     def add_field(self, name, init_ast, type):
