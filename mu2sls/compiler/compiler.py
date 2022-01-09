@@ -20,7 +20,7 @@ def compile_single_method_service_module(in_file: str, out_file: str, sls_backen
     service = services[0]
 
     ## TODO: Create a method that compiles a multiple method service, each to a different serverless function handler
-    assert(len(service.methods) == 1)
+    # assert(len(service.methods) == 1)
 
     target_service_ast = backend.service_to_ast(service)
 

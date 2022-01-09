@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 
@@ -43,16 +44,15 @@ class ComposePost:
         ##
         ## TODO: Make it work with asyncio
         # results = await asyncio.gather(
-        #     shorten_urls(self.url_shorten_service_client, span, urls, req_id),
+        #     shorten_urls(self.url_shorten_service_client, urls, req_id),
         #     compose_user_mentions(self.user_mention_service_client, span, mention_usernames, req_id),
         # )
         
         ## TODO: First handle just client requests
-        # results = (shorten_urls(self.url_shorten_service_client, urls, req_id), 
-        #            compose_user_mentions(self.user_mention_service_client, mention_usernames, req_id))
+        results = (self.url_shorten_service_client.ComposeUrls(req_id, urls), 
+                   [])
+                #    compose_user_mentions(self.user_mention_service_client, mention_usernames, req_id))
         
-        results = ([], [])
-
 
         return_urls, return_mentions = results
         
@@ -65,7 +65,7 @@ class ComposePost:
         new_text = text
         for i in range(len(urls)):
             from_url = urls[i]
-            to_url = return_urls[i].shortened_url
+            to_url = return_urls[i]
             new_text = new_text.replace(from_url, to_url, 1)
 
         ## TODO: Allow correct imports
