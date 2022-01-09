@@ -1,7 +1,7 @@
 from compiler import decorators
 
 @decorators.service
-class Service:
+class UrlShortener:
     def __init__(self):
         self.urls = {} # type: Persistent[dict]
 
@@ -9,7 +9,7 @@ class Service:
     ##   either by making it on the spot, or by looking in the dict.
     ##
     ## TODO: Enable transactoions in the source spec of the compiler
-    def method(self, long_url):
+    def ShortenUrls(self, long_url):
         
         ## TODO: Add transactions
         if not long_url in self.urls.keys():

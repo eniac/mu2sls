@@ -46,16 +46,16 @@ def test_compiler_url_shortener_service():
 
     ## These are included in the test_code_object
     store = store_stub.Store()
-    service = test_module.Service(store)
+    service = test_module.UrlShortener(store)
     url1 = "url1"
-    ret1 = service.method(url1)
+    ret1 = service.ShortenUrls(url1)
     assert(ret1[0] == "NotFound")
 
     url2 = "url2"
-    ret2 = service.method(url2)
+    ret2 = service.ShortenUrls(url2)
     assert(ret2[0] == "NotFound")
 
-    ret3 = service.method(url1)
+    ret3 = service.ShortenUrls(url1)
     assert(ret3[0] == "Found")
     assert(ret1[1] == ret3[1])
 
