@@ -22,7 +22,7 @@ class ComposePost:
     def __init__(self, clientFactory):
         ## TODO: Determine how to parse those. What should the term be
         self.url_shorten_service_client = clientFactory("UrlShortener") # type: Client
-        self.user_mention_service_client = clientFactory("UserMentions") # type: Client
+        # self.user_mention_service_client = clientFactory("UserMentions") # type: Client
 
     def ComposeText(self, req_id, text):
         logging.debug("Processing request: " + str(req_id))

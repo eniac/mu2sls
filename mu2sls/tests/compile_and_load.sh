@@ -20,11 +20,10 @@ do
     python3 "${MU2SLS_TOP}/mu2sls" "${MU2SLS_TOP}/${input_file}" "${test_deploy_dir}/${output_file_name}"
 done < "${deployment_file}"
 
-# python3 -i -c "from scripts import local_dev; module = local_dev.import_compiled(\"${output_name}\"); store = local_dev.init_local_store()"
-
 ## Save mu2sls in pythonpath so that we can import
 export PYTHONPATH="${PYTHONPATH}:${MU2SLS_TOP}:${test_deploy_dir}"
 
+## Locally deploy
 python3 -i "${MU2SLS_TOP}/scripts/local_dev.py" "${deployment_file}"
 
 ## TODO: Maybe we need to deploy in a new directory
