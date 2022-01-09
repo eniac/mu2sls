@@ -1,3 +1,8 @@
+#!/bin/bash
+
+##
+## This script compiles and deployes a single service in a local environment
+##
 
 input=${1?Source Service not given}
 output_name="test_compiled_service_module"

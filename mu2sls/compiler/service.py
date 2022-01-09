@@ -10,13 +10,13 @@ class ServiceState:
     def __init__(self):
         self.persistent_fields = {}
         self.temporary_fields = {}
-        self.thrift_clients = {}
+        self.clients = {}
     
     def __repr__(self):
         ret_list = ["Service State:"]
         ret_list.append("|-- Persistent: " + str(self.persistent_fields))
         ret_list.append("|-- Temporary: " + str(self.temporary_fields))
-        ret_list.append("|-- Thrift Clients: " + str(self.thrift_clients))
+        ret_list.append("|-- Clients: " + str(self.clients))
         return "\n".join(ret_list)
 
     ## TODO: Do we need an initialization function for persistent field??
@@ -24,17 +24,19 @@ class ServiceState:
         self.persistent_fields[name] = init_ast
 
     ## TODO: What other fields do we need here? Maybe the actual client name?
-    def add_thrift_client(self, name, init_ast):
-        self.thrift_clients[name] = init_ast
+    def add_client(self, name, init_ast):
+        self.clients[name] = init_ast
 
     ## This function determines what kind of field that is (based on the type annotation)    
     def add_field(self, name, init_ast, type):
         ## TODO: Make that more robust
         if(type.startswith('Persistent')):
             self.add_persistent_field(name, init_ast)
-        elif(type == 'ThriftClient'):
-            self.add_thrift_client(name, init_ast)
+        ## TODO: Maybe have different client types?
+        elif(type == 'Client'):
+            self.add_client(name, init_ast)
         else:
+            print("Error: Field:", name, "has no type in comments!!")
             assert(False)
 
 class Service:
@@ -60,6 +62,7 @@ class Service:
     def decorator_list(self):
         return self.service_ast.decorator_list
 
+    ## TODO: Add method arguments!
     def __repr__(self):
         out = "Service: " + self.name() + '\n'
         out += self.state.__repr__() + '\n'
