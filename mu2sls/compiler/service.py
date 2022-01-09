@@ -62,7 +62,6 @@ class Service:
     def decorator_list(self):
         return self.service_ast.decorator_list
 
-    ## TODO: Add method arguments!
     def __repr__(self):
         out = "Service: " + self.name() + '\n'
         out += self.state.__repr__() + '\n'
@@ -70,6 +69,8 @@ class Service:
         for method in self.methods:
             # print("Method: " + method)
             # out += ast.dump(method) + '\n'
-            out += '|-- ' + method.name + '\n'
+            ## TODO: Doesn't print kwargs etc
+            arg_names = ", ".join([arg.arg for arg in (method.args.posonlyargs + method.args.args)])
+            out += f'|-- {method.name}({arg_names}) \n'
         return out
     
