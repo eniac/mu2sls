@@ -24,8 +24,8 @@ class UserReview(object):
 
     def read_reviews(self, user_id):        
         review_ids = [review['review_id'] for review in self.reviews.get(user_id, [])]
-        ## Currently I only support sync invoke. We have to think a bit to make AsyncInvoke work.
-        # res = SyncInvoke(ReviewStorage, "read_reviews", review_ids)
-        ## TODO: Add support for Sync and Async Invoke
-        res = self.review_storage_client.read_reviews(review_ids)
+        ## The SyncInvoke locally will be evaluated simply as a method call.
+        # res = self.review_storage_client.read_reviews(review_ids)
+        res = SyncInvoke(self.review_storage_client, "read_reviews", review_ids)
         return res
+

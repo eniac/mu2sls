@@ -28,6 +28,12 @@ def make_constant_subscript(obj: str, index: str) -> ast.Subscript:
     return ast.Subscript(value=ast.Name(id=obj, ctx=ast.Load()), 
                          slice=ast.Index(value=ast.Constant(value=index, kind=None)), ctx=ast.Load())
 
+## from x import y
+def make_import_from(from_module: str, name: str) -> ast.ImportFrom:
+    return ast.ImportFrom(module=from_module, 
+                          names=[ast.alias(name=name, asname=None)], 
+                          level=0)
+    
 def call_func_name(call) -> str:
     return call.func.id
 

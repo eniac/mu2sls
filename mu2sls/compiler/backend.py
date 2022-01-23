@@ -194,8 +194,10 @@ class AddImports(ast.NodeTransformer):
         ## TODO: Do we need this assumption that there is only one module?
         assert(self.modules == 0)
 
-        import_stmt = ast.ImportFrom(module='runtime', names=[ast.alias(name='wrappers', asname=None)], level=0)
-        node.body = [import_stmt] + node.body
+        import_stmts = []
+        import_stmts.append(make_import_from('runtime', 'wrappers'))
+        import_stmts.append(make_import_from('runtime.local.invoke', '*'))
+        node.body = import_stmts + node.body
 
         self.modules += 1
         return node
