@@ -13,5 +13,5 @@ An example invocation:
 >>> deployed_services[1].upload_user_review(1, 2, 100)
 >>> deployed_services[1].upload_user_review(1, 2, 100)
 >>> deployed_services[1].read_reviews(1)
-[None, None, None]
+[None, None]
 ```
