@@ -26,6 +26,8 @@ class UserReview(object):
         review_ids = [review['review_id'] for review in self.reviews.get(user_id, [])]
         ## The SyncInvoke locally will be evaluated simply as a method call.
         # res = self.review_storage_client.read_reviews(review_ids)
-        res = SyncInvoke(self.review_storage_client, "read_reviews", review_ids)
+        # res = SyncInvoke(self.review_storage_client, "read_reviews", review_ids)
+        promise = AsyncInvoke(self.review_storage_client, "read_reviews", review_ids)
+        res = Wait(promise)
         return res
 
