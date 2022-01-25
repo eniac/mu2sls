@@ -3,7 +3,7 @@ import ast
 from compiler import frontend, backend
 
 ## This function compiles a python module containing the definition of a service
-def compile_single_method_service_module(in_file: str, out_file: str, sls_backend: str='openfaas'):
+def compile_single_method_service_module(in_file: str, out_file: str, sls_backend: str='local'):
      ## Read the input file and parse it
     with open(in_file) as f:
         test_source = f.read()
@@ -28,12 +28,12 @@ def compile_single_method_service_module(in_file: str, out_file: str, sls_backen
     replacer = frontend.ServiceClassReplacer(service.name(), target_service_ast)
     replaced_ast = replacer.visit(test_ast)
 
-    # Add imports
-    import_adder = backend.AddImports()
-    final_ast = import_adder.visit(test_ast)
-
     ## TODO: Potentially extend this
-    assert(sls_backend == 'openfaas')
+    assert(sls_backend == 'local')
+
+    # Add imports
+    import_adder = backend.AddImports(sls_backend)
+    final_ast = import_adder.visit(test_ast)
 
     ## TODO: Add the handler function for a single method
     ##       For now (without thrift), the handler should look a little like this.

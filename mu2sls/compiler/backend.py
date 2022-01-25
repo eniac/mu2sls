@@ -186,8 +186,9 @@ def service_to_ast(service: Service):
 
 ## This class adds the necessary imports to the final module
 class AddImports(ast.NodeTransformer):
-    def __init__(self):
+    def __init__(self, sls_backend):
         self.modules = 0
+        self.sls_backend = sls_backend
 
     ## TODO: At the moment this only works for a single module that is at the top level
     def visit_Module(self, node: ast.Module):
@@ -196,7 +197,19 @@ class AddImports(ast.NodeTransformer):
 
         import_stmts = []
         import_stmts.append(make_import_from('runtime', 'wrappers'))
-        import_stmts.append(make_import_from('runtime.local.invoke', '*'))
+
+        ## It might make sense to also have this be a separate module that is imported 
+        ##   from the deployment script and not actually being done in the backend.
+        ##
+        ## Now we have mixed responsibility of choosing a runtime library to import in the compiler.
+        ##
+        ## But the compiler should probably create code that is agnostic to the
+        ##   invocation library. Similarly to how it is agnostic to the store.
+        if (self.sls_backend == 'local'):
+            import_stmts.append(make_import_from('runtime.local.invoke', '*'))
+        else:
+            ## We haven't implemented a backend for non local deployments yet
+            raise NotImplementedError()
         node.body = import_stmts + node.body
 
         self.modules += 1
