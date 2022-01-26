@@ -15,3 +15,5 @@ An example invocation:
 >>> deployed_services[1].read_reviews(1)
 [None, None]
 ```
+
+You can understand more about the specs if you look at `user_review.py` and `review_storage.py`.

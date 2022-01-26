@@ -8,7 +8,7 @@ class ReviewStorage(object):
         self.reviews = {} # type: Persistent[dict]
 
     def store_review(self, review):
-        self.reviews.update([(review.id, review)])
+        self.reviews.update([(review['review_id'], review)])
 
     def read_reviews(self, review_ids):
         res = []
