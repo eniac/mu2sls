@@ -35,6 +35,8 @@ def compile_single_method_service_module(in_file: str, out_file: str, sls_backen
     import_adder = backend.AddImports(sls_backend)
     final_ast = import_adder.visit(test_ast)
 
+    ## WARNING: This comment is now obsolete. Deployments and handlers will be done elsewhere.
+    ##
     ## TODO: Add the handler function for a single method
     ##       For now (without thrift), the handler should look a little like this.
     ##
@@ -42,6 +44,9 @@ def compile_single_method_service_module(in_file: str, out_file: str, sls_backen
     ##     service = Service()
     ##     ret = service.method(req)
     ##     return ret
+    ## #######################################################################################
+
+    ## TODO: Make sure that compilation also adds a method in services that prints info
 
     fixed_lines_final_ast = ast.fix_missing_locations(final_ast)
 
