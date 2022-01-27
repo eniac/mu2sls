@@ -1,9 +1,13 @@
 import ast
 import logging
 
+
+from compiler import globals
+from compiler.ast_utils import *
 from compiler.service import Service, ServiceState
 
-## TODO: Maybe move all the static methods to an ast_util file
+
+## TODO: Move all the static methods to the ast_utils file
 
 class ServiceClassFinder(ast.NodeVisitor):
     def __init__(self):
@@ -107,27 +111,56 @@ class StateFinder(ast.NodeVisitor):
             ## TODO: Populate service fields
             ## We only need to visit the children in the __init__ function
             self.generic_visit(node)
+        else:
+            ## We now visit children in all AST nodes
+            self.in_init = False
+            self.generic_visit(node)
+
+    ## This finds all 
+    def visit_Call(self, node: ast.Call):
+        
+        ## First pass by all children
+        self.generic_visit(node)
+
+        ## We are looking for all calls not in init to populate the clients
+        if not self.in_init:
+            # print(ast.dump(ast.parse('SyncInvoke("Client", "Call", args, args2)')))
+            
+            ## We need to try because the function call name might not be
+            ##   as simple as what we expect.
+            try:
+                if call_func_name(node) in globals.INVOKE_FUNCTION_NAMES:
+                    ## The first argument is the name of another service class
+                    args = call_func_args(node)
+                    first_arg_value = expr_constant_value(args[0])
+
+                    ## Add a client in the service state
+                    self.service_state.add_client_from_invoke(first_arg_value)
+            except:
+                pass
+
 
     ## Is there any other statement node that we want to follow?
     def visit_Assign(self, node: ast.Assign):
         ## We don't expect any assignments outside of __init__
-        assert(self.in_init)
+        if self.in_init:
+            # print(ast.dump(node))
 
-        # print(ast.dump(node))
+            ## TODO: Relax the following assumptions accordingly
 
-        ## TODO: Relax the following assumptions accordingly
-
-        ## Only a single target (lval)
-        assert(len(node.targets) == 1)
-        target = node.targets[0]
-        ## The lval needs to be an attribute access to self
-        assert(isinstance(target, ast.Attribute))
-        assert(StateFinder.is_self_name(target.value))
-        field_name = target.attr
-        logging.debug("Field name: " + field_name)
-        init_ast = node.value
-        logging.debug("Init AST: " + ast.dump(init_ast))
-        self.service_state.add_field(field_name, init_ast, node.type_comment)
+            ## Only a single target (lval)
+            assert(len(node.targets) == 1)
+            target = node.targets[0]
+            ## The lval needs to be an attribute access to self
+            assert(isinstance(target, ast.Attribute))
+            assert(StateFinder.is_self_name(target.value))
+            field_name = target.attr
+            logging.debug("Field name: " + field_name)
+            init_ast = node.value
+            logging.debug("Init AST: " + ast.dump(init_ast))
+            self.service_state.add_field(field_name, init_ast, node.type_comment)
+        else:
+            self.generic_visit(node)
 
 
 def find_service_state(service_ast):

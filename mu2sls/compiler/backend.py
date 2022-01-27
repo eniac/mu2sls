@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from compiler import globals
 from compiler.ast_utils import *
 from compiler.service import Service
 
@@ -18,6 +19,7 @@ CLIENTS_ARG_NAME = 'clients'
 ##
 ## This function takes an AST and saves python_source code in the out_file
 def ast_to_source(ast_node, out_file):
+    
     ## TODO: Do we need the filename
     ##
     ## TODO: This is very wasteful, we should not need to first compile to bytecode before deparsing.
@@ -171,7 +173,14 @@ def service_to_ast(service: Service):
     ## Create the method that initializes clients
     init_clients_method = construct_init_clients_method_ast(service.state.clients)
 
-    body = assignments + [init_method] + [init_clients_method] + service.methods
+    ## Modify Invocations to have the correct target (self.client instead of class name)
+    new_methods = []
+    for method in service.methods:
+        invocationModifier = ChangeInvokeTarget(service.state.get_clients_class_name_to_fields())
+        new_method = invocationModifier.visit(method)
+        new_methods.append(new_method)
+
+    body = assignments + [init_method] + [init_clients_method] + new_methods
     
     new_class = ast.ClassDef(name=service.name(),
                              bases=service.bases(),
@@ -214,3 +223,32 @@ class AddImports(ast.NodeTransformer):
 
         self.modules += 1
         return node
+
+
+## This class adds the necessary imports to the final module
+class ChangeInvokeTarget(ast.NodeTransformer):
+    def __init__(self, clients):
+        ## Clients is a dictionary from class names to field names
+        self.clients_class_to_field = clients
+
+    def visit_Call(self, node: ast.Call):
+        # print(ast.dump(ast.parse('SyncInvoke("Client", "Call", args, args2)')))
+
+        ## First visit all children
+        self.generic_visit(node)
+
+        try:
+            if call_func_name(node) in globals.INVOKE_FUNCTION_NAMES:
+                ## The first argument is the name of another service class
+                args = call_func_args(node)
+                first_arg_value = expr_constant_value(args[0])
+
+                field_name = self.clients_class_to_field[first_arg_value]
+
+                ## Change the first argument to call the client
+                new_args = args[:] 
+                new_args[0] = make_self_field_access(field_name)
+                node.args = new_args
+            return node
+        except:
+            return node

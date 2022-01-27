@@ -25,7 +25,12 @@ class ServiceState:
     def add_persistent_field(self, name, init_ast):
         self.persistent_fields[name] = init_ast
 
-    ## TODO: What other fields do we need here? Maybe the actual client name?
+    ## TODO: Instead of finding clients through this awkward clientFactory convention,
+    ##       find them simply using syncInvoke and the name of the class.
+    ##
+    ##       The source spec doesn't need to know anything about the client object.
+    ##
+    ## TODO: Remove this method as it is now obsolete
     def add_client(self, field_name, init_ast):
         ## The call function name should be client factory
         assert(call_func_name(init_ast) == 'clientFactory')
@@ -38,6 +43,14 @@ class ServiceState:
 
         self.clients[field_name] = (init_ast, client_name)
 
+    ## Instead of declaring the clients up fornt, we can just run a simple analysis
+    ## and find all invocations to them in the code.
+    def add_client_from_invoke(self, client_name):
+        field_name = f'{client_name}_client'
+        ## TODO: It should be fine not having an AST right?
+        self.clients[field_name] = (None, client_name)
+
+
     ## This function determines what kind of field that is (based on the type annotation)    
     def add_field(self, name, init_ast, type):
         ## TODO: Make that more robust
@@ -49,6 +62,15 @@ class ServiceState:
         else:
             print("Error: Field:", name, "has no type in comments!!")
             assert(False)
+
+    ## This returns a dictionary of the client class names to fields
+    def get_clients_class_name_to_fields(self):
+        ret = {}
+        for field_name, item in self.clients.items():
+            _ast, class_name = item
+            ret[class_name] = field_name
+        return ret
+
 
 class Service:
     def __init__(self, state: ServiceState, methods, service_ast: ast.ClassDef):

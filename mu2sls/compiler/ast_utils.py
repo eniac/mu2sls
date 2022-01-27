@@ -23,6 +23,11 @@ def make_field_assign(target_name: str, expr: ast.AST) -> ast.Assign:
                             type_comment=None)
     return assignment
 
+## self.target_name
+def make_self_field_access(target_name: str) -> ast.Attribute:
+    access = ast.Attribute(value=ast.Name(id='self', ctx=ast.Load()), attr=target_name, ctx=ast.Load())
+    return access
+
 ## obj['index']
 def make_constant_subscript(obj: str, index: str) -> ast.Subscript:
     return ast.Subscript(value=ast.Name(id=obj, ctx=ast.Load()), 
