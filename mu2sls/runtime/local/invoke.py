@@ -1,4 +1,5 @@
 
+## TODO: We should add some AsyncSignal method that sends a call but doesn't wait for return.
 
 ## Synchronous local invocation.
 ## Simply find the method in the client and call it.
