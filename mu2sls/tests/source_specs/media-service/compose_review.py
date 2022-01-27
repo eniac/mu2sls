@@ -4,12 +4,8 @@ from compiler import decorators
 
 @decorators.service
 class ComposeReview(object):
-    def __init__(self, clientFactory):
+    def __init__(self):
         self.reqs = {} # type: Persistent[dict]
-
-        self.review_storage_client = clientFactory('ReviewStorage') # type: Client
-        self.user_review_client = clientFactory('UserReview') # type: Client
-        self.movie_review_client = clientFactory('MovieReview') # type: Client
         
     ## Notes:
     ## The reqs field in this service is only acting as a cache, 
@@ -17,12 +13,12 @@ class ComposeReview(object):
     def _try_compose_and_upload(self, req_id):
         review = self.reqs.get(req_id)
         if review["counter"] == 5:
-            p1 = AsyncInvoke(self.review_storage_client, "store_review", review)
+            p1 = AsyncInvoke('ReviewStorage', "store_review", review)
 
             ## TODO: What should we do for the non-deterministic time?
             ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            p2 = AsyncInvoke(self.user_review_client, "upload_user_review", review["user_id"], review["review_id"], ts)
-            p3 = AsyncInvoke(self.movie_review_client, "upload_movie_review", review["movie_id"], review["review_id"], ts)
+            p2 = AsyncInvoke('UserReview', "upload_user_review", review["user_id"], review["review_id"], ts)
+            p3 = AsyncInvoke('MovieReview', "upload_movie_review", review["movie_id"], review["review_id"], ts)
             self.reqs.pop(req_id)
 
             WaitAll(p1, p2, p3)
