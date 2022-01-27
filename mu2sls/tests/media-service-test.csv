@@ -1,6 +1,11 @@
 ComposeReview,tests/source_specs/media-service/compose_review.py
-Rating,tests/source_specs/media-service/rating.py
 CastInfo,tests/source_specs/media-service/cast_info.py
-ReviewStorage,tests/source_specs/media-service/review_storage.py
-UserReview,tests/source_specs/media-service/user_review.py
+Frontend,tests/source_specs/media-service/frontend.py
+MovieId,tests/source_specs/media-service/movie_id.py
 MovieReview,tests/source_specs/media-service/movie_review.py
+Rating,tests/source_specs/media-service/rating.py
+ReviewStorage,tests/source_specs/media-service/review_storage.py
+Text,tests/source_specs/media-service/text.py
+UniqueId,tests/source_specs/media-service/unique_id.py
+User,tests/source_specs/media-service/user.py
+UserReview,tests/source_specs/media-service/user_review.py
