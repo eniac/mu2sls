@@ -69,15 +69,19 @@ def local_deploy(compiled_services):
 
     return service_objects
 
+def deploy_from_deployment_file(deploy_config_file):
+    service_metadata = parse_service_metadata_from_deploy_file(deploy_config_file)
+
+    services = local_deploy(service_metadata)
+    return services
+
 def main():
     global deployed_services
     assert(len(sys.argv) == 2)
 
     deploy_config_file = sys.argv[1]
 
-    service_metadata = parse_service_metadata_from_deploy_file(deploy_config_file)
-
-    deployed_services = local_deploy(service_metadata)
+    deployed_services_ret = deploy_from_deployment_file(deploy_config_file)
 
 if __name__ == '__main__':
     main()
