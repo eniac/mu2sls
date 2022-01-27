@@ -41,7 +41,7 @@ def init_local_store():
 ## TODO: What are the inputs
 def local_deploy(compiled_services):
     
-    service_objects = []
+    service_objects = {}
     clients = {}
 
     for compiled_service in compiled_services:
@@ -58,13 +58,13 @@ def local_deploy(compiled_services):
         service_class = getattr(module, compiled_service.class_name)
         service_object = service_class(store)
 
-        service_objects.append(service_object)
+        service_objects[compiled_service.class_name] = service_object
 
         ## Add the service to clients
         clients[compiled_service.class_name] = service_object
     
     ## Connect services together
-    for service_object in service_objects:
+    for _service_object_name, service_object in service_objects.items():
         service_object.init_clients(clients)
 
     return service_objects
