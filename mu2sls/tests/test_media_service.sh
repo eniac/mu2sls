@@ -17,4 +17,3 @@ export PYTHONPATH="${PYTHONPATH}:${MU2SLS_TOP}:${test_deploy_dir}"
 
 ## Locally deploy
 python3 "${MU2SLS_TOP}/tests/test_media_service.py" "${deployment_file}"
-

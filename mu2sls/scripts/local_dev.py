@@ -8,7 +8,7 @@ import sys
 
 from runtime import store_stub
 
-deployed_services = []
+deployed_services = {}
 
 class CompiledServiceMetadata:
     def __init__(self, class_name, compiled_file):
@@ -81,7 +81,7 @@ def main():
 
     deploy_config_file = sys.argv[1]
 
-    deployed_services_ret = deploy_from_deployment_file(deploy_config_file)
+    deployed_services = deploy_from_deployment_file(deploy_config_file)
 
 if __name__ == '__main__':
     main()
