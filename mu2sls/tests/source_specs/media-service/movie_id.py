@@ -6,7 +6,10 @@ class MovieId(object):
         self.movie_ids = {} # type: Persistent[dict]
 
     def upload_movie(self, req_id, title, rating):
-        if not self.movie_ids.has_key(title):
+        # dict does not have has_key in my version of python
+        # if not self.movie_ids.has_key(title):
+        # TODO: This is innefficient. We would just use a get with a default. 
+        if title not in self.movie_ids.keys():
             return None
         movie_id = self.movie_ids.get(title)
         p1 = AsyncInvoke('ComposeReview', "upload_movie_id", req_id, movie_id)

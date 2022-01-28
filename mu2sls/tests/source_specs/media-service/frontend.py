@@ -13,7 +13,8 @@ class Frontend(object):
         req_id = uuid4()
         SyncInvoke('ComposeReview', "upload_req", req_id)
         # 4 concurrent sync invokes
+        ## TODO: @Haoran Do we actually mean concurrent here? If so they need to be Async
         SyncInvoke('UniqueId', "upload_unique_id", req_id)
         SyncInvoke('User', "upload_user", req_id, username)
-        SyncInvoke('MovieId', "upload_movie", title, req_id, rating)
+        SyncInvoke('MovieId', "upload_movie", req_id, title, rating)
         SyncInvoke('Text', "upload_text", req_id, text)
