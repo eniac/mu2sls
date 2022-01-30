@@ -258,6 +258,8 @@ class ChangeInvokeTarget(ast.NodeTransformer):
         except:
             return node
 
+## TODO: Investigate ways to do that without generating Python AST. 
+##       Maybe by having a Flask file that imports the module and programmatically sets the routes?
 class AddFlask(ast.NodeTransformer):
     def __init__(self, service_name, method_names):
         self.modules = 0
@@ -280,6 +282,7 @@ class AddFlask(ast.NodeTransformer):
                                                   keywords=[]))
         flask_routes = []
         for method in self.method_names:
+            ## TODO: Investigate whether we need to use request.get_json() instead of args for knative
             body = ast.parse(f"return json.dumps((instance.{method})(**request.args.to_dict()))").body
             route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
                         body=body,
