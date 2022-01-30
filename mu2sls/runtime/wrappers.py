@@ -85,7 +85,7 @@ class WrapperTerminal(object):
         ## Get the object from Beldi. This should never fail
         obj = store.eos_read(self._wrapper_obj_key)
 
-        return obj.__repr__
+        return obj.__repr__()
 
     ## This method overrides the original object's getattr,
     ## making sure that attributes are accessed through Beldi.
