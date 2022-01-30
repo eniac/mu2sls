@@ -11,9 +11,7 @@ from uncompyle6.main import decompile
 
 STORE_FIELD_NAME = "store"
 STORE_INIT_ENV_METHOD = "init_env"
-# TODO: Fix that:
-# STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}(self.__class__.__name__)'
-STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}'
+STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}(self.__class__.__name__)'
 
 CLIENTS_ARG_NAME = 'clients'
 

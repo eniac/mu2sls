@@ -1,6 +1,10 @@
 from runtime import beldi_stub
 
 class Store:
+    ## TODO: @haoran It is not clear whether the name is supposed to be given at:
+    ##       1. initialization/__init__ (called by deployment/context) 
+    ##       2. init_env (called by the compiled service)
+    ##       Also it is not clear if the Beldi initialization should also happen in (1) or (2)
     def __init__(self):
         pass
         # self.store = beldi_stub.Beldi()

@@ -37,7 +37,9 @@ def import_compiled(compiled_module_name):
 
 def init_local_store(name):
     store = store_stub.Store()
-    store.init_env(name)
+
+    ## Note: No need to do that here, since it is done in the service initialization anyway.
+    # store.init_env(name)
     return store
 
 ## TODO: What are the inputs
