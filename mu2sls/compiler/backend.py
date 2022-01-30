@@ -11,7 +11,9 @@ from uncompyle6.main import decompile
 
 STORE_FIELD_NAME = "store"
 STORE_INIT_ENV_METHOD = "init_env"
-STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}(self.__class__.__name__)'
+# TODO: Fix that:
+# STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}(self.__class__.__name__)'
+STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}'
 
 CLIENTS_ARG_NAME = 'clients'
 
@@ -176,10 +178,9 @@ def service_to_ast(service: Service):
     ## Modify Invocations to have the correct target (self.client instead of class name)
     new_methods = []
     for method in service.methods:
-        # TODO: Need sls_backend type here because we're handling Invocations
-        # invocationModifier = ChangeInvokeTarget(service.state.get_clients_class_name_to_fields())
-        # new_method = invocationModifier.visit(method)
-        # new_methods.append(new_method)
+        invocationModifier = ChangeInvokeTarget(service.state.get_clients_class_name_to_fields())
+        new_method = invocationModifier.visit(method)
+        new_methods.append(new_method)
         new_methods.append(method)
 
     body = assignments + [init_method] + [init_clients_method] + new_methods
@@ -207,9 +208,7 @@ class AddImports(ast.NodeTransformer):
         assert(self.modules == 0)
 
         import_stmts = []
-        import_stmts.append(ast.Import(names=[ast.alias(name='json')]))
         import_stmts.append(make_import_from('runtime', 'wrappers'))
-        import_stmts.append(make_import_from('runtime', 'store_stub'))
 
         ## It might make sense to also have this be a separate module that is imported 
         ##   from the deployment script and not actually being done in the backend.
@@ -222,6 +221,10 @@ class AddImports(ast.NodeTransformer):
             import_stmts.append(make_import_from('runtime.local.invoke', '*'))
         elif (self.sls_backend == 'knative'):
             import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
+
+            ## TODO: We might not need these two
+            import_stmts.append(make_import_from('runtime', 'store_stub'))
+            import_stmts.append(ast.Import(names=[ast.alias(name='json')]))
         else:
             ## We haven't implemented a backend for non local deployments yet
             raise NotImplementedError()

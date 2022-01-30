@@ -9,7 +9,7 @@ class Store:
     ##   which is essential to invoke store methods.
     ##
     ## In the stub context it is not actually important.
-    def init_env(self, name):
+    def init_env(self, name="default-store"):
         self.env = None
         self.name = name
         self.store = beldi_stub.Beldi(name)

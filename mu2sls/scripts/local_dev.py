@@ -35,8 +35,10 @@ def parse_service_metadata_from_deploy_file(deploy_file):
 def import_compiled(compiled_module_name):
     return importlib.import_module(compiled_module_name)
 
-def init_local_store():
-    return store_stub.Store()
+def init_local_store(name):
+    store = store_stub.Store()
+    store.init_env(name)
+    return store
 
 ## TODO: What are the inputs
 def local_deploy(compiled_services):
@@ -52,7 +54,7 @@ def local_deploy(compiled_services):
         module = import_compiled(compiled_module_name)
         
         ## Initialize a separate store for each service
-        store = init_local_store()
+        store = init_local_store(compiled_service.class_name)
 
         ## Find the service by name, and initialize it
         service_class = getattr(module, compiled_service.class_name)
