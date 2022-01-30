@@ -283,6 +283,8 @@ class AddFlask(ast.NodeTransformer):
         flask_routes = []
         for method in self.method_names:
             ## TODO: Investigate whether we need to use request.get_json() instead of args for knative
+            ##
+            ## TODO: Do we actually need to have json.dumps here? This would require all our outputs to be json (which might need some modifying on the app side).
             body = ast.parse(f"return json.dumps((instance.{method})(**request.args.to_dict()))").body
             route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
                         body=body,
