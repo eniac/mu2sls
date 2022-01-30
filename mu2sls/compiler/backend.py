@@ -179,7 +179,6 @@ def service_to_ast(service: Service):
         invocationModifier = ChangeInvokeTarget(service.state.get_clients_class_name_to_fields())
         new_method = invocationModifier.visit(method)
         new_methods.append(new_method)
-        new_methods.append(method)
 
     body = assignments + [init_method] + [init_clients_method] + new_methods
     
