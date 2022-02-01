@@ -1,4 +1,5 @@
 import ast
+import astor
 
 from compiler import frontend, backend
 
@@ -29,7 +30,11 @@ def compile_single_method_service_module(in_file: str, out_file: str, sls_backen
     replaced_ast = replacer.visit(test_ast)
 
     ## TODO: Potentially extend this
-    assert(sls_backend == 'local')
+    # assert(sls_backend == 'local')
+
+    flask_adder = backend.AddFlask(service.name(), [method.name for method in service.methods])
+    test_ast = flask_adder.visit(test_ast)
+    test_ast = ast.fix_missing_locations(test_ast)
 
     # Add imports
     import_adder = backend.AddImports(sls_backend)

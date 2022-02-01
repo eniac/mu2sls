@@ -2,14 +2,17 @@ from runtime import beldi_stub
 
 class Store:
     def __init__(self):
-        self.store = beldi_stub.Beldi()
+        pass
+        # self.store = beldi_stub.Beldi()
 
     ## This method initializes the environment,
     ##   which is essential to invoke store methods.
     ##
     ## In the stub context it is not actually important.
-    def init_env(self):
+    def init_env(self, name):
         self.env = None
+        self.name = name
+        self.store = beldi_stub.Beldi(name)
 
     ## This implements a read method on the store
     ##

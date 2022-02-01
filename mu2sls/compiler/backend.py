@@ -11,7 +11,7 @@ from uncompyle6.main import decompile
 
 STORE_FIELD_NAME = "store"
 STORE_INIT_ENV_METHOD = "init_env"
-STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}()'
+STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}(self.__class__.__name__)'
 
 CLIENTS_ARG_NAME = 'clients'
 
@@ -176,9 +176,11 @@ def service_to_ast(service: Service):
     ## Modify Invocations to have the correct target (self.client instead of class name)
     new_methods = []
     for method in service.methods:
-        invocationModifier = ChangeInvokeTarget(service.state.get_clients_class_name_to_fields())
-        new_method = invocationModifier.visit(method)
-        new_methods.append(new_method)
+        # TODO: Need sls_backend type here because we're handling Invocations
+        # invocationModifier = ChangeInvokeTarget(service.state.get_clients_class_name_to_fields())
+        # new_method = invocationModifier.visit(method)
+        # new_methods.append(new_method)
+        new_methods.append(method)
 
     body = assignments + [init_method] + [init_clients_method] + new_methods
     
@@ -205,7 +207,9 @@ class AddImports(ast.NodeTransformer):
         assert(self.modules == 0)
 
         import_stmts = []
+        import_stmts.append(ast.Import(names=[ast.alias(name='json')]))
         import_stmts.append(make_import_from('runtime', 'wrappers'))
+        import_stmts.append(make_import_from('runtime', 'store_stub'))
 
         ## It might make sense to also have this be a separate module that is imported 
         ##   from the deployment script and not actually being done in the backend.
@@ -216,6 +220,8 @@ class AddImports(ast.NodeTransformer):
         ##   invocation library. Similarly to how it is agnostic to the store.
         if (self.sls_backend == 'local'):
             import_stmts.append(make_import_from('runtime.local.invoke', '*'))
+        elif (self.sls_backend == 'knative'):
+            import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
         else:
             ## We haven't implemented a backend for non local deployments yet
             raise NotImplementedError()
@@ -242,7 +248,6 @@ class ChangeInvokeTarget(ast.NodeTransformer):
                 ## The first argument is the name of another service class
                 args = call_func_args(node)
                 first_arg_value = expr_constant_value(args[0])
-
                 field_name = self.clients_class_to_field[first_arg_value]
 
                 ## Change the first argument to call the client
@@ -252,3 +257,38 @@ class ChangeInvokeTarget(ast.NodeTransformer):
             return node
         except:
             return node
+
+class AddFlask(ast.NodeTransformer):
+    def __init__(self, service_name, method_names):
+        self.modules = 0
+        self.service_name = service_name
+        self.method_names = method_names
+
+    ## TODO: At the moment this only works for a single module that is at the top level
+    def visit_Module(self, node: ast.Module):
+        ## TODO: Do we need this assumption that there is only one module?
+        assert(self.modules == 0)
+
+        import_stmts = []
+        import_stmts.append(make_import_from('flask', 'Flask'))
+        import_stmts.append(make_import_from('flask', 'request'))
+        flask_init = ast.Assign(targets=[ast.Name(id='app', ctx=ast.Store())],
+                                value=ast.Call(func=ast.Name(id='Flask', ctx=ast.Load()), args=[ast.Name(id='__name__', ctx=ast.Load())], keywords=[]))
+        instance_init = ast.Assign(targets=[ast.Name(id='instance', ctx=ast.Store())],
+                                   value=ast.Call(func=ast.Name(id=self.service_name, ctx=ast.Load()),
+                                                  args=[ast.Call(func=ast.Attribute(value=ast.Name(id='store_stub', ctx=ast.Load()), attr='Store', ctx=ast.Load()), args=[], keywords=[])],
+                                                  keywords=[]))
+        flask_routes = []
+        for method in self.method_names:
+            body = ast.parse(f"return json.dumps((instance.{method})(**request.args.to_dict()))").body
+            route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
+                        body=body,
+                        decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],
+                    )
+            flask_routes.append(route)
+        main_func = ast.parse("if __name__ == '__main__':\n    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))")
+        node.body = import_stmts + [flask_init] + node.body + [instance_init] + flask_routes + [main_func.body[0]]
+        # node.body = import_stmts + node.body + [instance_init] + [main_func.body[0]]
+
+        self.modules += 1
+        return node
