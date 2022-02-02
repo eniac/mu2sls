@@ -11,7 +11,8 @@ from runtime import serde
 
 ## Maybe have a Beldi Superclass
 class Beldi:
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.store = {}
 
     def begin_tx(self):
