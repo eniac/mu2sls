@@ -72,7 +72,6 @@ class WrapperTerminal(object):
     ## Replaces the value of the wrapped object (useful for assignments)
     def _wrapper_set(self, new_value):
         store = self._wrapper_store
-
         ## Save the object
         store.eos_write(self._wrapper_obj_key, new_value)
 
@@ -85,7 +84,7 @@ class WrapperTerminal(object):
         ## Get the object from Beldi. This should never fail
         obj = store.eos_read(self._wrapper_obj_key)
 
-        return obj.__repr__
+        return obj.__repr__()
 
     ## This method overrides the original object's getattr,
     ## making sure that attributes are accessed through Beldi.
