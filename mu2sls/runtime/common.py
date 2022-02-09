@@ -16,7 +16,7 @@ def connect():
     if data is None:
         print("FDB_CLUSTER_DATA environment variable is not set!")
         exit(1)
-
+    # Remove tempfile
     _fdb_cluster_fid, fdb_clust_file_path = tempfile.mkstemp(dir=".", text=True)
 
     with open(fdb_clust_file_path, "w") as f:
