@@ -10,7 +10,7 @@ class Frontend(object):
     def compose(self, username, password, title, rating, text):
         token = SyncInvoke('User', 'login', username, password)
         assert token is not None
-        req_id = uuid4()
+        req_id = str(uuid4())
         SyncInvoke('ComposeReview', "upload_req", req_id)
         # 4 concurrent sync invokes
         ## TODO: @Haoran Do we actually mean concurrent here? If so they need to be Async
