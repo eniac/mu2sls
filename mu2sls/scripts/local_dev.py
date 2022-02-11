@@ -7,6 +7,7 @@ import os
 import sys
 
 from runtime import store_stub
+from runtime.beldi_store import BeldiStore
 
 deployed_services = {}
 
@@ -36,14 +37,18 @@ def import_compiled(compiled_module_name):
     return importlib.import_module(compiled_module_name)
 
 def init_local_store(name):
-    store = store_stub.Store()
+    store = store_stub.LocalStore()
 
     ## Note: No need to do that here, since it is done in the service initialization anyway.
     # store.init_env(name)
     return store
 
+def init_local_beldi_store(name):
+    store = BeldiStore()
+    return store
+
 ## TODO: What are the inputs
-def local_deploy(compiled_services):
+def local_deploy(compiled_services, store_conf="local"):
     
     service_objects = {}
     clients = {}
@@ -56,7 +61,13 @@ def local_deploy(compiled_services):
         module = import_compiled(compiled_module_name)
         
         ## Initialize a separate store for each service
-        store = init_local_store(compiled_service.class_name)
+        if store_conf == "local":
+            store = init_local_store(compiled_service.class_name)
+        elif store_conf == "beldi":
+            store = init_local_beldi_store(compiled_service.class_name)
+        else:
+            print("Error: Unrecognizable store configuration:", store_conf)
+            exit(1)
 
         ## Find the service by name, and initialize it
         service_class = getattr(module, compiled_service.class_name)
@@ -73,19 +84,24 @@ def local_deploy(compiled_services):
 
     return service_objects
 
-def deploy_from_deployment_file(deploy_config_file):
+def deploy_from_deployment_file(deploy_config_file, store_conf="local"):
     service_metadata = parse_service_metadata_from_deploy_file(deploy_config_file)
 
-    services = local_deploy(service_metadata)
+    services = local_deploy(service_metadata, store_conf)
     return services
 
 def main():
     global deployed_services
-    assert(len(sys.argv) == 2)
+    assert(len(sys.argv) in range(2,4))
 
+    ## TODO: Change that to argparse
     deploy_config_file = sys.argv[1]
+    if len(sys.argv) == 3:
+        store_conf = sys.argv[2]
+    else:
+        store_conf = "local"
 
-    deployed_services = deploy_from_deployment_file(deploy_config_file)
+    deployed_services = deploy_from_deployment_file(deploy_config_file, store_conf)
 
 if __name__ == '__main__':
     main()

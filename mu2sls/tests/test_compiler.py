@@ -34,7 +34,7 @@ def test_compiler_list_service():
     test_module = compile_import_module(test_source_file, test_out)
 
     ## These are included in the test_code_object
-    store = store_stub.Store()
+    store = store_stub.LocalStore()
     store.init_env()
     service = test_module.Service(store)
     service.test()
@@ -46,7 +46,7 @@ def test_compiler_url_shortener_service():
 
 
     ## These are included in the test_code_object
-    store = store_stub.Store()
+    store = store_stub.LocalStore()
     store.init_env()
     service = test_module.UrlShortener(store)
     url1 = "url1"
