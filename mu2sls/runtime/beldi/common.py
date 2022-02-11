@@ -8,6 +8,7 @@ fdb.api_version(630)
 
 ## TODO: Add a test that runs media with local deployment + Beldi store on FDB
 ## TODO: Make sure that old tests still pass
+## TODO: Run this `grep -r "from runtime.*tore" .` to figure out all old uses of store
 
 def connect():
     """

@@ -36,7 +36,7 @@ def import_compiled(compiled_module_name):
     return importlib.import_module(compiled_module_name)
 
 def init_local_store(name):
-    store = store_stub.Store()
+    store = store_stub.LocalStore()
 
     ## Note: No need to do that here, since it is done in the service initialization anyway.
     # store.init_env(name)

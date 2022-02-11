@@ -43,7 +43,7 @@ def test_list():
         def __init__(self):
 
             ## Initialize a beldi_stub instance
-            self.store = store_stub.Store()
+            self.store = store_stub.LocalStore()
             self.store.init_env()
 
             ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
@@ -107,7 +107,7 @@ def test_counter():
     class TestObject:
         counter = WrapperCounter()
         def __init__(self):
-            store = store_stub.Store()
+            store = store_stub.LocalStore()
             store.init_env()
 
             ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
@@ -160,7 +160,7 @@ def test_int_counter():
     class TestObject:
         counter = WrapperCounter()
         def __init__(self):
-            store = store_stub.Store()
+            store = store_stub.LocalStore()
             store.init_env()
 
             ## TODO: What is the correct key for a persistent object? It might be one per service? So maybe we should use the service name?
