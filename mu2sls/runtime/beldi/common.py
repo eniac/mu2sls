@@ -6,6 +6,8 @@ from uuid import uuid4
 
 fdb.api_version(630)
 
+## TODO: Add a test that runs media with local deployment + Beldi store on FDB
+## TODO: Make sure that old tests still pass
 
 def connect():
     """
@@ -16,7 +18,7 @@ def connect():
     if data is None:
         print("FDB_CLUSTER_DATA environment variable is not set!")
         exit(1)
-    # Remove tempfile
+    ## TODO: Remove tempfile
     _fdb_cluster_fid, fdb_clust_file_path = tempfile.mkstemp(dir=".", text=True)
 
     with open(fdb_clust_file_path, "w") as f:

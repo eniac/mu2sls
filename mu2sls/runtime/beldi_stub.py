@@ -2,7 +2,6 @@
 import logging
 
 from runtime import serde
-from runtime import beldi
 
 ##
 ## This is a simple class that contains empty stubs for all beldi calls (for testing)
