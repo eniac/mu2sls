@@ -1,6 +1,6 @@
 import fdb.tuple
 
-from runtime.common import *
+from runtime.beldi.common import *
 
 ## Note that the current API accepts anything that can be serialized 
 ##   by `json.dumps` as values.

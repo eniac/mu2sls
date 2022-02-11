@@ -7,8 +7,6 @@ from uuid import uuid4
 fdb.api_version(630)
 
 ## TODO: Add a test that runs media with local deployment + Beldi store on FDB
-## TODO: Make sure that old tests still pass
-## TODO: Run this `grep -r "from runtime.*tore" .` to figure out all old uses of store
 
 def connect():
     """
@@ -28,6 +26,17 @@ def connect():
     db = fdb.open(fdb_clust_file_path)
     return db
 
+def connect_using_local_file():
+    fdb_clust_file_path = os.getenv('FDB_CLUSTER_FILE')
+    print("FDB_CLUSTER_FILE=", fdb_clust_file_path)
+    if fdb_clust_file_path is None:
+        print("FDB_CLUSTER_FILE environment variable is not set!")
+        exit(1)
+    return connect_fdb_using_file(fdb_clust_file_path)
+
+def connect_fdb_using_file(fdb_clust_file_path):
+    db = fdb.open(fdb_clust_file_path)
+    return db
 
 def get_load_balancer_ip():
     """
@@ -40,7 +49,8 @@ def get_load_balancer_ip():
         exit(1)
     return ip
 
-
+## TODO: Move those to a different file that deals with connection and configuration.
+##       Also, clean up!
 class Env:
     def __init__(self, table):
         self.instance_id = str(uuid4())
@@ -49,6 +59,13 @@ class Env:
         self.db = connect()
         self.load_balancer_ip = get_load_balancer_ip()
 
+class LocalBeldiEnv:
+    def __init__(self, table):
+        self.instance_id = str(uuid4())
+        self.table = table
+        self.step = 1
+        self.db = connect_using_local_file()
+        # self.load_balancer_ip = get_load_balancer_ip()
 
 def serialize(item):
     return json.dumps(item).encode()

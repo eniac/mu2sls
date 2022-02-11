@@ -4,6 +4,8 @@
 ## This script compiles, deploys, and tests the media service application
 ##
 
+store_conf=${1:-local}
+
 export MU2SLS_TOP=${MU2SLS_TOP:-$(git rev-parse --show-toplevel --show-superproject-working-tree)/mu2sls}
 
 deployment_file="${MU2SLS_TOP}/tests/media-service-test.csv"
@@ -15,5 +17,7 @@ test_deploy_dir="${MU2SLS_TOP}/tests/target/"
 ## Save mu2sls in pythonpath so that we can import
 export PYTHONPATH="${PYTHONPATH}:${MU2SLS_TOP}:${test_deploy_dir}"
 
+source "${MU2SLS_TOP}/scripts/source_fdb_env_var.sh"
+
 ## Locally deploy
-python3 "${MU2SLS_TOP}/tests/test_media_service.py" "${deployment_file}"
+python3 "${MU2SLS_TOP}/tests/test_media_service.py" "$store_conf"

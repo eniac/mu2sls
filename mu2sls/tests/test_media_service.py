@@ -8,8 +8,8 @@ DEPLOYMENT_FILE = f'{MU2SLS_TOP}/tests/media-service-test.csv'
 
 ## TODO: Extend it to do the calls using SyncInvoke maybe?
 ##       Then it would be possible to use it to test non-local deployments too.
-def main():
-    deployed_services = deploy_from_deployment_file(DEPLOYMENT_FILE)
+def main(store_conf="local"):
+    deployed_services = deploy_from_deployment_file(DEPLOYMENT_FILE, store_conf)
 
     # print(deployed_services)
 
@@ -39,4 +39,11 @@ def main():
     
 
 if __name__ == '__main__':
-    main()
+    assert(len(sys.argv) in range(1,3))
+
+    ## TODO: Change that to argparse
+    if len(sys.argv) == 2:
+        store_conf = sys.argv[1]
+    else:
+        store_conf = "local"
+    main(store_conf)
