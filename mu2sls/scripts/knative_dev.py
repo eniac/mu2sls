@@ -20,45 +20,45 @@ def compile(target_dir):
     res = subprocess.run(["bash", compiler, deploy, target_dir, "-s", sls_backend])
     print(res)
 
-## TODO: Actually the whole prepare is completely unneccessary.
-def prepare(intermediate_dir, target_dir):
-    ## Copy all the flask handlers to their own directories.
-    filenames = [fn for fn in os.listdir(intermediate_dir)
-                 if os.path.isfile(os.path.join(intermediate_dir, fn))]
+## Create and push the docker containers preparing for a knative deployment
+def prepare(rel_target_dir, docker_io_username):    
+    ## Build a container for each compiled service
+    filenames = [fn for fn in os.listdir(rel_target_dir)
+                 if os.path.isfile(os.path.join(rel_target_dir, fn))]
     for fn in filenames:
-        name = fn.split(".")[0]
-        os.mkdir(os.path.join(target_dir, name))
-        shutil.copyfile(os.path.join(MUSLS, "target", fn), os.path.join(target_dir, name, "app.py"))
+        ## The service name is the first part (without the .py)
+        service_name = fn.split(".")[0]
+
+        rel_path_to_app_file = os.path.join(rel_target_dir, fn)
+        docker_build(rel_path_to_app_file,
+                     docker_io_username,
+                     service_name)
     
 ## It is necessary to build and push to docker so that it can be pulled by knative
-def docker_build_push(app_file, docker_username, service_name):
+def docker_build(app_file, docker_username, service_name):
     res = run(["docker", "build", 
                          "-f", KNATIVE_DOCKERFILE,
                          "--build-arg", f'app_file={app_file}',
                          "-t", f'{docker_username}/{service_name}',
                          MUSLS])
+    return 
 
 
 def main():
     args = parse_arguments()
 
-    ## An intermediate directory to hold the compiled files
-    intermediate_dir = tempfile.mkdtemp()
-
     ## Create a kmedia directory to store all the files that are necessary
     ##   for building and deploying to knative.
-    kmedia = os.path.join(MUSLS, "kmedia")
+    rel_target_dir = "kmedia"
+    kmedia = os.path.join(MUSLS, rel_target_dir)
     shutil.rmtree(kmedia, ignore_errors=True)
     os.mkdir(kmedia)
 
-    compile(intermediate_dir)
-    prepare(intermediate_dir, kmedia)
-    shutil.rmtree(intermediate_dir)
+    compile(kmedia)
+    prepare(rel_target_dir, args.docker_io_username)
+    shutil.rmtree(kmedia)
 
-    rel_path_to_app_file = os.path.join("kmedia", "cast_info", "app.py")
-    docker_build_push(rel_path_to_app_file,
-                      args.docker_io_username,
-                      "cast_info")
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
