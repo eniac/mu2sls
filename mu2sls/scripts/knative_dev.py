@@ -13,7 +13,8 @@ def compile():
     compiler = os.path.join(MUSLS, "scripts/compile_services.sh")
     deploy = os.path.join(MUSLS, "tests/media-service-test.csv")
     target = os.path.join(MUSLS, "target")
-    res = run(["bash", compiler, deploy, target])
+    sls_backend = "knative"
+    res = run(["bash", compiler, deploy, target, "-s", sls_backend])
     print(res)
 
 def prepare():
