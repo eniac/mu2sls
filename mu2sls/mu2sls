@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument("-s", "--sls_backend",
                         help="the serverless backend",
                         choices=['openfaas', 'local', 'knative'],
-                        default='local')
+                        default='knative')
     args = parser.parse_args()
 
     ## Print all the arguments before they are modified below

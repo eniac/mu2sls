@@ -1,0 +1,17 @@
+FROM foundationdb/foundationdb:6.3.15 as fdb
+FROM python:3.8-slim
+
+ENV PYTHONUNBUFFERED True
+
+COPY --from=fdb /usr/lib/libfdb_c.so /usr/lib
+COPY --from=fdb /usr/bin/fdbcli /usr/bin/
+
+RUN pip install Flask gunicorn requests foundationdb
+ENV APP_HOME /app
+WORKDIR $APP_HOME
+
+COPY ./runtime ./runtime
+COPY ./compiler ./compiler
+COPY ./kmedia/PLACEHODLER/* ./
+
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
