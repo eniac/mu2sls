@@ -274,25 +274,33 @@ class AddFlask(ast.NodeTransformer):
         import_stmts = []
         import_stmts.append(make_import_from('flask', 'Flask'))
         import_stmts.append(make_import_from('flask', 'request'))
+        ## TODO: We probably only need this and not the store stub
+        import_stmts.append(make_import_from('runtime', 'beldi_store'))
         flask_init = ast.Assign(targets=[ast.Name(id='app', ctx=ast.Store())],
                                 value=ast.Call(func=ast.Name(id='Flask', ctx=ast.Load()), args=[ast.Name(id='__name__', ctx=ast.Load())], keywords=[]))
         instance_init = ast.Assign(targets=[ast.Name(id='instance', ctx=ast.Store())],
                                    value=ast.Call(func=ast.Name(id=self.service_name, ctx=ast.Load()),
-                                                  args=[ast.Call(func=ast.Attribute(value=ast.Name(id='store_stub', ctx=ast.Load()), attr='Store', ctx=ast.Load()), args=[], keywords=[])],
+                                                  args=[ast.Call(func=ast.Attribute(value=ast.Name(id='beldi_store', ctx=ast.Load()), attr='BeldiStore', ctx=ast.Load()), args=[], keywords=[])],
                                                   keywords=[]))
+
+        ## TODO: Find a way to make that not hardcoded
+        clients_init = ast.parse('instance.init_clients({k: k for k in ["CastInfo", "ComposeReview", "Frontend", "MovieId", "MovieInfo", "MovieReview", "Page", "Plot", "Rating", "ReviewStorage", "Text", "UniqueId", "User", "UserReview"]})').body
+        # clients_init = ast.parse('instance.init_clients({k: k for k in ["cast_info", "compose_review", "frontend", "movie_id", "movie_info", "movie_review", "page", "plot", "rating", "review_storage", "text", "unique_id", "user", "user_review"]})').body
         flask_routes = []
         for method in self.method_names:
             ## TODO: Investigate whether we need to use request.get_json() instead of args for knative
             ##
             ## TODO: Do we actually need to have json.dumps here? This would require all our outputs to be json (which might need some modifying on the app side).
-            body = ast.parse(f"return json.dumps((instance.{method})(**request.args.to_dict()))").body
+            # TODO: *request.get_json()['args']
+            # body = ast.parse(f"return json.dumps((instance.{method})(*request.args.to_dict()['args']))").body
+            body = ast.parse(f"return json.dumps((instance.{method})(*request.get_json()['args']))").body
             route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
                         body=body,
                         decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],
                     )
             flask_routes.append(route)
         main_func = ast.parse("if __name__ == '__main__':\n    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))")
-        node.body = import_stmts + [flask_init] + node.body + [instance_init] + flask_routes + [main_func.body[0]]
+        node.body = import_stmts + [flask_init] + node.body + [instance_init] + clients_init + flask_routes + [main_func.body[0]]
         # node.body = import_stmts + node.body + [instance_init] + [main_func.body[0]]
 
         self.modules += 1

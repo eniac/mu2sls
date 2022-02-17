@@ -10,8 +10,15 @@ fdb.api_version(630)
 
 def connect():
     """
-    Open a connection to FDB
+    Open a connection to FDB. First tries to do it with a local file,
+    and if that fails, tries with a remote file.
     """
+    fdb_clust_file_path = os.getenv('FDB_CLUSTER_FILE')
+    print("FDB_CLUSTER_FILE=", fdb_clust_file_path)
+    if not fdb_clust_file_path is None:
+        return connect_fdb_using_file(fdb_clust_file_path)
+
+    ## If the FILE didn't work, then just try with data
     data = os.getenv('FDB_CLUSTER_DATA')
     print("FDB_CLUSTER_DATA=", data)
     if data is None:
@@ -23,8 +30,7 @@ def connect():
     with open(fdb_clust_file_path, "w") as f:
         f.write(data)
 
-    db = fdb.open(fdb_clust_file_path)
-    return db
+    return fdb.open(fdb_clust_file_path)
 
 def connect_using_local_file():
     fdb_clust_file_path = os.getenv('FDB_CLUSTER_FILE')
@@ -35,8 +41,7 @@ def connect_using_local_file():
     return connect_fdb_using_file(fdb_clust_file_path)
 
 def connect_fdb_using_file(fdb_clust_file_path):
-    db = fdb.open(fdb_clust_file_path)
-    return db
+    return fdb.open(fdb_clust_file_path)
 
 def get_load_balancer_ip():
     """
@@ -57,14 +62,7 @@ class Env:
         self.table = table
         self.step = 1
         self.db = connect()
-        self.load_balancer_ip = get_load_balancer_ip()
-
-class LocalBeldiEnv:
-    def __init__(self, table):
-        self.instance_id = str(uuid4())
-        self.table = table
-        self.step = 1
-        self.db = connect_using_local_file()
+        ## No need for load_balancer_ip in Beldi Env
         # self.load_balancer_ip = get_load_balancer_ip()
 
 def serialize(item):

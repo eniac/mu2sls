@@ -16,7 +16,7 @@ class BeldiStore(Store):
     ##
     ## In the stub context it is not actually important.
     def init_env(self, name="default-store"):
-        self.env = common.LocalBeldiEnv(name)
+        self.env = common.Env(name)
         self.name = name
 
     ## This implements a read method on the store
