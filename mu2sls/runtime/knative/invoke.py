@@ -13,12 +13,12 @@ def SyncInvoke(client, method_name: str, *args):
                         json={"args": args}).json()
     return res
 
+## TODO: Make that actual Async
 def AsyncInvoke(client, method_name: str, *args):
-    return (lambda: SyncInvoke(client, method_name, *args))
+    return SyncInvoke(client, method_name, *args)
 
 def Wait(promise):
-    return promise()
+    return promise
 
 def WaitAll(*promises):
-    rets = [p() for p in promises]
-    return rets
+    return promises
