@@ -14,6 +14,6 @@ WORKDIR $APP_HOME
 
 COPY ./runtime ./runtime
 COPY ./compiler ./compiler
-COPY ${app_file} ./
+COPY ${app_file} ./app.py
 
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
