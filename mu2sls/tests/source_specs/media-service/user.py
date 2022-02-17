@@ -29,7 +29,10 @@ class User(object):
         hashpass = hashlib.sha256((password + user['salt']).encode('utf-8')).hexdigest()
         if hashpass != user['password']:
             return None
-        return jwt.encode({'user_id': user['user_id']}, 'secret', algorithm='HS256')
+        ret = {'user_id': user['user_id']}
+        ## TODO: It is not possible to JSON decode this, so we just return the internal dic
+        # return jwt.encode(ret, 'secret', algorithm='HS256')
+        return ret
 
     def upload_user(self, req_id, username):
         user = self.users.get(username)
