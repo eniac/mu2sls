@@ -8,7 +8,9 @@ ENV PYTHONUNBUFFERED True
 COPY --from=fdb /usr/lib/libfdb_c.so /usr/lib
 COPY --from=fdb /usr/bin/fdbcli /usr/bin/
 
-RUN pip install Flask gunicorn requests foundationdb
+RUN pip install Flask gunicorn requests foundationdb 
+## Necessary for the media service, ideally, we should abstract requirements away
+RUN pip install jwt
 ENV APP_HOME /app
 WORKDIR $APP_HOME
 
