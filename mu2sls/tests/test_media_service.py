@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import sys
@@ -12,7 +13,9 @@ DEPLOYMENT_FILE = f'{MU2SLS_TOP}/tests/media-service-test.csv'
 
 ## TODO: Extend it to do the calls using SyncInvoke maybe?
 ##       Then it would be possible to use it to test non-local deployments too.
-def main(store_conf="local", docker_io_username='default'):
+def main(args):
+    store_conf = args.mode
+    docker_io_username = args.docker_io_username
 
     ## For local or local-beldi testing, we need to deploy
     if(store_conf in ["local", "beldi"]):
@@ -100,13 +103,19 @@ def run_local_deployment_tests(deployed_services):
 
     assert len(deployed_services['ComposeReview'].reqs.items()) == 0
 
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mode", 
+                        help="the testing mode",
+                        choices=["local", "beldi", "knative"],
+                        default="local")
+    parser.add_argument("--docker_io_username", 
+                        help="the docker_io username to push/pull the images",
+                        default="default")
+    args = parser.parse_args()
+    return args
+
 
 if __name__ == '__main__':
-    assert(len(sys.argv) in range(1,3))
-
-    ## TODO: Change that to argparse
-    if len(sys.argv) == 2:
-        store_conf = sys.argv[1]
-    else:
-        store_conf = "local"
-    main(store_conf)
+    args = parse_arguments()
+    main(args)
