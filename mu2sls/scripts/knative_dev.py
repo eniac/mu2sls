@@ -52,6 +52,14 @@ def docker_push(docker_username, service_name):
     res = subprocess.run(["docker", "push", f'{docker_username}/{service_name}'])
     return res 
 
+def deploy_services(docker_username, service_list):
+    for service in service_list:
+        knative_service_name, docker_io_name = service
+        res = subprocess.run(["bash", "deploy.sh", 
+                              docker_username,
+                              knative_service_name,
+                              docker_io_name])
+
 def main():
     args = parse_arguments()
 
