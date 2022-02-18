@@ -218,9 +218,9 @@ class AddImports(ast.NodeTransformer):
             import_stmts.append(make_import_from('runtime.local.invoke', '*'))
         elif (self.sls_backend == 'knative'):
             import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
-
-            ## TODO: We might not need these two
-            import_stmts.append(make_import_from('runtime', 'store_stub'))
+            import_stmts.append(make_import_from('flask', 'Flask'))
+            import_stmts.append(make_import_from('flask', 'request'))
+            import_stmts.append(make_import_from('runtime', 'beldi_store'))
             import_stmts.append(ast.Import(names=[ast.alias(name='json')]))
         else:
             ## We haven't implemented a backend for non local deployments yet
@@ -271,11 +271,6 @@ class AddFlask(ast.NodeTransformer):
     def visit_Module(self, node: ast.Module):
         ## TODO: Do we need this assumption that there is only one module?
         assert(self.modules == 0)
-
-        import_stmts = []
-        import_stmts.append(make_import_from('flask', 'Flask'))
-        import_stmts.append(make_import_from('flask', 'request'))
-        import_stmts.append(make_import_from('runtime', 'beldi_store'))
         flask_init = make_var_assign('app', ast.Call(func=ast.Name(id='Flask', ctx=ast.Load()), 
                                                      args=[ast.Name(id='__name__', ctx=ast.Load())], keywords=[]))
         instance_init = make_var_assign('instance',
@@ -305,7 +300,7 @@ class AddFlask(ast.NodeTransformer):
                     )
             flask_routes.append(route)
         main_func = ast.parse("if __name__ == '__main__':\n    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))")
-        node.body = import_stmts + [flask_init] + node.body + [instance_init] + [client_list_assign] + clients_init + flask_routes + [main_func.body[0]]
+        node.body = [flask_init] + node.body + [instance_init] + [client_list_assign] + clients_init + flask_routes + [main_func.body[0]]
 
         self.modules += 1
         return node
