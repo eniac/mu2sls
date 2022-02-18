@@ -283,7 +283,7 @@ class AddFlask(ast.NodeTransformer):
         ## Note however, that if not all services are in knative, then we need different types of clients.
         client_list_constant = make_constant_list(sorted(list(self.clients_class_to_field.keys())))
         client_list_assign = make_var_assign('client_list', client_list_constant)
-        clients_init = ast.parse("instance.init_clients({ k: k for k in clients_list })").body
+        clients_init = ast.parse("instance.init_clients({ k: k for k in client_list })").body
         flask_routes = []
         for method in self.method_names:
             ## TODO: Do we actually need to have json.dumps here? This would require all our outputs to be json (which might need some modifying on the app side).
