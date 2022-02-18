@@ -33,7 +33,11 @@ def compile_single_method_service_module(in_file: str, out_file: str, sls_backen
 
     ## TODO: Move that to a different module maybe
     if sls_backend == "knative":
-        flask_adder = backend.AddFlask(service.name(), [method.name for method in service.methods])
+        flask_adder = backend.AddFlask(service.name(), 
+                                       # Methods are needed to create Flask handlers
+                                       [method.name for method in service.methods],
+                                       # Client names are needed to create the client dictionary
+                                       service.state.get_clients_class_name_to_fields())
         test_ast = flask_adder.visit(replaced_ast)
         test_ast = ast.fix_missing_locations(test_ast)
     else:
