@@ -288,6 +288,9 @@ class AddFlask(ast.NodeTransformer):
         for method in self.method_names:
             ## TODO: Do we actually need to have json.dumps here? This would require all our outputs to be json (which might need some modifying on the app side).
             ##
+            ## TODO: Make all method arguments be keyword ones, so that we can get rid of the extra `args`
+            ##       and just pass a dictionary with arguments and their values.
+            ##
             ## We are using `get_json` instead of params since it is more robust to send data
             ## using the data http field rather than the url parameters.
             ## 
