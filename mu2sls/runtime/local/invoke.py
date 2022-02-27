@@ -3,7 +3,7 @@
 
 ## Synchronous local invocation.
 ## Simply find the method in the client and call it.
-def SyncInvoke(client, method_name: str, *args):
+def SyncInvoke(client: str, method_name: str, *args):
     return getattr(client, method_name)(*args)
 
 ## All promises must implement a wait method

@@ -1,7 +1,7 @@
 import os
 import requests
 
-def SyncInvoke(client, method_name: str, *args):
+def SyncInvoke(client: str, method_name: str, *args):
     ip = os.environ.get('LOAD_BALANCER_IP')
     assert ip is not None
     client = client.lower()
@@ -14,7 +14,7 @@ def SyncInvoke(client, method_name: str, *args):
     return res
 
 ## TODO: Make that actual Async
-def AsyncInvoke(client, method_name: str, *args):
+def AsyncInvoke(client: str, method_name: str, *args):
     return SyncInvoke(client, method_name, *args)
 
 def Wait(promise):
