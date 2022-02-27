@@ -1,6 +1,8 @@
 import fdb.tuple
 
 from runtime.beldi.common import *
+from runtime.serde import serialize, deserialize
+
 
 ## Note that the current API accepts anything that can be serialized 
 ##   by `json.dumps` as values.
@@ -175,6 +177,7 @@ def commit_txn(env: Env):
         k = fdb.tuple.unpack(k)[-1]
         v = deserialize(v)
         eos_write(env, k, v)
+        ## kk: Could this lead to an issue that unlocks happen one by one? Could it be the case that someone sees intermediate results?
         unlock(env, k)
     del env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
 

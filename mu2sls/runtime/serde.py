@@ -1,10 +1,19 @@
-import pickle
+import json
 
-## TODO: Consider replacing this with the same serde that Beldi does
-##       to avoid divergence.
+def serialize(item):
+    return json.dumps(item).encode()
 
-def serialize(obj):
-    return pickle.dumps(obj)
 
-def deserialize(bin):
-    return pickle.loads(bin)
+def deserialize(bitem: bytes):
+    return json.loads(bitem.decode())
+
+
+## Old way of doing serialization/deserialization
+
+#import pickle
+
+# def serialize(obj):
+#     return pickle.dumps(obj)
+
+# def deserialize(bin):
+#     return pickle.loads(bin)

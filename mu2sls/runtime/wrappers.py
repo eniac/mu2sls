@@ -144,6 +144,7 @@ class WrapperTerminal(object):
             store.begin_tx()
 
             ## Get the object
+            ## TODO: Change those with tpl_read, tpl_write and also retry
             obj = store.eos_read(self._wrapper_obj_key)
 
             ## Call the method
