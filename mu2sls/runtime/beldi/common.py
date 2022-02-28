@@ -67,11 +67,11 @@ def get_load_balancer_ip():
 ## This is the knative distributed environment
 ##
 class Env:
-    def __init__(self, table):
+    def __init__(self, table, req_id=None):
         ## TODO: Make it possible to get an instance_id from the caller
         
         ## TODO: Rename instance_id to request_id
-        self.instance_id = str(uuid4())
+        self.instance_id = req_id
 
         ## The name of the table for that particular function
         self.table = table
@@ -79,6 +79,12 @@ class Env:
         ## A step number that is used to index through the log and
         ## to differentiate between different calls.
         self.step = 1
+
+        ## TODO: The following two steps should just happen once per instantiation
+        ##       and not once per request.
+        ##
+        ##       Maybe we can achieve that, by having a reinit_env function that 
+        ##       simply updates.
 
         ## A connection to the database
         self.db = connect()

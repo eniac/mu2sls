@@ -103,7 +103,7 @@ def construct_init_method_persistent_object_ast(per_obj_name: str, per_obj_init_
 def construct_init_method_ast(persistent_objects):
     body = []
 
-    # First initialize Beldi's environment
+    ## First initialize Beldi's environment
     beldi_ass_module_ast = ast.parse(STORE_INIT_ENV_INVOCATION)
     beldi_ass_ast = extract_single_stmt_from_module(beldi_ass_module_ast)
     body.append(beldi_ass_ast)
@@ -122,27 +122,6 @@ def construct_init_method_ast(persistent_objects):
                                                       args=[make_arg('self'),
                                                             make_arg(STORE_FIELD_NAME)],
                                                       vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]), 
-                                   body=body, 
-                                   decorator_list=[], returns=None, type_comment=None)
-    return function_ast
-
-def construct_init_clients_method_ast(clients):
-    body = []
-
-    func = make_field_access(['self', STORE_FIELD_NAME, 'init_clients'])
-    args = [make_var_expr('clients')]
-    logger_init_clients = ast.Expr(value=ast.Call(func=func, 
-                                                  args=args, 
-                                                  keywords=[]))
-    body.append(logger_init_clients)
-
-    ## Create the function
-    function_ast = ast.FunctionDef(name='init_clients', 
-                                   args=ast.arguments(posonlyargs=[], 
-                                                      args=[make_arg('self'),
-                                                            make_arg(CLIENTS_ARG_NAME)],
-                                                      vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, 
-                                                      defaults=[make_empty_dict()]), 
                                    body=body, 
                                    decorator_list=[], returns=None, type_comment=None)
     return function_ast
@@ -170,8 +149,9 @@ def service_to_ast(service: Service):
     ## TODO: This should take some form of configuration to use beldi or not
     init_method = construct_init_method_ast(persistent_objects)
 
-    ## Create the method that initializes clients
-    init_clients_method = construct_init_clients_method_ast(service.state.clients)
+    ## Instead of making these methods that are always the same,
+    ## we simply inherit them from a superclass.
+    compiled_service_base_class = make_var_expr('CompiledService')
 
     ## Modify Invocations to have the correct target (self.client instead of class name)
     new_methods = []
@@ -180,10 +160,10 @@ def service_to_ast(service: Service):
         new_method = invocationModifier.visit(method)
         new_methods.append(new_method)
 
-    body = assignments + [init_method] + [init_clients_method] + new_methods
+    body = assignments + [init_method] + new_methods
     
     new_class = ast.ClassDef(name=service.name(),
-                             bases=service.bases(),
+                             bases= [compiled_service_base_class] + service.bases(),
                              keywords=service.keywords(),
                              body=body,
                              decorator_list=service.decorator_list())
@@ -206,6 +186,7 @@ class AddImports(ast.NodeTransformer):
 
         import_stmts = []
         import_stmts.append(make_import_from('runtime', 'wrappers'))
+        import_stmts.append(make_import_from('runtime.compiled_service', 'CompiledService'))
 
         ## It might make sense to also have this be a separate module that is imported 
         ##   from the deployment script and not actually being done in the backend.
@@ -286,7 +267,7 @@ class AddFlask(ast.NodeTransformer):
             ## 
             ## Old way:
             ## body = ast.parse(f"return json.dumps((instance.{method})(*request.args.to_dict()['args']))").body
-            body = ast.parse(f"return json.dumps((instance.{method})(*request.get_json()['args']))").body
+            body = ast.parse(f"print(request)\nprint(dict(request.headers))\nprint(request.get_json())\ninstance.reinit_env(name={self.service_name}, req_id=request.get_json()['req_id'])\nreturn json.dumps((instance.{method})(*request.get_json()['args']))").body
             route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
                         body=body,
                         decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],

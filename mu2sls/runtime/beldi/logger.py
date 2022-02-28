@@ -21,9 +21,12 @@ class BeldiLogger(Logger):
     ##   which is essential to invoke store methods.
     ##
     ## In the stub context it is not actually important.
-    def init_env(self, name="default-store"):
-        self.env = common.Env(name)
-        self.name = name
+    def init_env(self, name="default-store", req_id=None):
+        self.env = common.Env(name, req_id=req_id)
+
+    def reinit_env(self, name, req_id):
+        ## TODO: Make that not reinitialize everything for efficiency
+        self.env = common.Env(name, req_id=req_id)
 
     ## This implements a read method on the store
     ##
@@ -51,6 +54,7 @@ class BeldiLogger(Logger):
         if not self.contains(key):
             self.eos_write(key, value)
 
+    ## TODO: Actually implement that
     def begin_tx(self):
         pass
 

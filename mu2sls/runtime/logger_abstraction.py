@@ -31,11 +31,11 @@ class Logger:
     ##
     def SyncInvoke(self, client_name: str, method_name: str, *args):
         client = self.get_client(client_name)        
-        return self.invoke_lib.SyncInvoke(client, method_name, *args)
+        return self.invoke_lib.SyncInvoke(client, method_name, env=self.env, *args)
 
     def AsyncInvoke(self, client_name: str, method_name: str, *args):
         client = self.get_client(client_name)
-        return self.invoke_lib.AsyncInvoke(client, method_name, *args)
+        return self.invoke_lib.AsyncInvoke(client, method_name, env=self.env, *args)
 
     def Wait(self, promise):
         return self.invoke_lib.Wait(promise)
