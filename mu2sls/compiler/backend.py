@@ -216,18 +216,14 @@ class AddImports(ast.NodeTransformer):
         ##
         ## But the compiler should probably create code that is agnostic to the
         ##   invocation library. Similarly to how it is agnostic to the store.
-        if (self.sls_backend == 'local'):
-            ## TODO: Remove these imports as they will now happen in the logger
-            import_stmts.append(make_import_from('runtime.local.invoke', '*'))
-        elif (self.sls_backend == 'knative'):
+        if (self.sls_backend == 'knative'):
+            ## TODO: Do this import in the BeldiLogger object
             import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
             import_stmts.append(make_import_from('flask', 'Flask'))
             import_stmts.append(make_import_from('flask', 'request'))
             import_stmts.append(make_import_from('runtime', 'beldi_store'))
             import_stmts.append(ast.Import(names=[ast.alias(name='json')]))
-        else:
-            ## We haven't implemented a backend for non local deployments yet
-            raise NotImplementedError()
+        
         node.body = import_stmts + node.body
 
         self.modules += 1
