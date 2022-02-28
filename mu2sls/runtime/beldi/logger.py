@@ -1,76 +1,56 @@
+from runtime.beldi import beldi
+from runtime.beldi import common
 
-##
-## This is a class that does all logging locally (replacing Beldi)
-##
-## TODO: Move the following comment to the Logger superclass
-##
-## It currently implements a full API with all methods, but in the future,
-## it would make sense to have it be agnostic to the actual API calls (invocation, store, etc)
-##
-
-from runtime import serde
-
-from runtime.local import invoke
-
-## TODO: Make a Logger abstraction, that contains everything that the store abstraction does
 from runtime.logger_abstraction import Logger
 
-class LocalLogger(Logger):
+##
+## This is a logger class (similar to local.logger) that provides an idempotent API
+## for a store, with calls, and transactions.
+##
+class BeldiLogger(Logger):
     ## TODO: @haoran It is not clear whether the name is supposed to be given at:
     ##       1. initialization/__init__ (called by deployment/context) 
     ##       2. init_env (called by the compiled service)
     ##       Also it is not clear if the Beldi initialization should also happen in (1) or (2)
     def __init__(self):
-        self.invoke_lib = invoke
-        # self.store = beldi_stub.Beldi()
+        pass
 
     ## This method initializes the environment,
     ##   which is essential to invoke store methods.
     ##
     ## In the stub context it is not actually important.
     def init_env(self, name="default-store"):
-        ## TODO: We can remove the env, since it is not needed by the local
-        ##       logger.
-        self.env = None
+        self.env = common.Env(name)
         self.name = name
-        self.store = {}
-
-    ## TODO: Test all of these changes in the remote one too.
 
     ## This implements a read method on the store
     ##
     ## Normally, this would also use the environment
     ## to perform the invocation
     def eos_read(self, key):
-        try:
-            serialized_val = self.store[key]
-            return serde.deserialize(serialized_val)
-        except:
-            return None
+        return beldi.eos_read(self.env, key)
     
     ## This implements a write method on the store
     ##
     ## Normally, this would also use the environment
     ## to perform the invocation
     def eos_write(self, key, value):
-        self.store[key] = serde.serialize(value)
+        return beldi.eos_write(self.env, key, value)
     
     ## TODO: These are still empty and their APIs undecided.
     ##
     ## TODO: We need to implement them for Beldi
     def contains(self, key):
-        return key in self.store
-        
+        return beldi.eos_contains(self.env, key)
+    
+    ## TODO: @Haoran my goal was for this to be atomic. Maybe we need to either remove it
+    ##       or wrap it with some lock.
     def set_if_not_exists(self, key, value):
-        self.begin_tx()
-        if (not self.contains(key)):
+        if not self.contains(key):
             self.eos_write(key, value)
-        self.end_tx()
 
     def begin_tx(self):
         pass
 
     def end_tx(self):
-        pass        
-
-    ## Invocations are inherited
+        pass

@@ -129,8 +129,6 @@ def construct_init_method_ast(persistent_objects):
 def construct_init_clients_method_ast(clients):
     body = []
 
-    print(ast.dump(ast.parse('self.logger.init_clients(clients)')))
-
     func = make_field_access(['self', STORE_FIELD_NAME, 'init_clients'])
     args = [make_var_expr('clients')]
     logger_init_clients = ast.Expr(value=ast.Call(func=func, 
