@@ -7,7 +7,7 @@ import os
 import sys
 
 from runtime.local import logger
-from runtime.beldi_store import BeldiStore
+# from runtime.beldi_store import BeldiStore
 
 deployed_services = {}
 
@@ -44,6 +44,8 @@ def init_local_store(name):
     return store
 
 def init_local_beldi_store(name):
+    print("Error: Local deployment with Beldi is not supported currently")
+    assert False
     store = BeldiStore()
     return store
 
