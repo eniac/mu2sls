@@ -25,8 +25,21 @@ def make_field_assign(target_name: str, expr: ast.AST) -> ast.Assign:
 
 ## self.target_name
 def make_self_field_access(target_name: str) -> ast.Attribute:
-    access = ast.Attribute(value=ast.Name(id='self', ctx=ast.Load()), attr=target_name, ctx=ast.Load())
+    access = make_field_access(['self', target_name])
     return access
+
+## name1.name2.name3...
+def make_field_access(names: list) -> ast.Attribute:
+    assert len(names) >= 2
+    first = names[0]
+    rest = names[1:]
+
+    acc = make_var_expr(first)
+    for field_name in rest:
+        acc = ast.Attribute(value=acc,
+                            attr=field_name,
+                            ctx=ast.Load())
+    return acc
 
 ## var (simply refering to var)
 def make_var_expr(var_name: str) -> ast.Name:

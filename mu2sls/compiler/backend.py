@@ -129,16 +129,14 @@ def construct_init_method_ast(persistent_objects):
 def construct_init_clients_method_ast(clients):
     body = []
 
-    ## Initialize the clients
-    for field_name, client in clients.items():
-        _init_ast, client_name = client
+    print(ast.dump(ast.parse('self.logger.init_clients(clients)')))
 
-        ## Assign the client based on the clients dictionary
-        assignment = make_field_assign(field_name, make_constant_subscript(CLIENTS_ARG_NAME, client_name))
-        body.append(assignment)
-    else:
-        ## If there are no clients, make an empty function
-        body.append(ast.Pass())
+    func = make_field_access(['self', STORE_FIELD_NAME, 'init_clients'])
+    args = [make_var_expr('clients')]
+    logger_init_clients = ast.Expr(value=ast.Call(func=func, 
+                                                  args=args, 
+                                                  keywords=[]))
+    body.append(logger_init_clients)
 
     ## Create the function
     function_ast = ast.FunctionDef(name='init_clients', 
@@ -236,7 +234,7 @@ class AddImports(ast.NodeTransformer):
         return node
 
 
-## This class adds the necessary imports to the final module
+## This class changes invocations to go through logger
 class ChangeInvokeTarget(ast.NodeTransformer):
     def __init__(self, clients):
         ## Clients is a dictionary from class names to field names
@@ -248,18 +246,10 @@ class ChangeInvokeTarget(ast.NodeTransformer):
         ## First visit all children
         self.generic_visit(node)
 
-        ## TODO: Instead of changing the target, change to a method call to self.logger
         try:
-            if call_func_name(node) in globals.INVOKE_FUNCTION_NAMES:
-                ## The first argument is the name of another service class
-                args = call_func_args(node)
-                first_arg_value = expr_constant_value(args[0])
-                field_name = self.clients_class_to_field[first_arg_value]
-
-                ## Change the first argument to call the client
-                new_args = args[:] 
-                new_args[0] = make_self_field_access(field_name)
-                node.args = new_args
+            func_name = call_func_name(node)
+            if func_name in globals.INVOKE_LIB_FUNCTION_NAMES:
+                node.func = make_field_access(['self', STORE_FIELD_NAME, func_name])
             return node
         except:
             return node
