@@ -28,6 +28,10 @@ def make_self_field_access(target_name: str) -> ast.Attribute:
     access = ast.Attribute(value=ast.Name(id='self', ctx=ast.Load()), attr=target_name, ctx=ast.Load())
     return access
 
+## var (simply refering to var)
+def make_var_expr(var_name: str) -> ast.Name:
+    return ast.Name(id=var_name, ctx=ast.Load())
+
 ## obj['index']
 def make_constant_subscript(obj: str, index: str) -> ast.Subscript:
     return ast.Subscript(value=ast.Name(id=obj, ctx=ast.Load()), 

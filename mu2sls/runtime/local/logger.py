@@ -10,6 +10,8 @@
 
 from runtime import serde
 
+from runtime.local import invoke
+
 ## TODO: Make a Logger abstraction, that contains everything that the store abstraction does
 from runtime.store_abstraction import Store
 
@@ -32,6 +34,15 @@ class LocalLogger(Store):
         self.env = None
         self.name = name
         self.store = {}
+
+    ## TODO: Modify the compiler to call the loggers init_clients.
+
+    def init_clients(self, clients={}):
+        self.clients = clients
+
+    ## TODO: Modify the compiler to call SyncInvoke, etc in Logger
+
+    ## TODO: Test all of these changes in the remote one too.
 
     ## This implements a read method on the store
     ##
@@ -68,3 +79,20 @@ class LocalLogger(Store):
 
     def end_tx(self):
         pass        
+
+    ##
+    ## Invocations
+    ##
+    def SyncInvoke(self, client_name: str, method_name: str, *args):
+        client = self.clients[client_name]
+        return invoke.SyncInvoke(client, method_name, *args)
+
+    def AsyncInvoke(self, client_name: str, method_name: str, *args):
+        client = self.clients[client_name]
+        return invoke.AsyncInvoke(client, method_name, *args)
+
+    def Wait(self, promise):
+        return invoke.Wait(promise)
+
+    def WaitAll(self, *promises):
+        return invoke.WaitAll(*promises)

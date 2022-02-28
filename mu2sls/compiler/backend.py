@@ -9,7 +9,7 @@ import ast
 
 from uncompyle6.main import decompile
 
-STORE_FIELD_NAME = "store"
+STORE_FIELD_NAME = "logger"
 STORE_INIT_ENV_METHOD = "init_env"
 STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}(self.__class__.__name__)'
 
@@ -108,6 +108,10 @@ def construct_init_method_ast(persistent_objects):
     beldi_ass_ast = extract_single_stmt_from_module(beldi_ass_module_ast)
     body.append(beldi_ass_ast)
 
+    ## Keep the logger in a local field
+    assgn_logger = make_field_assign(STORE_FIELD_NAME, make_var_expr(STORE_FIELD_NAME))
+    body.append(assgn_logger)
+
     ## Then initialize all the objects
     for per_obj_name, per_obj_init_ast in persistent_objects.items():
         body += construct_init_method_persistent_object_ast(per_obj_name, per_obj_init_ast)
@@ -116,7 +120,7 @@ def construct_init_method_ast(persistent_objects):
     function_ast = ast.FunctionDef(name='__init__', 
                                    args=ast.arguments(posonlyargs=[], 
                                                       args=[make_arg('self'),
-                                                            make_arg('store')],
+                                                            make_arg(STORE_FIELD_NAME)],
                                                       vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]), 
                                    body=body, 
                                    decorator_list=[], returns=None, type_comment=None)
@@ -215,6 +219,7 @@ class AddImports(ast.NodeTransformer):
         ## But the compiler should probably create code that is agnostic to the
         ##   invocation library. Similarly to how it is agnostic to the store.
         if (self.sls_backend == 'local'):
+            ## TODO: Remove these imports as they will now happen in the logger
             import_stmts.append(make_import_from('runtime.local.invoke', '*'))
         elif (self.sls_backend == 'knative'):
             import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
@@ -243,6 +248,7 @@ class ChangeInvokeTarget(ast.NodeTransformer):
         ## First visit all children
         self.generic_visit(node)
 
+        ## TODO: Instead of changing the target, change to a method call to self.logger
         try:
             if call_func_name(node) in globals.INVOKE_FUNCTION_NAMES:
                 ## The first argument is the name of another service class
