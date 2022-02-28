@@ -216,10 +216,10 @@ class AddImports(ast.NodeTransformer):
         ##   invocation library. Similarly to how it is agnostic to the store.
         if (self.sls_backend == 'knative'):
             ## TODO: Do this import in the BeldiLogger object
-            import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
+            # import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
             import_stmts.append(make_import_from('flask', 'Flask'))
             import_stmts.append(make_import_from('flask', 'request'))
-            import_stmts.append(make_import_from('runtime', 'beldi_store'))
+            import_stmts.append(make_import_from('runtime.beldi', 'logger'))
             import_stmts.append(ast.Import(names=[ast.alias(name='json')]))
         
         node.body = import_stmts + node.body
@@ -265,7 +265,7 @@ class AddFlask(ast.NodeTransformer):
                                                      args=[ast.Name(id='__name__', ctx=ast.Load())], keywords=[]))
         instance_init = make_var_assign('instance',
                                         ast.Call(func=ast.Name(id=self.service_name, ctx=ast.Load()),
-                                                 args=[ast.Call(func=ast.Attribute(value=ast.Name(id='beldi_store', ctx=ast.Load()), attr='BeldiStore', ctx=ast.Load()), args=[], keywords=[])],
+                                                 args=[ast.Call(func=ast.Attribute(value=ast.Name(id='logger', ctx=ast.Load()), attr=globals.BELDI_LOGGER_CLASS_NAME, ctx=ast.Load()), args=[], keywords=[])],
                                                  keywords=[]))
 
         ## We use the client list of the service to make an identity dictionary.

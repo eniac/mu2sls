@@ -1,6 +1,8 @@
 from runtime.beldi import beldi
 from runtime.beldi import common
 
+from runtime.knative import invoke
+
 from runtime.logger_abstraction import Logger
 
 ##
@@ -13,7 +15,7 @@ class BeldiLogger(Logger):
     ##       2. init_env (called by the compiled service)
     ##       Also it is not clear if the Beldi initialization should also happen in (1) or (2)
     def __init__(self):
-        pass
+        self.invoke_lib = invoke
 
     ## This method initializes the environment,
     ##   which is essential to invoke store methods.

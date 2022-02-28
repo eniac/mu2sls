@@ -7,7 +7,6 @@ import os
 import sys
 
 from runtime.local import logger
-# from runtime.beldi_store import BeldiStore
 
 deployed_services = {}
 
