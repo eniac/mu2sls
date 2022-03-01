@@ -74,27 +74,28 @@ class BeldiLogger(Logger):
     ## future, we can only reinitialize the environment per request,
     ## and have a read-only instance initialized once at the start.
 
-    dictionary = {thread_name: instance for thread_name in thread_names}
+    # dictionary = {thread_name: instance for thread_name in thread_names}
 
     ## TODO: Actually implement that
     def begin_tx(self):
+        pass
         
-        cond = True
-        while cond:
-            beldi.begin_txn(self.env)
+        # cond = True
+        # while cond:
+        #     beldi.begin_txn(self.env)
 
-            cond, ret = beldi.tpl_read(self.env, "key")
+        #     cond, ret = beldi.tpl_read(self.env, "key")
 
-            if cond is False:
-                beldi.abort_txn(self.env)
+        #     if cond is False:
+        #         beldi.abort_txn(self.env)
 
         
-        ret.update()
+        # ret.update()
 
-        cond = beldi.tpl_write(self.env, "key", ret)
-        assert cond is True
+        # cond = beldi.tpl_write(self.env, "key", ret)
+        # assert cond is True
 
-        beldi.commit_txn(self.env)
+        # beldi.commit_txn(self.env)
 
     def commit_tx(self):
         pass
