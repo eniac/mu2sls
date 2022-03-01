@@ -7,6 +7,8 @@ def deserialize(bitem: bytes):
     decoded_string = bitem.decode()
     ## json.loads() cannot handle an empty string,
     ##   so we make sure that we only pass a non-empty string to it
+    ##
+    ## TODO: This might actually not be necessary...
     if decoded_string == '':
         return None
     return json.loads(decoded_string)
