@@ -166,6 +166,7 @@ def tpl_write(env: Env, key: str, value):
 
 
 def begin_txn(env: Env):
+    ## Note: Maybe instance_id is not enough for txn_id
     env.txn_id = env.instance_id
     env.instruction = "EXECUTE"
     local_eos_write(env, "callee", [])
