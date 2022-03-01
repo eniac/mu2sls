@@ -64,7 +64,6 @@ class BeldiLogger(Logger):
             self.eos_write(key, value)
 
     ## TODO: Transfer with invocation
-    ## - req_id
     ## - env.txn_id = env.instance_id
     ## - env.instruction = "EXECUTE"
 
@@ -74,16 +73,6 @@ class BeldiLogger(Logger):
     ## if not get_json()['instruction'] == "EXECUTE":
     ##     run_commit_abort_code
 
-    ## TODO: Instance per concurrent worker/thread.
-    ##       Put differently, no instance should be shared between 
-    ##       two concurrent threads.
-    ##
-    ## The naive and straightforward way to do it, is to create
-    ## a new instance per request. We should do that, and in the
-    ## future, we can only reinitialize the environment per request,
-    ## and have a read-only instance initialized once at the start.
-
-    # dictionary = {thread_name: instance for thread_name in thread_names}
 
     ## TODO: Actually implement that
     def begin_tx(self):

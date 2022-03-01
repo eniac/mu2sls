@@ -257,6 +257,8 @@ class AddFlask(ast.NodeTransformer):
         clients_init = ast.parse("instance.init_clients({ k: k for k in client_list })").body
 
         ## TODO: Investigate whether this can be moved out
+        ##       by reinitializing the environment per request,
+        ##       and have a read-only instance initialized once at the start.
         ##
         ## The initialization of the instance and its clients
         pre_body = [instance_init, client_list_assign] + clients_init
