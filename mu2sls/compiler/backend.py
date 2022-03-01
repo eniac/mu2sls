@@ -267,7 +267,7 @@ class AddFlask(ast.NodeTransformer):
             ## 
             ## Old way:
             ## body = ast.parse(f"return json.dumps((instance.{method})(*request.args.to_dict()['args']))").body
-            body = ast.parse(f"print(request)\nprint(dict(request.headers))\nprint(request.get_json())\ninstance.reinit_env(name={self.service_name}, req_id=request.get_json()['req_id'])\nreturn json.dumps((instance.{method})(*request.get_json()['args']))").body
+            body = ast.parse(f"print(request)\nprint(dict(request.headers))\nprint(request.get_json())\ninstance.reinit_env(name='{self.service_name}', req_id=request.get_json()['req_id'])\nreturn json.dumps((instance.{method})(*request.get_json()['args']))").body
             route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
                         body=body,
                         decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],
