@@ -18,8 +18,11 @@ def get_ip_req_id(env):
         ## TODO: If we want to support client invocations through the standard
         ##       HTTP API, then we need to use the knative internal req_id
     else:
-        ## Get the request_id from the environment
-        req_id = env.instance_id
+        ## Get the request_id and the step_number from the environment
+        ##   and use them to create a new request id for the call to the callee.
+        ##
+        ## TODO: @Haoran: is that OK? This corresponds to the formalization.
+        req_id = f'{env.instance_id}-{env.number_of_calls}'
 
         ## Get the load balancer ip from the environment
         ip = env.load_balancer_ip

@@ -80,6 +80,11 @@ class Env:
         ## to differentiate between different calls.
         self.step = 1
 
+        ## A number that identifies how many calls (invocations)
+        ## we have done to other services to be able to generate
+        ## new request identifiers for them.
+        self.number_of_calls = 0
+
         ## TODO: The following two steps should just happen once per instantiation
         ##       and not once per request.
         ##
@@ -91,3 +96,6 @@ class Env:
 
         ## No need for load_balancer_ip in Beldi Env
         self.load_balancer_ip = get_load_balancer_ip()
+
+    def increase_calls(self):
+        self.number_of_calls += 1

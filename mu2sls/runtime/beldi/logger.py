@@ -1,3 +1,4 @@
+from uuid import uuid4
 from runtime.beldi import beldi
 from runtime.beldi import common
 
@@ -27,6 +28,14 @@ class BeldiLogger(Logger):
     def reinit_env(self, name, req_id):
         ## TODO: Make that not reinitialize everything for efficiency
         self.env = common.Env(name, req_id=req_id)
+
+    def SyncInvoke(self, client_name: str, method_name: str, *args):
+        self.env.increase_calls()
+        super.SyncInvoke(client_name, method_name, *args)
+
+    def AsyncInvoke(self, client_name: str, method_name: str, *args):
+        self.env.increase_calls()
+        super.AsyncInvoke(client_name, method_name, *args)
 
     ## This implements a read method on the store
     ##
