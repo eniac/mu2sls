@@ -85,7 +85,7 @@ def run_test_deployed_services(deployed_services, invoke_lib):
     ## Compose Review
     invoke_lib.SyncInvoke(deployed_services['Frontend'],
                           "compose",
-                          username, password, "Titanic", 5, "Titanic is the worst movie I have ever watched!")
+                          username, password, "Titanic", "5", "Titanic is the worst movie I have ever watched!")
 
     ## TODO: Can use populate.py and compressed.json to populate movies and users
 
