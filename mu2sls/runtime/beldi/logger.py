@@ -31,11 +31,11 @@ class BeldiLogger(Logger):
 
     def SyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
-        super.SyncInvoke(client_name, method_name, *args)
+        return super().SyncInvoke(client_name, method_name, *args)
 
     def AsyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
-        super.AsyncInvoke(client_name, method_name, *args)
+        return super().AsyncInvoke(client_name, method_name, *args)
 
     ## This implements a read method on the store
     ##
