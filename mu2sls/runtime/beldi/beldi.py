@@ -18,9 +18,9 @@ def base_write(env: Env, key: str, value):
 @fdb.transactional
 def _eos_read(tr, env: Env, key: str):
     v1 = tr.get(fdb.tuple.pack(("data", env.table, key)))
-    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.instance_id, env.step)))
+    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if not v2.present():
-        tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = v1 if v1.present() else b''
+        tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = v1 if v1.present() else b''
         env.step += 1
         return None if not v1.present() else deserialize(v1)
     else:
@@ -35,9 +35,9 @@ def eos_read(env: Env, key: str):
 @fdb.transactional
 def _local_eos_read(tr, env: Env, key: str):
     v1 = tr.get(fdb.tuple.pack(("local", env.table, env.txn_id, key)))
-    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.instance_id, env.step)))
+    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if not v2.present():
-        tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = v1 if v1.present() else b''
+        tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = v1 if v1.present() else b''
         env.step += 1
         return None if not v1.present() else deserialize(v1)
     else:
@@ -57,10 +57,10 @@ def eos_contains(env: Env, key: str):
 
 @fdb.transactional
 def _eos_write(tr, env: Env, key: str, value):
-    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.instance_id, env.step)))
+    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if not v2.present():
         tr[fdb.tuple.pack(("data", env.table, key))] = serialize(value)
-        tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = b''
+        tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = b''
     env.step += 1
 
 
@@ -70,10 +70,10 @@ def eos_write(env: Env, key: str, value):
 
 @fdb.transactional
 def _local_eos_write(tr, env: Env, key: str, value):
-    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.instance_id, env.step)))
+    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if not v2.present():
         tr[fdb.tuple.pack(("local", env.table, env.txn_id, key))] = serialize(value)
-        tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = b''
+        tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = b''
     env.step += 1
 
 
@@ -83,7 +83,7 @@ def local_eos_write(env: Env, key: str, value):
 
 @fdb.transactional
 def eos_cond_write(tr, env: Env, table: str, key: str, value, name: str, var: str) -> bool:
-    v2 = tr.get(fdb.tuple.pack(("log", table, env.instance_id, env.step)))
+    v2 = tr.get(fdb.tuple.pack(("log", table, env.req_id, env.step)))
     if v2.present():
         env.step += 1
         return deserialize(v2)
@@ -91,11 +91,11 @@ def eos_cond_write(tr, env: Env, table: str, key: str, value, name: str, var: st
     v = deserialize(v1)
     if v[name] == var:
         tr[fdb.tuple.pack(("data", table, key))] = value
-        tr[fdb.tuple.pack(("log", table, env.instance_id, env.step))] = serialize(True)
+        tr[fdb.tuple.pack(("log", table, env.req_id, env.step))] = serialize(True)
         env.step += 1
         return True
     else:
-        tr[fdb.tuple.pack(("log", table, env.instance_id, env.step))] = serialize(False)
+        tr[fdb.tuple.pack(("log", table, env.req_id, env.step))] = serialize(False)
         env.step += 1
         return False
 
@@ -103,7 +103,7 @@ def eos_cond_write(tr, env: Env, table: str, key: str, value, name: str, var: st
 @fdb.transactional
 def _lock(tr, env: Env, key: str):
     assert env.txn_id is not None
-    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.instance_id, env.step)))
+    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if v2.present():
         env.step += 1
         return deserialize(v2)
@@ -111,16 +111,16 @@ def _lock(tr, env: Env, key: str):
     if vlock.present():
         vl = deserialize(vlock)
         if vl == env.txn_id:
-            tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = serialize(True)
+            tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(True)
             env.step += 1
             return True
         else:
-            tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = serialize(False)
+            tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(False)
             env.step += 1
             return False
     else:
         tr[fdb.tuple.pack(("lock", env.table, key))] = serialize(env.txn_id)
-        tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = serialize(True)
+        tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(True)
         env.step += 1
         return True
 
@@ -132,7 +132,7 @@ def lock(env: Env, key: str):
 @fdb.transactional
 def _unlock(tr, env: Env, key: str):
     assert env.txn_id is not None
-    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.instance_id, env.step)))
+    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if v2.present():
         env.step += 1
         return deserialize(v2)
@@ -141,7 +141,7 @@ def _unlock(tr, env: Env, key: str):
     vl = deserialize(vlock)
     assert vl == env.txn_id
     del tr[fdb.tuple.pack(("lock", env.table, key))]
-    tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = b''
+    tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = b''
     env.step += 1
 
 
@@ -166,8 +166,8 @@ def tpl_write(env: Env, key: str, value):
 
 
 def begin_txn(env: Env):
-    ## Note: Maybe instance_id is not enough for txn_id
-    env.txn_id = env.instance_id
+    ## Note: Maybe req_id is not enough for txn_id
+    env.txn_id = env.req_id
     env.instruction = "EXECUTE"
     local_eos_write(env, "callee", [])
 
@@ -205,10 +205,10 @@ def tpl_abort(env: Env):
 
 @fdb.transactional
 def log_invoke(tr, env: Env) -> str:
-    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.instance_id, env.step)))
+    v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if v2.present():
         env.step += 1
         return deserialize(v2)
     new_id = str(uuid4())
-    tr[fdb.tuple.pack(("log", env.table, env.instance_id, env.step))] = serialize(new_id)
+    tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(new_id)
     return new_id

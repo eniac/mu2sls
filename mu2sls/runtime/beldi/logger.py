@@ -25,9 +25,9 @@ class BeldiLogger(Logger):
     def init_env(self, name="default-store", req_id=None):
         self.env = common.Env(name, req_id=req_id)
 
-    def reinit_env(self, name, req_id):
-        ## TODO: Make that not reinitialize everything for efficiency
-        self.env = common.Env(name, req_id=req_id)
+    ## Set the environment for this request using the request_json
+    def set_env(self, request_json: dict):
+        self.env.extract_request_metadata(request_json)
 
     def SyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
@@ -63,21 +63,11 @@ class BeldiLogger(Logger):
         if not self.contains(key):
             self.eos_write(key, value)
 
-    ## TODO: Transfer with invocation
-    ## - env.txn_id = env.instance_id
-    ## - env.instruction = "EXECUTE"
-
-    ## TODO: Check in callee if we are in non-execute in a transaction
-    ##       do special work
-    ##
-    ## if not get_json()['instruction'] == "EXECUTE":
-    ##     run_commit_abort_code
-
-
     ## TODO: Actually implement that
     def begin_tx(self):
         pass
         
+        ## TODO: Move that to the compiler
         # cond = True
         # while cond:
         #     beldi.begin_txn(self.env)

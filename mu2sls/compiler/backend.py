@@ -273,13 +273,14 @@ class AddFlask(ast.NodeTransformer):
             ## We are using `get_json` instead of params since it is more robust to send data
             ## using the data http field rather than the url parameters.
             ## 
-            ## Old way:
-            ## body = ast.parse(f"return json.dumps((instance.{method})(*request.args.to_dict()['args']))").body
+            ## Older way:
+            ## body = ast.parse(f"return json.dumps((instance.{method})(*request.args.to_dict()['args']))").body            
+            ## Old way
+            ## body = ast.parse(f"instance.set_env(request)\nreturn json.dumps((instance.{method})(*request.get_json()['args']))").body
             
-            debug_pre_body = ast.parse(f"print(request)\nprint(dict(request.headers))\nprint(request.get_json())").body
-            body = ast.parse(f"instance.reinit_env(name='{self.service_name}', req_id=request.get_json()['req_id'])\nreturn json.dumps((instance.{method})(*request.get_json()['args']))").body
+            body = ast.parse(f"return instance.apply_request('{method}', request)").body
             route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
-                        body=(pre_body + debug_pre_body + body),
+                        body=(pre_body + body),
                         decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],
                     )
             flask_routes.append(route)
