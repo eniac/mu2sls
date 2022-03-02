@@ -1,10 +1,25 @@
-import pickle
+import json
 
-## TODO: Consider replacing this with the same serde that Beldi does
-##       to avoid divergence.
+def serialize(item):
+    return json.dumps(item).encode()
 
-def serialize(obj):
-    return pickle.dumps(obj)
+def deserialize(bitem: bytes):
+    decoded_string = bitem.decode()
+    ## json.loads() cannot handle an empty string,
+    ##   so we make sure that we only pass a non-empty string to it
+    ##
+    ## TODO: This might actually not be necessary...
+    if decoded_string == '':
+        return None
+    return json.loads(decoded_string)
 
-def deserialize(bin):
-    return pickle.loads(bin)
+
+## Old way of doing serialization/deserialization
+
+#import pickle
+
+# def serialize(obj):
+#     return pickle.dumps(obj)
+
+# def deserialize(bin):
+#     return pickle.loads(bin)

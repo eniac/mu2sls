@@ -3,7 +3,7 @@
 ## This is a Store class that is passed to services
 ## and supports a key-value store API.
 ##
-class Store:
+class Logger:
     ## TODO: @haoran It is not clear whether the name is supposed to be given at:
     ##       1. initialization/__init__ (called by deployment/context) 
     ##       2. init_env (called by the compiled service)
@@ -18,6 +18,30 @@ class Store:
     def init_env(self, name="default-store"):
         self.env = None
         self.name = name
+
+    ## Clients initialization and getting
+    def init_clients(self, clients={}):
+        self.clients = clients
+
+    def get_client(self, client_name: str):
+        return self.clients[client_name]
+
+    ##
+    ## Invocations
+    ##
+    def SyncInvoke(self, client_name: str, method_name: str, *args):
+        client = self.get_client(client_name)        
+        return self.invoke_lib.SyncInvoke(client, method_name, env=self.env, *args)
+
+    def AsyncInvoke(self, client_name: str, method_name: str, *args):
+        client = self.get_client(client_name)
+        return self.invoke_lib.AsyncInvoke(client, method_name, env=self.env, *args)
+
+    def Wait(self, promise):
+        return self.invoke_lib.Wait(promise)
+
+    def WaitAll(self, *promises):
+        return self.invoke_lib.WaitAll(*promises)
 
     ## This implements a read method on the store
     ##
@@ -45,3 +69,5 @@ class Store:
 
     def end_tx(self):
         return None
+
+    

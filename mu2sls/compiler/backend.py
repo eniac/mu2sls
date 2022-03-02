@@ -9,7 +9,7 @@ import ast
 
 from uncompyle6.main import decompile
 
-STORE_FIELD_NAME = "store"
+STORE_FIELD_NAME = "logger"
 STORE_INIT_ENV_METHOD = "init_env"
 STORE_INIT_ENV_INVOCATION = f'{STORE_FIELD_NAME}.{STORE_INIT_ENV_METHOD}(self.__class__.__name__)'
 
@@ -103,10 +103,14 @@ def construct_init_method_persistent_object_ast(per_obj_name: str, per_obj_init_
 def construct_init_method_ast(persistent_objects):
     body = []
 
-    # First initialize Beldi's environment
+    ## First initialize Beldi's environment
     beldi_ass_module_ast = ast.parse(STORE_INIT_ENV_INVOCATION)
     beldi_ass_ast = extract_single_stmt_from_module(beldi_ass_module_ast)
     body.append(beldi_ass_ast)
+
+    ## Keep the logger in a local field
+    assgn_logger = make_field_assign(STORE_FIELD_NAME, make_var_expr(STORE_FIELD_NAME))
+    body.append(assgn_logger)
 
     ## Then initialize all the objects
     for per_obj_name, per_obj_init_ast in persistent_objects.items():
@@ -116,33 +120,8 @@ def construct_init_method_ast(persistent_objects):
     function_ast = ast.FunctionDef(name='__init__', 
                                    args=ast.arguments(posonlyargs=[], 
                                                       args=[make_arg('self'),
-                                                            make_arg('store')],
+                                                            make_arg(STORE_FIELD_NAME)],
                                                       vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]), 
-                                   body=body, 
-                                   decorator_list=[], returns=None, type_comment=None)
-    return function_ast
-
-def construct_init_clients_method_ast(clients):
-    body = []
-
-    ## Initialize the clients
-    for field_name, client in clients.items():
-        _init_ast, client_name = client
-
-        ## Assign the client based on the clients dictionary
-        assignment = make_field_assign(field_name, make_constant_subscript(CLIENTS_ARG_NAME, client_name))
-        body.append(assignment)
-    else:
-        ## If there are no clients, make an empty function
-        body.append(ast.Pass())
-
-    ## Create the function
-    function_ast = ast.FunctionDef(name='init_clients', 
-                                   args=ast.arguments(posonlyargs=[], 
-                                                      args=[make_arg('self'),
-                                                            make_arg(CLIENTS_ARG_NAME)],
-                                                      vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, 
-                                                      defaults=[make_empty_dict()]), 
                                    body=body, 
                                    decorator_list=[], returns=None, type_comment=None)
     return function_ast
@@ -170,8 +149,9 @@ def service_to_ast(service: Service):
     ## TODO: This should take some form of configuration to use beldi or not
     init_method = construct_init_method_ast(persistent_objects)
 
-    ## Create the method that initializes clients
-    init_clients_method = construct_init_clients_method_ast(service.state.clients)
+    ## Instead of making these methods that are always the same,
+    ## we simply inherit them from a superclass.
+    compiled_service_base_class = make_var_expr('CompiledService')
 
     ## Modify Invocations to have the correct target (self.client instead of class name)
     new_methods = []
@@ -180,10 +160,10 @@ def service_to_ast(service: Service):
         new_method = invocationModifier.visit(method)
         new_methods.append(new_method)
 
-    body = assignments + [init_method] + [init_clients_method] + new_methods
+    body = assignments + [init_method] + new_methods
     
     new_class = ast.ClassDef(name=service.name(),
-                             bases=service.bases(),
+                             bases= [compiled_service_base_class] + service.bases(),
                              keywords=service.keywords(),
                              body=body,
                              decorator_list=service.decorator_list())
@@ -206,6 +186,7 @@ class AddImports(ast.NodeTransformer):
 
         import_stmts = []
         import_stmts.append(make_import_from('runtime', 'wrappers'))
+        import_stmts.append(make_import_from('runtime.compiled_service', 'CompiledService'))
 
         ## It might make sense to also have this be a separate module that is imported 
         ##   from the deployment script and not actually being done in the backend.
@@ -214,24 +195,21 @@ class AddImports(ast.NodeTransformer):
         ##
         ## But the compiler should probably create code that is agnostic to the
         ##   invocation library. Similarly to how it is agnostic to the store.
-        if (self.sls_backend == 'local'):
-            import_stmts.append(make_import_from('runtime.local.invoke', '*'))
-        elif (self.sls_backend == 'knative'):
-            import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
+        if (self.sls_backend == 'knative'):
+            ## TODO: Do this import in the BeldiLogger object
+            # import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
             import_stmts.append(make_import_from('flask', 'Flask'))
             import_stmts.append(make_import_from('flask', 'request'))
-            import_stmts.append(make_import_from('runtime', 'beldi_store'))
+            import_stmts.append(make_import_from('runtime.beldi', 'logger'))
             import_stmts.append(ast.Import(names=[ast.alias(name='json')]))
-        else:
-            ## We haven't implemented a backend for non local deployments yet
-            raise NotImplementedError()
+        
         node.body = import_stmts + node.body
 
         self.modules += 1
         return node
 
 
-## This class adds the necessary imports to the final module
+## This class changes invocations to go through logger
 class ChangeInvokeTarget(ast.NodeTransformer):
     def __init__(self, clients):
         ## Clients is a dictionary from class names to field names
@@ -244,16 +222,9 @@ class ChangeInvokeTarget(ast.NodeTransformer):
         self.generic_visit(node)
 
         try:
-            if call_func_name(node) in globals.INVOKE_FUNCTION_NAMES:
-                ## The first argument is the name of another service class
-                args = call_func_args(node)
-                first_arg_value = expr_constant_value(args[0])
-                field_name = self.clients_class_to_field[first_arg_value]
-
-                ## Change the first argument to call the client
-                new_args = args[:] 
-                new_args[0] = make_self_field_access(field_name)
-                node.args = new_args
+            func_name = call_func_name(node)
+            if func_name in globals.INVOKE_LIB_FUNCTION_NAMES:
+                node.func = make_field_access(['self', STORE_FIELD_NAME, func_name])
             return node
         except:
             return node
@@ -275,7 +246,7 @@ class AddFlask(ast.NodeTransformer):
                                                      args=[ast.Name(id='__name__', ctx=ast.Load())], keywords=[]))
         instance_init = make_var_assign('instance',
                                         ast.Call(func=ast.Name(id=self.service_name, ctx=ast.Load()),
-                                                 args=[ast.Call(func=ast.Attribute(value=ast.Name(id='beldi_store', ctx=ast.Load()), attr='BeldiStore', ctx=ast.Load()), args=[], keywords=[])],
+                                                 args=[ast.Call(func=ast.Attribute(value=ast.Name(id='logger', ctx=ast.Load()), attr=globals.BELDI_LOGGER_CLASS_NAME, ctx=ast.Load()), args=[], keywords=[])],
                                                  keywords=[]))
 
         ## We use the client list of the service to make an identity dictionary.
@@ -284,6 +255,14 @@ class AddFlask(ast.NodeTransformer):
         client_list_constant = make_constant_list(sorted(list(self.clients_class_to_field.keys())))
         client_list_assign = make_var_assign('client_list', client_list_constant)
         clients_init = ast.parse("instance.init_clients({ k: k for k in client_list })").body
+
+        ## TODO: Investigate whether this can be moved out
+        ##       by reinitializing the environment per request,
+        ##       and have a read-only instance initialized once at the start.
+        ##
+        ## The initialization of the instance and its clients
+        pre_body = [instance_init, client_list_assign] + clients_init
+
         flask_routes = []
         for method in self.method_names:
             ## TODO: Do we actually need to have json.dumps here? This would require all our outputs to be json (which might need some modifying on the app side).
@@ -296,14 +275,16 @@ class AddFlask(ast.NodeTransformer):
             ## 
             ## Old way:
             ## body = ast.parse(f"return json.dumps((instance.{method})(*request.args.to_dict()['args']))").body
-            body = ast.parse(f"return json.dumps((instance.{method})(*request.get_json()['args']))").body
+            
+            debug_pre_body = ast.parse(f"print(request)\nprint(dict(request.headers))\nprint(request.get_json())").body
+            body = ast.parse(f"instance.reinit_env(name='{self.service_name}', req_id=request.get_json()['req_id'])\nreturn json.dumps((instance.{method})(*request.get_json()['args']))").body
             route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
-                        body=body,
+                        body=(pre_body + debug_pre_body + body),
                         decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],
                     )
             flask_routes.append(route)
         main_func = ast.parse("if __name__ == '__main__':\n    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))")
-        node.body = [flask_init] + node.body + [instance_init] + [client_list_assign] + clients_init + flask_routes + [main_func.body[0]]
+        node.body = [flask_init] + node.body + flask_routes + [main_func.body[0]]
 
         self.modules += 1
         return node

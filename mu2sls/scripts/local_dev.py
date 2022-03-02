@@ -6,8 +6,7 @@ import importlib
 import os
 import sys
 
-from runtime import store_stub
-from runtime.beldi_store import BeldiStore
+from runtime.local import logger
 
 deployed_services = {}
 
@@ -37,13 +36,15 @@ def import_compiled(compiled_module_name):
     return importlib.import_module(compiled_module_name)
 
 def init_local_store(name):
-    store = store_stub.LocalStore()
+    store = logger.LocalLogger()
 
     ## Note: No need to do that here, since it is done in the service initialization anyway.
     # store.init_env(name)
     return store
 
 def init_local_beldi_store(name):
+    print("Error: Local deployment with Beldi is not supported currently")
+    assert False
     store = BeldiStore()
     return store
 

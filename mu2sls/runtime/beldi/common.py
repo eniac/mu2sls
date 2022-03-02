@@ -1,5 +1,4 @@
 import fdb
-import json
 import os
 import tempfile
 from uuid import uuid4
@@ -54,20 +53,49 @@ def get_load_balancer_ip():
         exit(1)
     return ip
 
-## TODO: Move those to a different file that deals with connection and configuration.
-##       Also, clean up!
+##
+## This file contains all possible environments that are used by our compiler
+##
+## The environment, is like a context object, that contains necessary information
+## for the deployment, like
+##   - Connection Info for the database and other services
+##   - A request_id that uniquely identifies each request
+##   - 
+##
+
+##
+## This is the knative distributed environment
+##
 class Env:
-    def __init__(self, table):
-        self.instance_id = str(uuid4())
+    def __init__(self, table, req_id=None):
+        ## TODO: Make it possible to get an instance_id from the caller
+        
+        ## TODO: Rename instance_id to request_id
+        self.instance_id = req_id
+
+        ## The name of the table for that particular function
         self.table = table
+
+        ## A step number that is used to index through the log and
+        ## to differentiate between different calls.
         self.step = 1
+
+        ## A number that identifies how many calls (invocations)
+        ## we have done to other services to be able to generate
+        ## new request identifiers for them.
+        self.number_of_calls = 0
+
+        ## TODO: The following two steps should just happen once per instantiation
+        ##       and not once per request.
+        ##
+        ##       Maybe we can achieve that, by having a reinit_env function that 
+        ##       simply updates.
+
+        ## A connection to the database
         self.db = connect()
+
         ## No need for load_balancer_ip in Beldi Env
-        # self.load_balancer_ip = get_load_balancer_ip()
+        self.load_balancer_ip = get_load_balancer_ip()
 
-def serialize(item):
-    return json.dumps(item).encode()
-
-
-def deserialize(bitem: bytes):
-    return json.loads(bitem.decode())
+    def increase_calls(self):
+        self.number_of_calls += 1
