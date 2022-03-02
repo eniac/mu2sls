@@ -116,6 +116,9 @@ class Env:
     def increase_calls(self):
         self.number_of_calls += 1
     
+    def in_txn_execute(self):
+        return (self.instruction == "EXECUTE")
+
     ##
     ## Two complementary methods that inject and extract metadata into calls
     ##

@@ -11,10 +11,6 @@ from runtime.logger_abstraction import Logger
 ## for a store, with calls, and transactions.
 ##
 class BeldiLogger(Logger):
-    ## TODO: @haoran It is not clear whether the name is supposed to be given at:
-    ##       1. initialization/__init__ (called by deployment/context) 
-    ##       2. init_env (called by the compiled service)
-    ##       Also it is not clear if the Beldi initialization should also happen in (1) or (2)
     def __init__(self):
         self.invoke_lib = invoke
 
@@ -90,3 +86,12 @@ class BeldiLogger(Logger):
 
     def abort_tx(self):
         pass
+
+    ## This function checks the env (.instruction and .txn_id) and
+    ## completes a transaction or aborts it.
+    ##
+    ## It is invoked by the request handler (in CompiledService)
+    def commit_or_abort(self):
+        ## TODO: Haoran
+        return ""
+
