@@ -116,8 +116,8 @@ class Env:
     def increase_calls(self):
         self.number_of_calls += 1
     
-    def in_txn_execute(self):
-        return (self.instruction == "EXECUTE")
+    def in_txn_commit_or_abort(self):
+        return (self.instruction in ["COMMITING", "ABORTING"])
 
     ##
     ## Two complementary methods that inject and extract metadata into calls
@@ -140,11 +140,12 @@ class Env:
             metadata_dict['txn_id'] = self.txn_id
             metadata_dict['instruction'] = self.instruction
         
+        print("Created metadata:", metadata_dict)
         return metadata_dict
 
     ## Modifies env to include the metadata from the request
     def extract_request_metadata(self, json_dict: dict):
-        print("Extracting metadata from:")
+        print("Extracting metadata from:", json_dict)
 
         ## The request should always have a request_id
         self.req_id = json_dict['req_id']
