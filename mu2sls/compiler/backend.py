@@ -153,7 +153,7 @@ def service_to_ast(service: Service):
     ## we simply inherit them from a superclass.
     compiled_service_base_class = make_var_expr('CompiledService')
 
-    ## Modify Invocations to have the correct target (self.client instead of class name)
+    ## Modify Invocations and transactions to have the correct target (self.client instead of class name)
     new_methods = []
     for method in service.methods:
         invocationModifier = ChangeInvokeTarget(service.state.get_clients_class_name_to_fields())
@@ -223,7 +223,7 @@ class ChangeInvokeTarget(ast.NodeTransformer):
 
         try:
             func_name = call_func_name(node)
-            if func_name in globals.INVOKE_LIB_FUNCTION_NAMES:
+            if func_name in globals.INVOKE_LIB_FUNCTION_NAMES + globals.TXN_FUNCTION_NAMES:
                 node.func = make_field_access(['self', STORE_FIELD_NAME, func_name])
             return node
         except:
