@@ -1,3 +1,4 @@
+import json
 import fdb
 import os
 import tempfile
@@ -68,13 +69,9 @@ def get_load_balancer_ip():
 ##
 class Env:
     def __init__(self, table, req_id=None):
-        ## TODO: Make it possible to get an instance_id from the caller
         
-        ## TODO: Rename instance_id to request_id
-        self.instance_id = req_id
-
-        ## The name of the table for that particular function
-        self.table = table
+        ## The identifier of the request that we are currently handling
+        self.req_id = req_id
 
         ## A step number that is used to index through the log and
         ## to differentiate between different calls.
@@ -85,11 +82,30 @@ class Env:
         ## new request identifiers for them.
         self.number_of_calls = 0
 
-        ## TODO: The following two steps should just happen once per instantiation
+        ##
+        ## Transaction state
+        ##
+
+        ## Transaction id contains the identifier of a transaction,
+        ## that is passed across callees and is used to own keys in the store.
+        self.txn_id = None
+
+        ## The mode that we are in, could be either:
+        ## - "EXECUTE"
+        ## - "COMMIT"
+        ## - "ABORT"
+        self.instruction = None
+
+
+
+        ## TODO: The following steps should just happen once per instantiation
         ##       and not once per request.
         ##
         ##       Maybe we can achieve that, by having a reinit_env function that 
         ##       simply updates.
+
+        ## The name of the table for that particular function
+        self.table = table
 
         ## A connection to the database
         self.db = connect()
@@ -99,3 +115,41 @@ class Env:
 
     def increase_calls(self):
         self.number_of_calls += 1
+    
+    def in_txn_commit_or_abort(self):
+        return (self.instruction in ["COMMITING", "ABORTING"])
+
+    ##
+    ## Two complementary methods that inject and extract metadata into calls
+    ##
+
+    ## Creates a dictionary with the request metadata
+    def inject_request_metadata(self) -> dict:
+        metadata_dict = {}
+
+        
+        ## Get the request_id and the step_number from the environment
+        ##   and use them to create a new request id for the call to the callee.
+        ##
+        ## TODO: @Haoran: is that OK? This corresponds to the formalization.
+        metadata_dict['req_id'] = f'{self.req_id}-{self.number_of_calls}'
+
+        ## If we are in a transaction
+        if self.txn_id is not None:
+            assert self.instruction is not None
+            metadata_dict['txn_id'] = self.txn_id
+            metadata_dict['instruction'] = self.instruction
+        
+        print("Created metadata:", metadata_dict)
+        return metadata_dict
+
+    ## Modifies env to include the metadata from the request
+    def extract_request_metadata(self, json_dict: dict):
+        print("Extracting metadata from:", json_dict)
+
+        ## The request should always have a request_id
+        self.req_id = json_dict['req_id']
+
+        if 'txn_id' in json_dict:
+            self.txn_id = json_dict['txn_id']
+            self.instruction = json_dict['instruction']

@@ -11,10 +11,6 @@ from runtime.logger_abstraction import Logger
 ## for a store, with calls, and transactions.
 ##
 class BeldiLogger(Logger):
-    ## TODO: @haoran It is not clear whether the name is supposed to be given at:
-    ##       1. initialization/__init__ (called by deployment/context) 
-    ##       2. init_env (called by the compiled service)
-    ##       Also it is not clear if the Beldi initialization should also happen in (1) or (2)
     def __init__(self):
         self.invoke_lib = invoke
 
@@ -25,9 +21,9 @@ class BeldiLogger(Logger):
     def init_env(self, name="default-store", req_id=None):
         self.env = common.Env(name, req_id=req_id)
 
-    def reinit_env(self, name, req_id):
-        ## TODO: Make that not reinitialize everything for efficiency
-        self.env = common.Env(name, req_id=req_id)
+    ## Set the environment for this request using the request_json
+    def set_env(self, request_json: dict):
+        self.env.extract_request_metadata(request_json)
 
     def SyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
@@ -63,21 +59,11 @@ class BeldiLogger(Logger):
         if not self.contains(key):
             self.eos_write(key, value)
 
-    ## TODO: Transfer with invocation
-    ## - env.txn_id = env.instance_id
-    ## - env.instruction = "EXECUTE"
-
-    ## TODO: Check in callee if we are in non-execute in a transaction
-    ##       do special work
-    ##
-    ## if not get_json()['instruction'] == "EXECUTE":
-    ##     run_commit_abort_code
-
-
     ## TODO: Actually implement that
     def begin_tx(self):
         pass
         
+        ## TODO: Move that to the compiler
         # cond = True
         # while cond:
         #     beldi.begin_txn(self.env)
@@ -100,3 +86,12 @@ class BeldiLogger(Logger):
 
     def abort_tx(self):
         pass
+
+    ## This function checks the env (.instruction and .txn_id) and
+    ## completes a transaction or aborts it.
+    ##
+    ## It is invoked by the request handler (in CompiledService)
+    def commit_or_abort(self):
+        ## TODO: Haoran
+        return ""
+
