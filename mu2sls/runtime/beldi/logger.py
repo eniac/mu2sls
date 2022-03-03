@@ -60,7 +60,7 @@ class BeldiLogger(Logger):
             self.eos_write(key, value)
 
     ## TODO: Actually implement that
-    def begin_tx(self):
+    def BeginTx(self):
         pass
         
         ## TODO: Move that to the compiler
@@ -81,10 +81,10 @@ class BeldiLogger(Logger):
 
         # beldi.commit_txn(self.env)
 
-    def commit_tx(self):
+    def CommitTx(self):
         pass
 
-    def abort_tx(self):
+    def AbortTx(self):
         pass
 
     ## This function checks the env (.instruction and .txn_id) and

@@ -14,3 +14,6 @@ echo "Media service with local store..."
 ./tests/test_media_service.sh >"${test_log}" 2>&1 || { echo "Error: Media service test failed"; exit 1; }
 #echo "Media service with local Beldi FDB store..."
 #./tests/test_media_service.sh beldi >>"${test_log}" 2>&1 || { echo "Error: Media service test (with beldi) failed"; exit 1; }
+
+echo "Cross Service Transactions with local store..."
+./tests/test_cross_service_txn.sh >"${test_log}" 2>&1 || { echo "Error: Cross Service Transactions test failed"; exit 1; }

@@ -62,15 +62,18 @@ class LocalLogger(Logger):
         return key in self.store
         
     def set_if_not_exists(self, key, value):
-        self.begin_tx()
+        self.BeginTx()
         if (not self.contains(key)):
             self.eos_write(key, value)
-        self.end_tx()
+        self.CommitTx()
 
-    def begin_tx(self):
+    def BeginTx(self):
         pass
 
-    def end_tx(self):
+    def CommitTx(self):
+        pass    
+
+    def AbortTx(self):
         pass        
 
     ## Invocations are inherited

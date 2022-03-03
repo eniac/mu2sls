@@ -64,10 +64,13 @@ class Logger:
     def set_if_not_exists(self, key, value):
         return None
 
-    def begin_tx(self):
+    def BeginTx(self):
         return None
 
-    def end_tx(self):
+    def CommitTx(self):
+        return None
+    
+    def AbortTx(self):
         return None
 
     

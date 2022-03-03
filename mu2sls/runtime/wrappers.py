@@ -86,6 +86,15 @@ class WrapperTerminal(object):
 
         return obj.__repr__()
 
+    def __int__(self) -> int:
+        logging.debug("__int__")
+        store = self._wrapper_store
+
+        ## Get the object from Beldi. This should never fail
+        obj = store.eos_read(self._wrapper_obj_key)
+
+        return obj.__int__()
+
     ## This method overrides the original object's getattr,
     ## making sure that attributes are accessed through Beldi.
     ##
@@ -141,7 +150,7 @@ class WrapperTerminal(object):
             ## TODO: Do we actually need the transaction here?
             ##
             ## I think we do because we perform a `get` and `set`
-            store.begin_tx()
+            store.BeginTx()
 
             ## Get the object
             ## TODO: Change those with tpl_read, tpl_write and also retry
@@ -157,7 +166,7 @@ class WrapperTerminal(object):
             ## Update the object in Beldi
             store.eos_write(self._wrapper_obj_key, obj)
 
-            store.end_tx()
+            store.CommitTx()
             return ret
 
         return wrapper
@@ -173,7 +182,7 @@ class WrapperTerminal(object):
         ## In this case the attribute is part of the original object and therefore we need to access it through Beldi.
         store = self._wrapper_store
 
-        store.begin_tx()
+        store.BeginTx()
 
         ## TODO: Can we optimize away this get and deserialize?
         ##
@@ -193,7 +202,7 @@ class WrapperTerminal(object):
         ## Resave the object
         store.eos_write(self._wrapper_obj_key, obj)
 
-        store.end_tx()
+        store.CommitTx()
 
         return ret
 
@@ -224,7 +233,7 @@ class WrapperTerminal(object):
         ## In this case the special method is part of the original object and therefore we need to access it through Beldi.
         store = self._wrapper_store
 
-        store.begin_tx()
+        store.BeginTx()
 
         ## Get the object from Beldi. This should never fail
         obj = store.eos_read(self._wrapper_obj_key)
@@ -234,7 +243,7 @@ class WrapperTerminal(object):
 
         store.eos_write(self._wrapper_obj_key, obj)
 
-        store.end_tx()
+        store.CommitTx()
 
         return ret_value
         
@@ -246,7 +255,7 @@ class WrapperTerminal(object):
         ## In this case the special method is part of the original object and therefore we need to access it through Beldi.
         store = self._wrapper_store
 
-        store.begin_tx()
+        store.BeginTx()
 
         ## Get the object from Beldi. This should never fail
         obj = store.eos_read(self._wrapper_obj_key)
@@ -256,7 +265,7 @@ class WrapperTerminal(object):
 
         store.eos_write(self._wrapper_obj_key, obj)
 
-        store.end_tx()
+        store.CommitTx()
 
         return ret_value
 
