@@ -33,10 +33,23 @@ class BeldiLogger(Logger):
         self.env.increase_calls()
         return super().AsyncInvoke(client_name, method_name, *args)
 
-    ## This implements a read method on the store
+    ## This implements a readand a write method on the store.
     ##
-    ## Normally, this would also use the environment
-    ## to perform the invocation
+    ## It determines which read to use and how, depending on the environment,
+    ## i.e., whether we are in a transaction.
+    def read(self, key: str) -> tuple[bool, object]:
+        if self.env.in_txn():
+            return beldi.tpl_read(self.env, key)
+        else:
+            return (True, beldi.eos_read(self.env, key))
+
+    def write(self, key: str, value) -> bool:
+        if self.env.in_txn():
+            return beldi.tpl_write(self.env, key, value)
+        else:
+            beldi.eos_write(self.env, key, value)
+            return True
+
     def eos_read(self, key):
         return beldi.eos_read(self.env, key)
     
@@ -59,9 +72,8 @@ class BeldiLogger(Logger):
         if not self.contains(key):
             self.eos_write(key, value)
 
-    ## TODO: Actually implement that
     def BeginTx(self):
-        pass
+        return beldi.begin_txn(self.env)
         
         ## TODO: Move that to the compiler
         # cond = True
@@ -82,10 +94,10 @@ class BeldiLogger(Logger):
         # beldi.commit_txn(self.env)
 
     def CommitTx(self):
-        pass
+        return beldi.commit_txn(self.env)
 
     def AbortTx(self):
-        pass
+        return beldi.abort_txn(self.env)
 
     ## This function checks the env (.instruction and .txn_id) and
     ## completes a transaction or aborts it.

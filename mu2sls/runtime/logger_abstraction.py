@@ -43,6 +43,17 @@ class Logger:
     def WaitAll(self, *promises):
         return self.invoke_lib.WaitAll(*promises)
 
+    ## The store should certainly implement these, and then determine whether to call
+    ## tpl_read, or eos_read based on its current transaction status.
+    ##
+    ## Note: By default in our case there should never be an EOS read, since that would create
+    ##       issues with transactions that run at the same time.
+    def read(self, key):
+        return None
+
+    def write(self, key, value):
+        return None
+
     ## This implements a read method on the store
     ##
     ## Normally, this would also use the environment

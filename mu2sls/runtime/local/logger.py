@@ -35,7 +35,13 @@ class LocalLogger(Logger):
         self.name = name
         self.store = {}
 
-    ## TODO: Test all of these changes in the remote one too.
+    ## In the local version there is no need for tpl and eos read separation
+    def read(self, key):
+        return (True, self.eos_read(key))
+
+    def write(self, key, value):
+        self.eos_write(key, value)
+        return True
 
     ## This implements a read method on the store
     ##
