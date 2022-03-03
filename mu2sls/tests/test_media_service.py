@@ -80,6 +80,7 @@ def run_test_deployed_services(deployed_services, invoke_lib):
     ret = invoke_lib.SyncInvoke(deployed_services['Plot'],
                                 "read_plot",
                                 info['plot_id'])
+
     assert ret == 'ship hits iceberg'
 
     ## Compose Review

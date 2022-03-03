@@ -74,6 +74,11 @@ class WrapperTerminal(object):
         store = self._wrapper_store
         ## Save the object
         store.eos_write(self._wrapper_obj_key, new_value)
+    
+    def _wrapper_get(self):
+        store = self._wrapper_store
+        ## Return the value of the object
+        return store.eos_read(self._wrapper_obj_key)
 
 
     ## TODO: Do we need to reimplement all default functions?
