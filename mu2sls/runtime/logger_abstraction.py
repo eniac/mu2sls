@@ -59,6 +59,7 @@ class Logger:
     def read_until_success(self, key: str):
         self.BeginTx()
         read_succeeded, ret = self.read(key)
+        print("Read for key:", key, "succeeded:", read_succeeded, "and returned value:", ret)
         while not read_succeeded:
             self.AbortTx()
             self.BeginTx()

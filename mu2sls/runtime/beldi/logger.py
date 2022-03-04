@@ -43,7 +43,7 @@ class BeldiLogger(Logger):
     ##
     ## It determines which read to use and how, depending on the environment,
     ## i.e., whether we are in a transaction.
-    def read(self, key: str) -> tuple[bool, object]:
+    def read(self, key: str) -> tuple:
         if self.env.in_txn():
             return beldi.tpl_read(self.env, key)
         else:
@@ -75,8 +75,10 @@ class BeldiLogger(Logger):
     
     ## TODO: @Haoran my goal was for this to be atomic. Maybe we need to either remove it
     ##       or wrap it with some lock.
+    ##
+    ## TODO: We should not call `eos` here because it interferes with transactions
     def set_if_not_exists(self, key, value):
-        return beldi.eos_set_if_not_exists(self.env, key, value)
+        return beldi.eos_set_if_not_exist(self.env, key, value)
 
     def in_txn(self):
         return self.env.in_txn()

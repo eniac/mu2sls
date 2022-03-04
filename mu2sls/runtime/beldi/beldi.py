@@ -105,11 +105,14 @@ def _lock(tr, env: Env, key: str):
     assert env.txn_id is not None
     v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if v2.present():
+        print("|-- log was present:", v2)
         env.step += 1
         return deserialize(v2)
     vlock = tr.get(fdb.tuple.pack(("lock", env.table, key)))
     if vlock.present():
         vl = deserialize(vlock)
+        print("|-- value of lock:", vl)
+        print("|-- txn value", env.txn_id)
         if vl == env.txn_id:
             tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(True)
             env.step += 1
@@ -119,6 +122,7 @@ def _lock(tr, env: Env, key: str):
             env.step += 1
             return False
     else:
+        print("|-- lock was not present:", vlock)
         tr[fdb.tuple.pack(("lock", env.table, key))] = serialize(env.txn_id)
         tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(True)
         env.step += 1
@@ -126,7 +130,9 @@ def _lock(tr, env: Env, key: str):
 
 
 def lock(env: Env, key: str):
-    return _lock(env.db, env, key)
+    ret = _lock(env.db, env, key)
+    print("Lock for key:", key, "returned:", ret)
+    return ret
 
 
 @fdb.transactional
@@ -146,10 +152,13 @@ def _unlock(tr, env: Env, key: str):
 
 @fdb.transactional
 def _eos_set_if_not_exist(tr, env: Env, key: str, value):
-    ret = _eos_read(tr, env, key)
-    not_exist = ret is None or ret == b''
-    if not_exist:
+    print("Check if key:", key, "exists in table:", tr)
+    # ret = _eos_read(tr, env, key)
+    # not_exist = ret is None or ret == b''
+    if not eos_contains(env, key):
+        print("|-- doesn't exist")
         _eos_write(tr, env, key, value)
+        print("|-- added it")
 
 def eos_set_if_not_exist(env: Env, key: str, value):
     return _eos_set_if_not_exist(env.db, env, key, value)
@@ -179,6 +188,7 @@ def begin_tx(env: Env):
     ## Note: Maybe req_id is not enough for txn_id
     assert env.txn_id is None
     env.txn_id = env.req_id
+    print("Transaction began with id:", env.txn_id)
     env.instruction = "EXECUTE"
     local_eos_write(env, "callee", [])
 
@@ -198,9 +208,13 @@ def commit_tx(env: Env):
 
 
 def abort_tx(env: Env):
+    print("In abort")
     local = env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
+    print("Local store:", local)
     for k, _ in local:
+        print("|-- in key:", k)
         k = fdb.tuple.unpack(k)[-1]
+        print("|-- unlocking...")
         unlock(env, k)
     callees = local_eos_read(env, "callee")
     del env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
