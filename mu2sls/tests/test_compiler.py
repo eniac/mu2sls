@@ -41,7 +41,7 @@ def test_compiler_list_service():
     service.test()
 
 def test_compiler_url_shortener_service():
-    test_source_file = "tests/source_specs/url-shortener-service.py"
+    test_source_file = "tests/source_specs/url_shortener.py"
     test_out = "test_url_shortener"
     test_module = compile_import_module(test_source_file, test_out)
 

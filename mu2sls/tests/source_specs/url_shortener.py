@@ -20,6 +20,6 @@ class UrlShortener:
         else:
             return ("Found", self.urls.get(long_url))
 
-    def ComposeUrls(self, _req_id, long_urls):
+    def ComposeUrls(self, long_urls):
         urls = [self.ShortenUrls(long_url)[1] for long_url in long_urls]
         return urls

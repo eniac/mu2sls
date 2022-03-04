@@ -1,2 +1,2 @@
-UrlShortener,tests/source_specs/url-shortener-service.py
+UrlShortener,tests/source_specs/url_shortener.py
 ComposePost,tests/source_specs/compose-post-service.py
