@@ -73,6 +73,10 @@ class LocalLogger(Logger):
             self.eos_write(key, value)
         self.CommitTx()
 
+    ## TODO: Maybe we need to implement this differently
+    def in_txn(self):
+        return False
+
     def BeginTx(self):
         pass
 

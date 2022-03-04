@@ -56,13 +56,13 @@ class Logger:
         return None
 
     ## This function repeats a transaction start until it manages to read from a key and lock it.
-    def read_until_succees(self, key: str):
-        read_succeeded = True
+    def read_until_success(self, key: str):
+        self.BeginTx()
+        read_succeeded, ret = self.read(key)
         while not read_succeeded:
+            self.AbortTx()
             self.BeginTx()
             read_succeeded, ret = self.read(key)
-            if not read_succeeded:
-                self.AbortTx()
         return ret
 
     ## This function repeats a transaction start until it manages to read from a key and lock it.

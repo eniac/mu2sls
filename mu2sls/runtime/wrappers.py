@@ -283,7 +283,7 @@ def wrap_terminal(object_key, object_init_val, store):
 ## or not.
 def begin_tx_and_read(store, key: str):
     ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
-    if store.env.in_txn():
+    if store.in_txn():
         ## If this read fails, we throw an exception, to be caught in an above layer
         return store.read_throw(key)
     else:

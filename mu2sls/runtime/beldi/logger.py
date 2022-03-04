@@ -78,6 +78,9 @@ class BeldiLogger(Logger):
     def set_if_not_exists(self, key, value):
         return beldi.eos_set_if_not_exists(self.env, key, value)
 
+    def in_txn(self):
+        return self.env.in_txn()
+
     def BeginTx(self):
         return beldi.begin_tx(self.env)
         
