@@ -141,7 +141,7 @@ class Env:
         self.number_of_calls += 1
     
     def in_txn_commit_or_abort(self):
-        return (self.instruction in ["COMMITING", "ABORTING"])
+        return (self.instruction in ["COMMIT", "ABORT"])
 
     def in_txn(self):
         return (self.instruction is not None)
