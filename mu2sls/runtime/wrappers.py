@@ -1,5 +1,7 @@
 import logging
 
+from runtime.transaction_exception import TransactionException
+
 ##
 ## This is the main wrapper method that wraps an object to enforce correctness guarantees.
 ##
@@ -123,6 +125,8 @@ class WrapperTerminal(object):
         obj = store.eos_read(self._wrapper_obj_key)
 
         ## Get the attribute of the object
+        ##
+        ## Note: This is only used to determine if it is a callable. After that it is dropped.
         ret_attribute = getattr(obj, attr)
 
         ## If it is callable, we need to delay its retrieval until it is actually called.
@@ -136,30 +140,21 @@ class WrapperTerminal(object):
         ## Note: The optimization assumption (no modification of callable)
         ##       can actually be checked at runtime, so we should check it. 
         if(callable(ret_attribute)):
-            ret_attribute = self._wrap_callable(ret_attribute, attr)
+            ret_attribute = self._wrap_callable(attr)
 
         return ret_attribute
 
     ## Wraps a callable by delaying the get until it is actually called
-    def _wrap_callable(self, _callable, attr_name):
+    def _wrap_callable(self, attr_name):
         logging.debug("Attr name: " + attr_name)
     
         ## This function is returned instead of the callable.
         ## When called, it retrieves the callable object from Beldi and calls it.
-        ##
-        ## The actual _callable is dropped.
-        ## TODO: Is that fine? 
         def wrapper(*args, **kwargs):
             store = self._wrapper_store
 
-            ## TODO: Do we actually need the transaction here?
-            ##
-            ## I think we do because we perform a `get` and `set`
-            store.BeginTx()
-
-            ## Get the object
-            ## TODO: Change those with tpl_read, tpl_write and also retry
-            obj = store.eos_read(self._wrapper_obj_key)
+            ## Begin the transaction and read
+            obj = begin_tx_and_read(store, self._wrapper_obj_key)
 
             ## Call the method
             callable_attr = getattr(obj, attr_name)
@@ -169,8 +164,12 @@ class WrapperTerminal(object):
             ## I assume that by calling the method like above the object does get updated.
             
             ## Update the object in Beldi
-            store.eos_write(self._wrapper_obj_key, obj)
+            ##
+            ## Note: This should always succeed since the lock was acquired for the read.
+            write_success = store.write(self._wrapper_obj_key, obj)
+            assert write_success
 
+            ## This should always succeed
             store.CommitTx()
             return ret
 
@@ -278,4 +277,15 @@ class WrapperTerminal(object):
 def wrap_terminal(object_key, object_init_val, store):
     wrapped_object = WrapperTerminal(object_key, object_init_val, store)
     return wrapped_object
+
+## This function determines whether to call a version of read that will always succeed,
+## or whether to call one that might fail (depending on whether we are already in a transaction)
+## or not.
+def begin_tx_and_read(store, key: str):
+    ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
+    if store.env.in_txn():
+        ## If this read fails, we throw an exception, to be caught in an above layer
+        return store.read_throw(key)
+    else:
+        return store.read_until_success(key)
 

@@ -50,6 +50,7 @@ class BeldiLogger(Logger):
             beldi.eos_write(self.env, key, value)
             return True
 
+
     def eos_read(self, key):
         return beldi.eos_read(self.env, key)
     
@@ -75,6 +76,12 @@ class BeldiLogger(Logger):
     def BeginTx(self):
         return beldi.begin_txn(self.env)
         
+        ## TODO: We can optimize next gets/sets to the same object to not get again 
+        ##       if they are in the same transaction, since we have already gotten and locked them.
+        ##
+        ##       Therefore, there is no need to get or set them before commiting. We can just keep
+        ##       their version and run a set before the commit.
+
         ## TODO: Move that to the compiler
         # cond = True
         # while cond:

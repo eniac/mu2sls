@@ -1,3 +1,4 @@
+from runtime.transaction_exception import TransactionException
 
 ##
 ## This is a Store class that is passed to services
@@ -53,6 +54,24 @@ class Logger:
 
     def write(self, key, value):
         return None
+
+    ## This function repeats a transaction start until it manages to read from a key and lock it.
+    def read_until_succees(self, key: str):
+        read_succeeded = True
+        while not read_succeeded:
+            self.BeginTx()
+            read_succeeded, ret = self.read(key)
+            if not read_succeeded:
+                self.AbortTx()
+        return ret
+
+    ## This function repeats a transaction start until it manages to read from a key and lock it.
+    def read_throw(self, key: str):
+        read_succeeded, ret = self.read(key)
+        if not read_succeeded:
+            raise TransactionException()
+        else:
+            return ret
 
     ## This implements a read method on the store
     ##
