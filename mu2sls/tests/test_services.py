@@ -27,8 +27,59 @@ def run_test_url_shortener(deployed_services, invoke_lib):
     assert ret1 == ret1_short
     assert ret2 == ret3_short
 
+def run_test_media_service(deployed_services, invoke_lib):
+    username = "red_ad"
+    password = "1234"
+
+    ## Login with user
+    invoke_lib.SyncInvoke(deployed_services['User'], "register_user", "Red", "Adams", username, password)
+
+    ## Add movie
+    invoke_lib.SyncInvoke(deployed_services['MovieId'], 
+                          "register_movie_id", 
+                          "Titanic", '42')
+
+    ## Add plot and movie info
+    info = json.loads('{"movie_id": "42", "title": "Titanic", "casts": [], "plot_id": "299534", "thumbnail_ids": ["/or06FN3Dka5tukK1e9sl16pB3iy.jpg"], "photo_ids": [], "video_ids": [], "avg_rating": 8.6, "num_rating": 4789}')    
+    invoke_lib.SyncInvoke(deployed_services['MovieInfo'], 
+                          "write_movie_info", 
+                          info)
+
+    invoke_lib.SyncInvoke(deployed_services['Plot'],
+                          "write_plot",
+                          info['plot_id'], "ship hits iceberg")
+
+    ret = invoke_lib.SyncInvoke(deployed_services['Plot'],
+                                "read_plot",
+                                info['plot_id'])
+
+    assert ret == 'ship hits iceberg'
+
+    ## Compose Review
+    invoke_lib.SyncInvoke(deployed_services['Frontend'],
+                          "compose",
+                          username, password, "Titanic", 5, "Titanic is the worst movie I have ever watched!")
+
+    ## TODO: Can use populate.py and compressed.json to populate movies and users
+
+def run_test_cross_service_txn(deployed_services, invoke_lib):
+    val1 = 5
+    val2 = 42
+
+    prev1, prev2, prev3 = invoke_lib.SyncInvoke(deployed_services['Frontend'], "compose", val1)
+
+    # print(prev1, prev2, prev3)
+
+    assert prev1 == prev2 == prev3 == 0
+
+    prev1, prev2, prev3 = invoke_lib.SyncInvoke(deployed_services['Frontend'], "compose", val2)
+    assert prev1 == prev2 == prev3 == val1
+
+
 TEST_FUNC_FROM_FILE = {
-    'url-shortener-test.csv': run_test_url_shortener
+    'url-shortener-test.csv': run_test_url_shortener,
+    'media-service-test.csv': run_test_media_service,
+    'cross-service-txn-test.csv': run_test_cross_service_txn
 }
 
 ## TODO: Extend it to do the calls using SyncInvoke maybe?
