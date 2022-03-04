@@ -16,9 +16,10 @@ MUSLS = os.path.join(HOME, "mu2sls")
 KNATIVE_DOCKERFILE = os.path.join(MUSLS, "scripts", "BasicKnativeDockerfile")
 
 ## TODO: Pass the csv as an argument and move that to a shell script maybe?
-def compile(target_dir):
+def compile(target_dir, args):
     compiler = os.path.join(MUSLS, "scripts/compile_services.sh")
-    deploy = os.path.join(MUSLS, "tests/media-service-test.csv")
+    deploy = args.deployment_file
+    # deploy = os.path.join(MUSLS, "tests/media-service-test.csv")
     sls_backend = "knative"
     res = subprocess.run(["bash", compiler, deploy, target_dir, "-s", sls_backend])
     return res
@@ -70,7 +71,7 @@ def main():
     shutil.rmtree(kmedia, ignore_errors=True)
     os.mkdir(kmedia)
 
-    compile(kmedia)
+    compile(kmedia, args)
     prepare(rel_target_dir, args.docker_io_username)
     shutil.rmtree(kmedia)
 
@@ -79,6 +80,8 @@ def main():
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("docker_io_username", help="the docker_io username to push/pull the images")
+    parser.add_argument("deployment_file", 
+                        help="the deployment file (a csv)")
     args = parser.parse_args()
     return args
 

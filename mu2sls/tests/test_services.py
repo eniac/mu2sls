@@ -96,11 +96,9 @@ def main(args):
 
         run_test_deployed_services(deployed_services, deployment_file, local_invoke_lib)
     elif(store_conf == "knative"):
-        deployment_list = deployment_list_from_deployment_file(deployment_file)
+        deployment_list, service_list = deployment_list_from_deployment_file(deployment_file)
         knative_dev.deploy_services(docker_io_username, deployment_list)
 
-
-        service_list = ["Frontend", "Service1", "Service2"]
         services = {k: k for k in service_list}
         run_test_deployed_services(services, deployment_file, knative_invoke_lib)
     else:
@@ -117,7 +115,7 @@ def run_test_deployed_services(deployed_services, deployment_file, invoke_lib):
 def deployment_list_from_deployment_file(deployment_file):
     with open(deployment_file) as f:
         data = f.read()
-        lines = data.split('\n')
+        lines = data.rstrip().split('\n')
     
     deployment_list = []
     for line in lines:
@@ -125,7 +123,12 @@ def deployment_list_from_deployment_file(deployment_file):
         name = python_module_name.replace('_', '')
         deployment_list.append((name, python_module_name))
 
-    return deployment_list
+    service_list = []
+    for line in lines:
+        service_class_name = line.split(',')[0]
+        service_list.append(service_class_name)
+
+    return deployment_list, service_list
 
 ## TODO: Generalize those!
 def parse_arguments():
