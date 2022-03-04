@@ -144,6 +144,16 @@ def _unlock(tr, env: Env, key: str):
     tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = b''
     env.step += 1
 
+@fdb.transactional
+def _eos_set_if_not_exist(tr, env: Env, key: str, value):
+    ret = _eos_read(tr, env, key)
+    not_exist = ret is None or ret == b''
+    if not_exist:
+        _eos_write(tr, env, key, value)
+
+def eos_set_if_not_exist(env: Env, key: str, value):
+    return _eos_set_if_not_exist(env.db, env, key, value)
+
 
 def unlock(env: Env, key: str):
     return _unlock(env.db, env, key)
@@ -165,14 +175,16 @@ def tpl_write(env: Env, key: str, value):
         return False
 
 
-def begin_txn(env: Env):
+def begin_tx(env: Env):
     ## Note: Maybe req_id is not enough for txn_id
+    assert env.txn_id is None
     env.txn_id = env.req_id
     env.instruction = "EXECUTE"
     local_eos_write(env, "callee", [])
 
 
-def commit_txn(env: Env):
+# return callees
+def commit_tx(env: Env):
     local = env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
     for k, v in local:
         k = fdb.tuple.unpack(k)[-1]
@@ -180,35 +192,41 @@ def commit_txn(env: Env):
         eos_write(env, k, v)
         ## kk: Could this lead to an issue that unlocks happen one by one? Could it be the case that someone sees intermediate results?
         unlock(env, k)
+    callees = local_eos_read(env, "callee")
     del env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
+    return callees
 
 
-def abort_txn(env: Env):
+def abort_tx(env: Env):
     local = env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
     for k, _ in local:
         k = fdb.tuple.unpack(k)[-1]
         unlock(env, k)
+    callees = local_eos_read(env, "callee")
     del env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
-
-
-def tpl_commit(env: Env):
-    commit_txn(env)
-    env.txn_id = None
-    env.instruction = None
-
-
-def tpl_abort(env: Env):
-    abort_txn(env)
-    env.txn_id = None
-    env.instruction = None
+    return callees
 
 
 @fdb.transactional
-def log_invoke(tr, env: Env) -> str:
+def _log_invoke(tr, env: Env):
     v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if v2.present():
         env.step += 1
-        return deserialize(v2)
-    new_id = str(uuid4())
-    tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(new_id)
-    return new_id
+        return
+    tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = b''
+    env.step += 1
+
+
+def log_invoke(env: Env):
+    return _log_invoke(env.db, env)
+
+
+@fdb.transactional
+def _add_callee(tr, env: Env, client: str, method: str):
+    callees = _local_eos_read(tr, env, "callee")
+    callees.append((client, method))
+    _local_eos_write(tr, env, "callee", callees)
+
+
+def add_callee(env: Env, client: str, method: str):
+    return _add_callee(env.db, env, client, method)

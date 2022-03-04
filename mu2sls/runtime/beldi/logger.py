@@ -27,10 +27,16 @@ class BeldiLogger(Logger):
 
     def SyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
+        if self.env.txn_id is not None:
+            beldi.add_callee(self.env, client_name, method_name)
+        beldi.log_invoke(self.env)
         return super().SyncInvoke(client_name, method_name, *args)
 
     def AsyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
+        if self.env.txn_id is not None:
+            beldi.add_callee(self.env, client_name, method_name)
+        beldi.log_invoke(self.env)
         return super().AsyncInvoke(client_name, method_name, *args)
 
     ## This implements a read method on the store
@@ -56,13 +62,12 @@ class BeldiLogger(Logger):
     ## TODO: @Haoran my goal was for this to be atomic. Maybe we need to either remove it
     ##       or wrap it with some lock.
     def set_if_not_exists(self, key, value):
-        if not self.contains(key):
-            self.eos_write(key, value)
+        return beldi.eos_set_if_not_exists(self.env, key, value)
 
     ## TODO: Actually implement that
     def begin_tx(self):
-        pass
-        
+        beldi.begin_tx(self.env)
+
         ## TODO: Move that to the compiler
         # cond = True
         # while cond:
@@ -82,16 +87,31 @@ class BeldiLogger(Logger):
         # beldi.commit_txn(self.env)
 
     def commit_tx(self):
-        pass
+        self.env.instruction = "COMMIT"
+        callees = beldi.commit_tx(self.env)
+        for client, method in callees:
+            self.SyncInvoke(client, method, {})
+        self.env.txn_id = None
+        self.env.instruction = None
 
     def abort_tx(self):
-        pass
+        self.env.instruction = "ABORT"
+        callees = beldi.abort_tx(self.env)
+        for client, method in callees:
+            self.SyncInvoke(client, method, {})
+        self.env.txn_id = None
+        self.env.instruction = None
 
     ## This function checks the env (.instruction and .txn_id) and
     ## completes a transaction or aborts it.
     ##
     ## It is invoked by the request handler (in CompiledService)
     def commit_or_abort(self):
-        ## TODO: Haoran
-        return ""
+        assert self.env.txn_id is not None
+        if self.env.instruction == "COMMIT":
+            self.commit_tx()
+        elif self.env.instruction == "ABORT":
+            self.abort_tx()
+        else:
+            assert False
 
