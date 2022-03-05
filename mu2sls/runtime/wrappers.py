@@ -53,6 +53,7 @@ class WrapperTerminal(object):
 
         ## Initialize the collection if it doesn't already exist in Beldi
         if(not store.contains(self._wrapper_obj_key)):
+            print("Store doesn't contain key:", self._wrapper_obj_key)
             ## NOTE: We need to use set_if_not_exists to ensure atomicity
             store.set_if_not_exists(self._wrapper_obj_key, init_val)
     

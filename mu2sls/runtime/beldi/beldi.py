@@ -158,7 +158,9 @@ def _eos_set_if_not_exist(tr, env: Env, key: str, value):
     if not eos_contains(env, key):
         print("|-- doesn't exist")
         _eos_write(tr, env, key, value)
-        print("|-- added it")
+        print("|-- added key:", key, "value:", value)
+        val2 = eos_read(env, key)
+        print("|-- calue read for key:", key, "is:", val2)
 
 def eos_set_if_not_exist(env: Env, key: str, value):
     return _eos_set_if_not_exist(env.db, env, key, value)

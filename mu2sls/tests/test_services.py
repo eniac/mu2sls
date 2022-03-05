@@ -5,6 +5,7 @@ import sys
 
 from scripts.local_dev import *
 from scripts import knative_dev
+from scripts import clear_db
 import runtime.knative.invoke as knative_invoke_lib
 import runtime.local.invoke as local_invoke_lib
 
@@ -96,6 +97,9 @@ def main(args):
 
         run_test_deployed_services(deployed_services, deployment_file, local_invoke_lib)
     elif(store_conf == "knative"):
+        ## First clean up beldi db
+        clear_db.main()
+
         deployment_list, service_list = deployment_list_from_deployment_file(deployment_file)
         knative_dev.deploy_services(docker_io_username, deployment_list)
 
