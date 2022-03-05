@@ -51,8 +51,11 @@ class WrapperTerminal(object):
 
         ## TODO: Since Python is not lazy, the init_val is always evaluated and we might want to avoid that if it is a performance bottleneck.
 
+
         ## Initialize the collection if it doesn't already exist in Beldi
         ## Potentially alternative way of doing it (though, we don't have a request id maybe here.)
+        ##
+        ## TODO: Check if we do have a request id here
         # val = store.read_until_success(self._wrapper_obj_key)
         if(not store.contains(self._wrapper_obj_key)):
             print("Store doesn't contain key:", self._wrapper_obj_key)
