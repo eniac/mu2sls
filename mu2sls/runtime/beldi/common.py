@@ -137,6 +137,9 @@ class Env:
         ## No need for load_balancer_ip in Beldi Env
         self.load_balancer_ip = get_load_balancer_ip()
 
+    def __repr__(self):
+        return f'Env(table: {self.table}, db: {self.db}, lb-ip: {self.load_balancer_ip}, reqid: {self.req_id}, step: {self.step}, #calls: {self.number_of_calls}, txn-id: {self.txn_id}, txn-mode: {self.instruction})'
+
     def increase_calls(self):
         self.number_of_calls += 1
     

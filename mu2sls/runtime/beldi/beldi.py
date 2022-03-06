@@ -105,14 +105,14 @@ def _lock(tr, env: Env, key: str):
     assert env.txn_id is not None
     v2 = tr.get(fdb.tuple.pack(("log", env.table, env.req_id, env.step)))
     if v2.present():
-        print("|-- log was present:", v2)
+        # print("|-- log was present:", v2)
         env.step += 1
         return deserialize(v2)
     vlock = tr.get(fdb.tuple.pack(("lock", env.table, key)))
     if vlock.present():
         vl = deserialize(vlock)
-        print("|-- value of lock:", vl)
-        print("|-- txn value", env.txn_id)
+        # print("|-- value of lock:", vl)
+        # print("|-- txn value", env.txn_id)
         if vl == env.txn_id:
             tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(True)
             env.step += 1
@@ -122,7 +122,7 @@ def _lock(tr, env: Env, key: str):
             env.step += 1
             return False
     else:
-        print("|-- lock was not present:", vlock)
+        # print("|-- lock was not present:", vlock)
         tr[fdb.tuple.pack(("lock", env.table, key))] = serialize(env.txn_id)
         tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = serialize(True)
         env.step += 1
@@ -153,15 +153,11 @@ def _unlock(tr, env: Env, key: str):
 
 @fdb.transactional
 def _eos_set_if_not_exist(tr, env: Env, key: str, value):
-    print("Check if key:", key, "exists in table:", tr)
-    # ret = _eos_read(tr, env, key)
-    # not_exist = ret is None or ret == b''
+    # print("Check if key:", key, "exists in table:", tr)
     if not eos_contains(env, key):
-        print("|-- doesn't exist")
+        # print("|-- doesn't exist")
         _eos_write(tr, env, key, value)
-        print("|-- added key:", key, "value:", value)
-        val2 = eos_read(env, key)
-        print("|-- calue read for key:", key, "is:", val2)
+        # print("|-- added key:", key, "value:", value)
 
 
 def eos_set_if_not_exist(env: Env, key: str, value):

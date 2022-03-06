@@ -57,6 +57,7 @@ class WrapperTerminal(object):
         ##
         ## TODO: Check if we do have a request id here
         # val = store.read_until_success(self._wrapper_obj_key)
+        print(store.env)
         if(not store.contains(self._wrapper_obj_key)):
             print("Store doesn't contain key:", self._wrapper_obj_key)
             ## NOTE: We need to use set_if_not_exists to ensure atomicity
