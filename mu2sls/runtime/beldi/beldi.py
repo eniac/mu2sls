@@ -171,6 +171,9 @@ def unlock(env: Env, key: str):
 def tpl_read(env: Env, key: str):
     if lock(env, key):
         v = local_eos_read(env, key)
+        if v is not None:
+            return True, v
+        v = eos_read(env, key)
         return True, v
     else:
         return False, None
@@ -198,6 +201,8 @@ def commit_tx(env: Env):
     local = env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
     for k, v in local:
         k = fdb.tuple.unpack(k)[-1]
+        if k == "callee":
+            continue
         v = deserialize(v)
         eos_write(env, k, v)
         ## kk: Could this lead to an issue that unlocks happen one by one? Could it be the case that someone sees intermediate results?
@@ -208,13 +213,11 @@ def commit_tx(env: Env):
 
 
 def abort_tx(env: Env):
-    print("In abort")
     local = env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
-    print("Local store:", local)
     for k, _ in local:
-        print("|-- in key:", k)
         k = fdb.tuple.unpack(k)[-1]
-        print("|-- unlocking...")
+        if k == "callee":
+            continue
         unlock(env, k)
     callees = local_eos_read(env, "callee")
     del env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
