@@ -114,7 +114,7 @@ class BeldiLogger(Logger):
         self.env.instruction = "COMMIT"
         callees = beldi.commit_tx(self.env)
         for client, method in callees:
-            self.SyncInvoke(client, method, {})
+            self.SyncInvoke(client, method, "")
         self.env.txn_id = None
         self.env.instruction = None
 
@@ -133,9 +133,10 @@ class BeldiLogger(Logger):
     def commit_or_abort(self):
         assert self.env.txn_id is not None
         if self.env.instruction == "COMMIT":
-            self.commit_tx()
+            self.CommitTx()
         elif self.env.instruction == "ABORT":
-            self.abort_tx()
+            self.AbortTx()
         else:
             assert False
+        return {}
 

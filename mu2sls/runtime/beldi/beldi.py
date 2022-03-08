@@ -150,6 +150,7 @@ def _unlock(tr, env: Env, key: str):
     tr[fdb.tuple.pack(("log", env.table, env.req_id, env.step))] = b''
     env.step += 1
 
+
 @fdb.transactional
 def _eos_set_if_not_exist(tr, env: Env, key: str, value):
     print("Check if key:", key, "exists in table:", tr)
@@ -161,6 +162,7 @@ def _eos_set_if_not_exist(tr, env: Env, key: str, value):
         print("|-- added key:", key, "value:", value)
         val2 = eos_read(env, key)
         print("|-- calue read for key:", key, "is:", val2)
+
 
 def eos_set_if_not_exist(env: Env, key: str, value):
     return _eos_set_if_not_exist(env.db, env, key, value)
@@ -193,9 +195,12 @@ def begin_tx(env: Env):
     ## Note: Maybe req_id is not enough for txn_id
     assert env.txn_id is None
     env.txn_id = env.req_id
-    print("Transaction began with id:", env.txn_id)
     env.instruction = "EXECUTE"
-    local_eos_write(env, "callee", [])
+
+
+def get_callees(env: Env):
+    callees = local_eos_read(env, "callee")
+    return [] if callees is None else callees
 
 
 # return callees
@@ -209,7 +214,7 @@ def commit_tx(env: Env):
         eos_write(env, k, v)
         ## kk: Could this lead to an issue that unlocks happen one by one? Could it be the case that someone sees intermediate results?
         unlock(env, k)
-    callees = local_eos_read(env, "callee")
+    callees = get_callees(env)
     del env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
     return callees
 
@@ -221,7 +226,7 @@ def abort_tx(env: Env):
         if k == "callee":
             continue
         unlock(env, k)
-    callees = local_eos_read(env, "callee")
+    callees = get_callees(env)
     del env.db[fdb.tuple.range(("local", env.table, env.txn_id))]
     return callees
 
@@ -243,6 +248,8 @@ def log_invoke(env: Env):
 @fdb.transactional
 def _add_callee(tr, env: Env, client: str, method: str):
     callees = _local_eos_read(tr, env, "callee")
+    if callees is None:
+        callees = []
     callees.append((client, method))
     _local_eos_write(tr, env, "callee", callees)
 
