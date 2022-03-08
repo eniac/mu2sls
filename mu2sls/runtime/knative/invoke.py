@@ -34,6 +34,8 @@ def get_metadata_dict(env):
 
     return metadata_dict
 
+## TODO: We also need to check that the result is not an abort!
+
 def SyncInvoke(client: str, method_name: str, *args, env=None):
     
     ## Extract the ip, req_id from the environment or generate them

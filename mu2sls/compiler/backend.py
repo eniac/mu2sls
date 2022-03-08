@@ -50,19 +50,42 @@ def descriptor_class_name(field_name: str) -> str:
 def field_store_key_name(field_name: str) -> str:
     return "test-" + field_name
 
+##
+## Wrapper Terminals and thew source persistent objects can not be copied by reference,
+## all of their accesses happen through their interface.
+##
+## TODO: We need to make sure that passing of another terminal
+##       does not override this terminal except in case of initialization.
+##
+## WARNING: WrapperTerminals cannot return their value if they are not called with a method.
+##
+##          Therefore, the very simple xample of
+##            x = persistent_field
+##          doesn't work since we don't know dynamically dwhether the persistent field is going
+##          ro be used to then access one of its methods or simply to pass its value.
+##
+## TODO: Investigate whether we can solve this problem and support simple assignments.
 def construct_descriptor_ast(field_name: str):
     descriptor_module_ast = ast.parse("class " + descriptor_class_name(field_name) + ":" """
         def __get__(self, obj, objtype=None):
             # logging.info('Accessing collection')
+            # print('Accessing: """ + field_name+ """')
+            # print(objtype)
             value = obj._wrapper_""" + field_name + """
+            # print(value)
+            # print(type(value))
             return value
 
         def __set__(self, obj, value):
             # logging.info('Setting collection')
             if(isinstance(value, wrappers.WrapperTerminal)):
                 # logging.info('Collection initialized')
+                # print('Collection initialized')
                 obj._wrapper_""" + field_name + """ = value
             else:
+                # print('Writing to: """ + field_name+ """')
+                # print(value)
+                # print(type(value))
                 obj._wrapper_""" + field_name + """._wrapper_set(value)""")
     return extract_single_stmt_from_module(descriptor_module_ast)
 
@@ -153,7 +176,7 @@ def service_to_ast(service: Service):
     ## we simply inherit them from a superclass.
     compiled_service_base_class = make_var_expr('CompiledService')
 
-    ## Modify Invocations to have the correct target (self.client instead of class name)
+    ## Modify Invocations and transactions to have the correct target (self.client instead of class name)
     new_methods = []
     for method in service.methods:
         invocationModifier = ChangeInvokeTarget(service.state.get_clients_class_name_to_fields())
@@ -223,7 +246,7 @@ class ChangeInvokeTarget(ast.NodeTransformer):
 
         try:
             func_name = call_func_name(node)
-            if func_name in globals.INVOKE_LIB_FUNCTION_NAMES:
+            if func_name in globals.INVOKE_LIB_FUNCTION_NAMES + globals.TXN_FUNCTION_NAMES:
                 node.func = make_field_access(['self', STORE_FIELD_NAME, func_name])
             return node
         except:

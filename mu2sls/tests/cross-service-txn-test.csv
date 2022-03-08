@@ -1,0 +1,3 @@
+Frontend,tests/source_specs/cross-service-txn/frontend.py
+Service1,tests/source_specs/cross-service-txn/service1.py
+Service2,tests/source_specs/cross-service-txn/service2.py

@@ -35,7 +35,13 @@ class LocalLogger(Logger):
         self.name = name
         self.store = {}
 
-    ## TODO: Test all of these changes in the remote one too.
+    ## In the local version there is no need for tpl and eos read separation
+    def read(self, key):
+        return (True, self.eos_read(key))
+
+    def write(self, key, value):
+        self.eos_write(key, value)
+        return True
 
     ## This implements a read method on the store
     ##
@@ -62,15 +68,22 @@ class LocalLogger(Logger):
         return key in self.store
         
     def set_if_not_exists(self, key, value):
-        self.begin_tx()
+        self.BeginTx()
         if (not self.contains(key)):
             self.eos_write(key, value)
-        self.end_tx()
+        self.CommitTx()
 
-    def begin_tx(self):
+    ## TODO: Maybe we need to implement this differently
+    def in_txn(self):
+        return False
+
+    def BeginTx(self):
         pass
 
-    def end_tx(self):
+    def CommitTx(self):
+        pass    
+
+    def AbortTx(self):
         pass        
 
     ## Invocations are inherited

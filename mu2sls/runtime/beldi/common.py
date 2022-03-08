@@ -96,7 +96,31 @@ class Env:
         ## - "ABORT"
         self.instruction = None
 
-
+        ## The level of nested transaction (used to avoid commiting early)
+        ##
+        ## For example, if we have:
+        ## ```
+        ##   begin_txn
+        ##   begin_txn
+        ##   ...
+        ##   commit_txn
+        ##   commit_txn
+        ## ```
+        ##
+        ## We only want to commit the outer layer.
+        ## Note that this can happen either: 
+        ##  - because a user has written a transaction in both the caller and the callee
+        ##  - Because of the automatic compilation of "updates" to use transactions (can be solved)
+        ##  - if the user accidentally added nested transactions in the same service
+        ##
+        ## Then begin_txn should increase this value instead of starting a new transaction
+        ##   if we are already in a transaction.
+        ##
+        ## Commit should reduce this if it is not the last one (only the outer commit works).
+        ##
+        ## Abort should immediately abort, and later aborts and commits should be ignored.
+        ##
+        ## TODO: Implement this and check if it is correct.
 
         ## TODO: The following steps should just happen once per instantiation
         ##       and not once per request.
@@ -113,11 +137,17 @@ class Env:
         ## No need for load_balancer_ip in Beldi Env
         self.load_balancer_ip = get_load_balancer_ip()
 
+    def __repr__(self):
+        return f'Env(table: {self.table}, db: {self.db}, lb-ip: {self.load_balancer_ip}, reqid: {self.req_id}, step: {self.step}, #calls: {self.number_of_calls}, txn-id: {self.txn_id}, txn-mode: {self.instruction})'
+
     def increase_calls(self):
         self.number_of_calls += 1
     
     def in_txn_commit_or_abort(self):
-        return (self.instruction in ["COMMITING", "ABORTING"])
+        return (self.instruction in ["COMMIT", "ABORT"])
+
+    def in_txn(self):
+        return (self.instruction is not None)
 
     ##
     ## Two complementary methods that inject and extract metadata into calls

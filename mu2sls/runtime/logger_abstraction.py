@@ -1,3 +1,4 @@
+from runtime.transaction_exception import TransactionException
 
 ##
 ## This is a Store class that is passed to services
@@ -43,6 +44,36 @@ class Logger:
     def WaitAll(self, *promises):
         return self.invoke_lib.WaitAll(*promises)
 
+    ## The store should certainly implement these, and then determine whether to call
+    ## tpl_read, or eos_read based on its current transaction status.
+    ##
+    ## Note: By default in our case there should never be an EOS read, since that would create
+    ##       issues with transactions that run at the same time.
+    def read(self, key):
+        return None
+
+    def write(self, key, value):
+        return None
+
+    ## This function repeats a transaction start until it manages to read from a key and lock it.
+    def read_until_success(self, key: str):
+        self.BeginTx()
+        read_succeeded, ret = self.read(key)
+        print("Read for key:", key, "succeeded:", read_succeeded, "and returned value:", ret)
+        while not read_succeeded:
+            self.AbortTx()
+            self.BeginTx()
+            read_succeeded, ret = self.read(key)
+        return ret
+
+    ## This function repeats a transaction start until it manages to read from a key and lock it.
+    def read_throw(self, key: str):
+        read_succeeded, ret = self.read(key)
+        if not read_succeeded:
+            raise TransactionException()
+        else:
+            return ret
+
     ## This implements a read method on the store
     ##
     ## Normally, this would also use the environment
@@ -64,10 +95,13 @@ class Logger:
     def set_if_not_exists(self, key, value):
         return None
 
-    def begin_tx(self):
+    def BeginTx(self):
         return None
 
-    def end_tx(self):
+    def CommitTx(self):
+        return None
+    
+    def AbortTx(self):
         return None
 
     
