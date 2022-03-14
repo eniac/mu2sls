@@ -5,7 +5,7 @@ from compiler import decorators
 from runtime.transaction_exception import TransactionException
 
 @decorators.service
-class Service2(object):
+class Service2Abort(object):
     def __init__(self):
         self.val = [] # type: Persistent[list]
 
@@ -14,5 +14,9 @@ class Service2(object):
         # self.val = value
         self.val.append(value)
         new_val = list(self.val)
+
+        if value > 10:
+            ## This simulates reading an already locked key and aborting
+            raise TransactionException()
 
         return new_val

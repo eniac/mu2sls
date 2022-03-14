@@ -11,7 +11,7 @@ class FrontendAbort(object):
 
     ## We need to do that in a separate function due to a bug in uncompyle
     def handle_abort(self):
-        print("Transaction was aborted, returning!")
+        print("User program caught transaction that was aborted, returning!")
         return list(self.val)
 
     def compose(self, value: int):
@@ -30,10 +30,17 @@ class FrontendAbort(object):
             # self.val = value
             self.val.append(value)
             new_val = list(self.val)
-            prev3 = SyncInvoke('Service2', 'set', value)
+            prev3 = SyncInvoke('Service2Abort', 'set', value)
 
-            print(" -- Calling abort!")
-            AbortTx()
+            ## TODO: Catch aborts in SyncInvoke return and then raise
+
+            print("User program abort!")
+
+            ## TODO: Put that behind an if-then-else and only abort on the first
+            if value <= 10:
+                AbortTx()
+            else:
+                CommitTx()
             ret = (prev1, new_val, prev3)
         except TransactionException as e:
             return self.handle_abort()
