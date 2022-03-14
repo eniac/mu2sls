@@ -92,22 +92,18 @@ class WrapperTerminal(object):
 
     ## TODO: Do we need to reimplement all default functions?
     def __repr__(self) -> str:
-        logging.debug("__repr__")
+        func_name = "__repr__"
+        logging.debug(func_name)
         store = self._wrapper_store
-
-        ## Get the object from Beldi. This should never fail
-        obj = store.eos_read(self._wrapper_obj_key)
-
-        return obj.__repr__()
+        object_key = self._wrapper_obj_key
+        return wrap_method_call(store, object_key, func_name)
 
     def __int__(self) -> int:
-        logging.debug("__int__")
+        func_name = "__int__"
+        logging.debug(func_name)
         store = self._wrapper_store
-
-        ## Get the object from Beldi. This should never fail
-        obj = store.eos_read(self._wrapper_obj_key)
-
-        return obj.__int__()
+        object_key = self._wrapper_obj_key
+        return wrap_method_call(store, object_key, func_name)
 
     ## This method overrides the original object's getattr,
     ## making sure that attributes are accessed through Beldi.
@@ -129,6 +125,10 @@ class WrapperTerminal(object):
         store = self._wrapper_store
 
         ## Get the object from Beldi. This should never fail
+        ##
+        ## TODO: If we actually want to support getting and setting fields, we need to
+        ##       replace that with a proper transactional read since `eos` doesn't
+        ##       play well together with transaction reads. 
         obj = store.eos_read(self._wrapper_obj_key)
 
         ## Get the attribute of the object
@@ -159,26 +159,8 @@ class WrapperTerminal(object):
         ## When called, it retrieves the callable object from Beldi and calls it.
         def wrapper(*args, **kwargs):
             store = self._wrapper_store
-
-            ## Begin the transaction and read
-            obj = begin_tx_and_read(store, self._wrapper_obj_key)
-
-            ## Call the method
-            callable_attr = getattr(obj, attr_name)
-            assert(callable(callable_attr))
-            ret = callable_attr(*args, **kwargs)
-
-            ## I assume that by calling the method like above the object does get updated.
-            
-            ## Update the object in Beldi
-            ##
-            ## Note: This should always succeed since the lock was acquired for the read.
-            write_success = store.write(self._wrapper_obj_key, obj)
-            assert write_success
-
-            ## This should always succeed
-            store.CommitTx()
-            return ret
+            object_key = self._wrapper_obj_key
+            return wrap_method_call(store, object_key, attr_name, *args, **kwargs)
 
         return wrapper
 
@@ -236,49 +218,25 @@ class WrapperTerminal(object):
 
     ## TODO: Abstract away common code.
 
-    def __add__(self, other):
-        logging.debug("__add__: " + str(other))
-        if (not hasattr(self._wrapper_init_value, '__add__')):
+    def __add__(self, *args, **kwargs):
+        func_name = "__add__"
+        logging.debug(func_name)
+        if (not hasattr(self._wrapper_init_value, func_name)):
             raise TypeError()
         
-        ## In this case the special method is part of the original object and therefore we need to access it through Beldi.
         store = self._wrapper_store
-
-        store.BeginTx()
-
-        ## Get the object from Beldi. This should never fail
-        obj = store.eos_read(self._wrapper_obj_key)
-
-        ## Get the attribute of the object
-        ret_value = obj.__add__(other)
-
-        store.eos_write(self._wrapper_obj_key, obj)
-
-        store.CommitTx()
-
-        return ret_value
+        object_key = self._wrapper_obj_key
+        return wrap_method_call(store, object_key, func_name, *args, **kwargs)
         
-    def __eq__(self, other):
-        logging.debug("__eq__: " + str(other))
-        if (not hasattr(self._wrapper_init_value, '__eq__')):
+    def __eq__(self, *args, **kwargs):
+        func_name = "__eq__"
+        logging.debug(func_name)
+        if (not hasattr(self._wrapper_init_value, func_name)):
             raise TypeError()
         
-        ## In this case the special method is part of the original object and therefore we need to access it through Beldi.
         store = self._wrapper_store
-
-        store.BeginTx()
-
-        ## Get the object from Beldi. This should never fail
-        obj = store.eos_read(self._wrapper_obj_key)
-
-        ## Get the attribute of the object
-        ret_value = obj.__eq__(other)
-
-        store.eos_write(self._wrapper_obj_key, obj)
-
-        store.CommitTx()
-
-        return ret_value
+        object_key = self._wrapper_obj_key
+        return wrap_method_call(store, object_key, func_name, *args, **kwargs)
 
 ## TODO: Rename this to Object Client/Interface since it doesn't actually wrap
 def wrap_terminal(object_key, object_init_val, store):
@@ -296,3 +254,24 @@ def begin_tx_and_read(store, key: str):
     else:
         return store.read_until_success(key)
 
+## This is the core function that wraps method calls to remote objects
+def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
+    ## Begin the transaction and read
+    obj = begin_tx_and_read(store, object_key)
+
+    ## Call the method
+    callable_attr = getattr(obj, attr_name)
+    assert(callable(callable_attr))
+    ret = callable_attr(*args, **kwargs)
+
+    ## I assume that by calling the method like above the object does get updated.
+    
+    ## Update the object in Beldi
+    ##
+    ## Note: This should always succeed since the lock was acquired for the read.
+    write_success = store.write(object_key, obj)
+    assert write_success
+
+    ## This should always succeed
+    store.CommitTx()
+    return ret
