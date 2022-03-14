@@ -89,21 +89,26 @@ class WrapperTerminal(object):
         ## Return the value of the object
         return store.eos_read(self._wrapper_obj_key)
 
+    ## Common method for wrapping all builtin_methods
+    def _wrapper_builtin_method(self, func_name, *args, **kwargs):
+        logging.debug(func_name)
+        store = self._wrapper_store
+        object_key = self._wrapper_obj_key
+        return wrap_method_call(store, object_key, func_name, *args, **kwargs)
 
     ## TODO: Do we need to reimplement all default functions?
     def __repr__(self) -> str:
         func_name = "__repr__"
-        logging.debug(func_name)
-        store = self._wrapper_store
-        object_key = self._wrapper_obj_key
-        return wrap_method_call(store, object_key, func_name)
+        return self._wrapper_builtin_method(func_name)
+        
 
     def __int__(self) -> int:
         func_name = "__int__"
-        logging.debug(func_name)
-        store = self._wrapper_store
-        object_key = self._wrapper_obj_key
-        return wrap_method_call(store, object_key, func_name)
+        return self._wrapper_builtin_method(func_name)
+
+    def __iter__(self):
+        func_name = "__iter__"
+        return self._wrapper_builtin_method(func_name)
 
     ## This method overrides the original object's getattr,
     ## making sure that attributes are accessed through Beldi.
@@ -256,6 +261,14 @@ def begin_tx_and_read(store, key: str):
 
 ## This is the core function that wraps method calls to remote objects
 def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
+
+    ## Check if the store was already in a transaction,
+    ##   if so, we don't commit!
+    ##
+    ## TODO: To solve this properly, we need to add a counter that checks how
+    ##       many transactions in are we.
+    prior_in_txn = store.in_txn()
+
     ## Begin the transaction and read
     obj = begin_tx_and_read(store, object_key)
 
@@ -272,6 +285,8 @@ def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
     write_success = store.write(object_key, obj)
     assert write_success
 
-    ## This should always succeed
-    store.CommitTx()
+    ## Commit only if we were not in a transaction already.
+    if not prior_in_txn:
+        ## This should always succeed
+        store.CommitTx()
     return ret
