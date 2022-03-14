@@ -5,6 +5,7 @@ from runtime.beldi import common
 from runtime.knative import invoke
 
 from runtime.logger_abstraction import Logger
+from runtime.transaction_exception import TransactionException
 
 ##
 ## This is a logger class (similar to local.logger) that provides an idempotent API
@@ -95,8 +96,7 @@ class BeldiLogger(Logger):
         self.env.txn_id = None
         self.env.instruction = None
 
-
-    def AbortTx(self):
+    def AbortTxNoExc(self):
         print("Abort was called!")
         self.env.instruction = "ABORT"
         callees = beldi.abort_tx(self.env)
@@ -104,6 +104,15 @@ class BeldiLogger(Logger):
             self.SyncInvoke(client, method, {})
         self.env.txn_id = None
         self.env.instruction = None
+
+    def AbortTx(self):
+        ## First call the Abort core
+        self.AbortTxNoExc()
+
+        ## Throw the transaction exception so that the user code can run
+        ##   abort handler code.
+        print("Throwing abort exc!")
+        raise TransactionException()
 
     ## This function checks the env (.instruction and .txn_id) and
     ## completes a transaction or aborts it.
@@ -114,7 +123,8 @@ class BeldiLogger(Logger):
         if self.env.instruction == "COMMIT":
             self.CommitTx()
         elif self.env.instruction == "ABORT":
-            self.AbortTx()
+            ## We don't want to throw an exception when aborting due to a parent.
+            self.AbortTxNoExc()
         else:
             assert False
         return {}

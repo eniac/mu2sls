@@ -78,10 +78,25 @@ def run_test_cross_service_txn(deployed_services, invoke_lib):
     assert prev1 == prev2 == prev3 == [val1, val2]
 
 
+def run_test_cross_service_txn_abort(deployed_services, invoke_lib):
+    val1 = 5
+    val2 = 42
+
+    prev = invoke_lib.SyncInvoke(deployed_services['FrontendAbort'], "compose", val1)
+
+    print("Call 1:", prev)
+
+    assert prev == []
+
+    prev = invoke_lib.SyncInvoke(deployed_services['FrontendAbort'], "compose", val2)
+    print("Call 2:", prev)
+    assert prev ==  []
+
 TEST_FUNC_FROM_FILE = {
     'url-shortener-test.csv': run_test_url_shortener,
     'media-service-test.csv': run_test_media_service,
-    'cross-service-txn-test.csv': run_test_cross_service_txn
+    'cross-service-txn-test.csv': run_test_cross_service_txn,
+    'cross-service-txn-abort-test.csv': run_test_cross_service_txn_abort
 }
 
 ## TODO: Extend it to do the calls using SyncInvoke maybe?
