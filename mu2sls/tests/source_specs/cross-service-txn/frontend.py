@@ -5,7 +5,7 @@ from compiler import decorators
 @decorators.service
 class Frontend(object):
     def __init__(self):
-        self.val = 0 # type: Persistent[int]
+        self.val = [] # type: Persistent[list]
 
     def compose(self, value: int):
         
@@ -18,9 +18,15 @@ class Frontend(object):
         ## we want them to pass value.
         ##
         ## TODO: Figure that out
-        prev2 = int(self.val)
-        self.val = value
+        # prev2 = int(self.val)
+        # self.val = value
+        self.val.append(value)
+        new_val = list(self.val)
         prev3 = SyncInvoke('Service2', 'set', value)
+
+        # print(" -- Calling abort!")
+        # AbortTx()
+
         CommitTx()
 
-        return (prev1, prev2, prev3)
+        return (prev1, new_val, prev3)

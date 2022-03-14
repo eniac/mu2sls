@@ -69,12 +69,13 @@ def run_test_cross_service_txn(deployed_services, invoke_lib):
 
     prev1, prev2, prev3 = invoke_lib.SyncInvoke(deployed_services['Frontend'], "compose", val1)
 
-    # print(prev1, prev2, prev3)
+    print("Call 1:", prev1, prev2, prev3)
 
-    assert prev1 == prev2 == prev3 == 0
+    assert prev1 == prev2 == prev3 == [val1]
 
     prev1, prev2, prev3 = invoke_lib.SyncInvoke(deployed_services['Frontend'], "compose", val2)
-    assert prev1 == prev2 == prev3 == val1
+    print("Call 2:", prev1, prev2, prev3)
+    assert prev1 == prev2 == prev3 == [val1, val2]
 
 
 TEST_FUNC_FROM_FILE = {

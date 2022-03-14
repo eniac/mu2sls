@@ -5,10 +5,12 @@ from compiler import decorators
 @decorators.service
 class Service2(object):
     def __init__(self):
-        self.val = 0 # type: Persistent[int]
+        self.val = [] # type: Persistent[list]
 
     def set(self, value: int):
-        prev = int(self.val)
-        self.val = value
+        # prev = int(self.val)
+        # self.val = value
+        self.val.append(value)
+        new_val = list(self.val)
 
-        return prev
+        return new_val
