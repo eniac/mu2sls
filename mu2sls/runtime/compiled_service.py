@@ -1,5 +1,8 @@
 import json
 
+from runtime.transaction_exception import TransactionException
+from runtime import request_lib
+
 
 ## TODO: These methods needs to be prefixed with mu2sls or something to not clash with user-defined ones
 class CompiledService:
@@ -31,5 +34,10 @@ class CompiledService:
             return self.logger.commit_or_abort()
         else:
             print("Applying request")
-            ret_val = getattr(self, method_name)(*(request_json['args']))
-            return json.dumps(ret_val)
+            ## Catch Transaction exceptions and carefully return them to the user
+            try:
+                ret_val = getattr(self, method_name)(*(request_json['args']))
+                return json.dumps(ret_val)
+            except TransactionException as e:
+                return json.dumps(request_lib.abort_response())
+            

@@ -6,6 +6,8 @@ from runtime.knative import invoke
 
 from runtime.logger_abstraction import Logger
 from runtime.transaction_exception import TransactionException
+from runtime import request_lib
+
 
 ##
 ## This is a logger class (similar to local.logger) that provides an idempotent API
@@ -31,14 +33,41 @@ class BeldiLogger(Logger):
         if self.env.txn_id is not None:
             beldi.add_callee(self.env, client_name, method_name)
         beldi.log_invoke(self.env)
-        return super().SyncInvoke(client_name, method_name, *args)
+        res = super().SyncInvoke(client_name, method_name, *args)
+
+        ## If the callee returns an abort response, then abort
+        if request_lib.is_abort_response(res):
+            print("Transaction was aborted by callee... aborting too")
+            self.AbortTx()
+        return res
 
     def AsyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
         if self.env.txn_id is not None:
             beldi.add_callee(self.env, client_name, method_name)
         beldi.log_invoke(self.env)
-        return super().AsyncInvoke(client_name, method_name, *args)
+        res = super().AsyncInvoke(client_name, method_name, *args)
+
+        return res
+
+    def Wait(self, promise):
+        res = super().Wait(promise)
+
+        ## If the callee returns an abort response, then abort
+        if request_lib.is_abort_response(res):
+            print("Transaction was aborted by callee... aborting too")
+            self.AbortTx()
+        
+        return res
+
+    def WaitAll(self, *promises):
+        resps = super().WaitAll(*promises)
+
+        ## If the callee returns an abort response, then abort
+        if any([request_lib.is_abort_response(res) for res in resps]):
+            print("Transaction was aborted by callee... aborting too")
+            self.AbortTx()
+        return self.invoke_lib.WaitAll(*promises)
 
     ## This implements a readand a write method on the store.
     ##

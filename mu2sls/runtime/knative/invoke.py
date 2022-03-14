@@ -4,7 +4,6 @@ import requests
 from uuid import uuid4
 
 
-
 ## This is an auxiliary function used to get the ip
 def get_ip(env):
     ## If env is None, then we are in a client, and therefore we need to generate
