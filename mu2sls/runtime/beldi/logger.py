@@ -85,32 +85,9 @@ class BeldiLogger(Logger):
 
     def BeginTx(self):
         return beldi.begin_tx(self.env)
-        
-        ## TODO: We can optimize next gets/sets to the same object to not get again 
-        ##       if they are in the same transaction, since we have already gotten and locked them.
-        ##
-        ##       Therefore, there is no need to get or set them before commiting. We can just keep
-        ##       their version and run a set before the commit.
-
-        ## TODO: Move that to the compiler
-        # cond = True
-        # while cond:
-        #     beldi.begin_txn(self.env)
-
-        #     cond, ret = beldi.tpl_read(self.env, "key")
-
-        #     if cond is False:
-        #         beldi.abort_txn(self.env)
-
-        
-        # ret.update()
-
-        # cond = beldi.tpl_write(self.env, "key", ret)
-        # assert cond is True
-
-        # beldi.commit_txn(self.env)
 
     def CommitTx(self):
+        print("Commit was called!")
         self.env.instruction = "COMMIT"
         callees = beldi.commit_tx(self.env)
         for client, method in callees:
@@ -118,7 +95,9 @@ class BeldiLogger(Logger):
         self.env.txn_id = None
         self.env.instruction = None
 
+
     def AbortTx(self):
+        print("Abort was called!")
         self.env.instruction = "ABORT"
         callees = beldi.abort_tx(self.env)
         for client, method in callees:
