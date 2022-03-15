@@ -117,7 +117,7 @@ def main(args):
         clear_db.main()
 
         deployment_list, service_list = deployment_list_from_deployment_file(deployment_file)
-        knative_dev.deploy_services(docker_io_username, deployment_list)
+        knative_dev.deploy_services(docker_io_username, deployment_list, deployment_file)
 
         services = {k: k for k in service_list}
         run_test_deployed_services(services, deployment_file, knative_invoke_lib)
