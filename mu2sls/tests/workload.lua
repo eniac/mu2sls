@@ -1033,14 +1033,13 @@ end
 
 request = function()
     local movie_index = math.random(1000)
-    local user_index = math.random(0, 999)
+    local user_index = math.random(0, 99)
     local username = "username_" .. tostring(user_index)
     local password = "password_" .. tostring(user_index)
     local title = movie_titles[movie_index]
     local rating = math.random(0, 10)
     local text = string.random(256)
 
-    local path = 'http://' .. frontendPath .. '/compose'
     local method = "POST"
     local headers = {}
     local param = {
@@ -1053,10 +1052,5 @@ request = function()
     headers["Content-Type"] = "application/json"
     headers["Host"] = "frontend.default.example.com"
 
-    print(path)
-    print(headers)
-    print(body)
-    print(method)
-    print(wrk.format(method, path, headers, body))
     return wrk.format(method, path, headers, body)
 end
