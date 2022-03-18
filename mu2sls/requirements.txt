@@ -1,3 +1,4 @@
 uncompyle6
 pytest
 jwt
+httpx

@@ -50,8 +50,8 @@ class BeldiLogger(Logger):
 
         return res
 
-    def Wait(self, promise):
-        res = super().Wait(promise)
+    async def Wait(self, promise):
+        res = await super().Wait(promise)
 
         ## If the callee returns an abort response, then abort
         if request_lib.is_abort_response(res):
@@ -60,14 +60,14 @@ class BeldiLogger(Logger):
         
         return res
 
-    def WaitAll(self, *promises):
-        resps = super().WaitAll(*promises)
+    async def WaitAll(self, *promises):
+        resps = await super().WaitAll(*promises)
 
         ## If the callee returns an abort response, then abort
         if any([request_lib.is_abort_response(res) for res in resps]):
             print("Transaction was aborted by callee... aborting too")
             self.AbortTx()
-        return self.invoke_lib.WaitAll(*promises)
+        return resps
 
     ## This implements a readand a write method on the store.
     ##

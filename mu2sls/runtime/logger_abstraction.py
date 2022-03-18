@@ -38,11 +38,11 @@ class Logger:
         client = self.get_client(client_name)
         return self.invoke_lib.AsyncInvoke(client, method_name, env=self.env, *args)
 
-    def Wait(self, promise):
-        return self.invoke_lib.Wait(promise)
+    async def Wait(self, promise):
+        return await self.invoke_lib.Wait(promise)
 
-    def WaitAll(self, *promises):
-        return self.invoke_lib.WaitAll(*promises)
+    async def WaitAll(self, *promises):
+        return await self.invoke_lib.WaitAll(*promises)
 
     ## The store should certainly implement these, and then determine whether to call
     ## tpl_read, or eos_read based on its current transaction status.

@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 from runtime.transaction_exception import TransactionException
@@ -16,9 +17,9 @@ class CompiledService:
     ## TODO: This one is specific to knative and maybe should be moved to a KnativeCompiledService object
     ##
     ## Set the environment for the new request
-    def apply_request(self, method_name: str, request) -> str:
+    async def apply_request(self, method_name: str, request) -> str:
         print("Request Headers:", dict(request.headers))
-        request_json = request.get_json()
+        request_json = await request.get_json()
         print("Request JSON:", request_json)
         
         ## Set the environment based on the request
@@ -36,7 +37,10 @@ class CompiledService:
             print("Applying request")
             ## Catch Transaction exceptions and carefully return them to the user
             try:
-                ret_val = getattr(self, method_name)(*(request_json['args']))
+                func = getattr(self, method_name)
+                ret_val = func(*(request_json['args']))
+                if asyncio.iscoroutinefunction(func):
+                    ret_val = await ret_val
                 return json.dumps(ret_val)
             except TransactionException as e:
                 return json.dumps(request_lib.abort_response())

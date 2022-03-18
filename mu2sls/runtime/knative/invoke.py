@@ -1,8 +1,10 @@
+import asyncio
 import os
-import requests
+import httpx
 
 from uuid import uuid4
 
+REQUEST_TIMEOUT=120.0
 
 ## This is an auxiliary function used to get the ip
 def get_ip(env):
@@ -35,8 +37,7 @@ def get_metadata_dict(env):
 
 ## TODO: We also need to check that the result is not an abort!
 
-def SyncInvoke(client: str, method_name: str, *args, env=None):
-    
+def invoke_core(client: str, method_name: str, http_client, *args, env=None):
     ## Extract the ip, req_id from the environment or generate them
     ip = get_ip(env)
 
@@ -50,17 +51,43 @@ def SyncInvoke(client: str, method_name: str, *args, env=None):
     ## Note: This is obsolete. We are now passing data using json.
     # res = requests.get(f'http://{ip}/{method_name}', headers={"Host": f"{client}.default.example.com"},
     #                    params={"args": args}).json()
-    res = requests.post(f'http://{ip}/{method_name}', 
-                        headers={"Host": f"{client}.default.example.com"},
-                        json=metadata_dict).json()
+    res = http_client.post(f'http://{ip}/{method_name}', 
+                           headers={"Host": f"{client}.default.example.com"},
+                           json=metadata_dict,
+                           timeout=REQUEST_TIMEOUT)
     return res
+
+def SyncInvoke(client: str, method_name: str, *args, env=None):
+    res = invoke_core(client, method_name, httpx, *args, env=env)
+    return res.json()
+
+## TODO: Make a promise class
 
 ## TODO: Make that actual Async
 def AsyncInvoke(client: str, method_name: str, *args, env=None):
-    return SyncInvoke(client, method_name, *args, env=env)
+    ## TODO: Maybe move perform that once per request
+    http_client = httpx.AsyncClient()
+    promise = invoke_core(client, method_name, http_client, *args, env=env)
+    return (promise, http_client)
 
-def Wait(promise):
-    return promise
+async def Wait(promise):
+    res, client = promise
 
-def WaitAll(*promises):
-    return promises
+    ## Wait for the response
+    ret = await res
+
+    ## Wait until the client closes
+    await client.aclose()
+    return ret.json()
+
+## TODO: This implementation sucks
+async def WaitAll(*promises):
+    print("Promises", promises)
+    awaitables, clients = list(zip(*promises))
+    print("Awaitables", awaitables)
+    # clients = [client for _, client in promises]
+    print("Clients", clients)
+    rets = await asyncio.gather(*awaitables)
+    await asyncio.gather(*[client.aclose() for client in clients])
+    json_rets = [ret.json() for ret in rets]
+    return json_rets
