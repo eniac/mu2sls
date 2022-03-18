@@ -6,7 +6,14 @@ ENV PYTHONUNBUFFERED True
 COPY --from=fdb /usr/lib/libfdb_c.so /usr/lib
 COPY --from=fdb /usr/bin/fdbcli /usr/bin/
 
-RUN pip install Flask gunicorn requests foundationdb 
+RUN pip install requests foundationdb 
+
+## For Flask (only sync)
+# RUN pip install Flask gunicorn
+
+## For Quart
+RUN pip install quart hypercorn
+
 ## Necessary for the media service, ideally, we should abstract requirements away
 RUN pip install jwt
 ENV APP_HOME /app
@@ -19,4 +26,8 @@ ARG app_file
 
 COPY ${app_file} ./app.py
 
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
+## For Flask (only sync)
+# CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
+
+## For Quart
+CMD exec hypercorn --bind :$PORT --workers 2 app:app

@@ -16,9 +16,9 @@ class CompiledService:
     ## TODO: This one is specific to knative and maybe should be moved to a KnativeCompiledService object
     ##
     ## Set the environment for the new request
-    def apply_request(self, method_name: str, request) -> str:
+    async def apply_request(self, method_name: str, request) -> str:
         print("Request Headers:", dict(request.headers))
-        request_json = request.get_json()
+        request_json = await request.get_json()
         print("Request JSON:", request_json)
         
         ## Set the environment based on the request

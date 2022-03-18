@@ -221,8 +221,8 @@ class AddImports(ast.NodeTransformer):
         if (self.sls_backend == 'knative'):
             ## TODO: Do this import in the BeldiLogger object
             # import_stmts.append(make_import_from('runtime.knative.invoke', '*'))
-            import_stmts.append(make_import_from('flask', 'Flask'))
-            import_stmts.append(make_import_from('flask', 'request'))
+            import_stmts.append(make_import_from(globals.WEB_FRAMEWORK.lower(), globals.WEB_FRAMEWORK))
+            import_stmts.append(make_import_from(globals.WEB_FRAMEWORK.lower(), 'request'))
             import_stmts.append(make_import_from('runtime.beldi', 'logger'))
             import_stmts.append(ast.Import(names=[ast.alias(name='json')]))
         
@@ -253,7 +253,7 @@ class ChangeInvokeTarget(ast.NodeTransformer):
             return node
 
 ## TODO: Investigate ways to do that without generating Python AST. 
-##       Maybe by having a Flask file that imports the module and programmatically sets the routes?
+##       Maybe by having a Flask/Quart file that imports the module and programmatically sets the routes?
 class AddFlask(ast.NodeTransformer):
     def __init__(self, service_name, method_names, clients):
         self.modules = 0
@@ -265,7 +265,7 @@ class AddFlask(ast.NodeTransformer):
     def visit_Module(self, node: ast.Module):
         ## TODO: Do we need this assumption that there is only one module?
         assert(self.modules == 0)
-        flask_init = make_var_assign('app', ast.Call(func=ast.Name(id='Flask', ctx=ast.Load()), 
+        flask_init = make_var_assign('app', ast.Call(func=ast.Name(id=globals.WEB_FRAMEWORK, ctx=ast.Load()), 
                                                      args=[ast.Name(id='__name__', ctx=ast.Load())], keywords=[]))
         instance_init = make_var_assign('instance',
                                         ast.Call(func=ast.Name(id=self.service_name, ctx=ast.Load()),
@@ -301,12 +301,20 @@ class AddFlask(ast.NodeTransformer):
             ## Old way
             ## body = ast.parse(f"instance.set_env(request)\nreturn json.dumps((instance.{method})(*request.get_json()['args']))").body
             
-            body = ast.parse(f"return instance.apply_request('{method}', request)").body
-            route = ast.FunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
-                        body=(pre_body + body),
-                        decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],
-                    )
+            body = ast.parse(f"return await instance.apply_request('{method}', request)").body
+            if globals.WEB_FRAMEWORK.lower() == "flask":
+                fdef = ast.FunctionDef
+            elif globals.WEB_FRAMEWORK.lower() == "quart":
+                fdef = ast.AsyncFunctionDef
+            else:
+                assert False
+            route = fdef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
+                            body=(pre_body + body),
+                            decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],
+                        )
             flask_routes.append(route)
+
+        ## TODO: Probably useless and can be deleted
         main_func = ast.parse("if __name__ == '__main__':\n    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))")
         node.body = [flask_init] + node.body + flask_routes + [main_func.body[0]]
 
