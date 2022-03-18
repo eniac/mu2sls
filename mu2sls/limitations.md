@@ -16,5 +16,5 @@ These limitations here are lower priority, and therefore might not be fixed soon
   + For example, accessing fields with `__getattr__` uses an `eos` read which doesn't play well with transactions.
   + There is no fundamental problem with implementing those, it is simply engineering overhead.
   + To fix this, investigate all locations of `eos_*` in `wrappers.py`.
-- Asynchronous invocations are not really asynchronous at the moment
+- Local AsyncInvoke is not actually asynchronous
 - Transactions that are in one another (for example one in caller and one in callee), won't work properly now (the intenral BeginTx and CommitTx should not do anything).

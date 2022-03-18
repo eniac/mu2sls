@@ -6,7 +6,8 @@ ENV PYTHONUNBUFFERED True
 COPY --from=fdb /usr/lib/libfdb_c.so /usr/lib
 COPY --from=fdb /usr/bin/fdbcli /usr/bin/
 
-RUN pip install requests foundationdb 
+## TODO: Delete requests
+RUN pip install requests httpx foundationdb 
 
 ## For Flask (only sync)
 # RUN pip install Flask gunicorn
@@ -19,8 +20,8 @@ RUN pip install jwt
 ENV APP_HOME /app
 WORKDIR $APP_HOME
 
-COPY ./runtime ./runtime
 COPY ./compiler ./compiler
+COPY ./runtime ./runtime
 
 ARG app_file
 
