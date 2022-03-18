@@ -14,4 +14,7 @@ class Caller(object):
 
         prev1, prev2 = await WaitAll(p1, p2)
 
+        # prev1 = SyncInvoke('Service1', 'set', value)
+        # prev2 = SyncInvoke('Service2', 'set', value)
+
         return (prev1, prev2)

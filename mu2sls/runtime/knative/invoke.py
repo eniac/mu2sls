@@ -4,6 +4,7 @@ import httpx
 
 from uuid import uuid4
 
+REQUEST_TIMEOUT=120.0
 
 ## This is an auxiliary function used to get the ip
 def get_ip(env):
@@ -52,7 +53,8 @@ def invoke_core(client: str, method_name: str, http_client, *args, env=None):
     #                    params={"args": args}).json()
     res = http_client.post(f'http://{ip}/{method_name}', 
                            headers={"Host": f"{client}.default.example.com"},
-                           json=metadata_dict)
+                           json=metadata_dict,
+                           timeout=REQUEST_TIMEOUT)
     return res
 
 def SyncInvoke(client: str, method_name: str, *args, env=None):
