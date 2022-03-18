@@ -99,6 +99,12 @@ class StateFinder(ast.NodeVisitor):
 
     ## This function finds the __init__ and then searches for all field initializations in it.
     def visit_FunctionDef(self, node: ast.FunctionDef):
+        return self._visit_def(node)
+    
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
+        return self._visit_def(node)
+
+    def _visit_def(self, node):
         if(node.name == '__init__'):
             ## We don't expect function definitions in __init__
             assert(not self.in_init)
@@ -151,6 +157,7 @@ class StateFinder(ast.NodeVisitor):
             ## Only a single target (lval)
             assert(len(node.targets) == 1)
             target = node.targets[0]
+            print(ast.dump(target))
             ## The lval needs to be an attribute access to self
             assert(isinstance(target, ast.Attribute))
             assert(StateFinder.is_self_name(target.value))
@@ -179,8 +186,13 @@ class MethodFinder(ast.NodeVisitor):
         ## as well as its thrift clients (which are also non-persistent fields).
         self.methods = []
 
-    ## This function finds the __init__ and then searches for all field initializations in it.
     def visit_FunctionDef(self, node: ast.FunctionDef):
+        return self._visit_def(node)
+    
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
+        return self._visit_def(node)
+    
+    def _visit_def(self, node):
         ## ASSUMPTION: __init__ doesn't contain any useful code except for objects
         if(node.name != '__init__'):
             logging.debug("Function init: " + node.name)
