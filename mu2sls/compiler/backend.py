@@ -302,13 +302,7 @@ class AddFlask(ast.NodeTransformer):
             ## body = ast.parse(f"instance.set_env(request)\nreturn json.dumps((instance.{method})(*request.get_json()['args']))").body
             
             body = ast.parse(f"return await instance.apply_request('{method}', request)").body
-            if globals.WEB_FRAMEWORK.lower() == "flask":
-                fdef = ast.FunctionDef
-            elif globals.WEB_FRAMEWORK.lower() == "quart":
-                fdef = ast.AsyncFunctionDef
-            else:
-                assert False
-            route = fdef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
+            route = ast.AsyncFunctionDef(name=method, args=ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]),
                             body=(pre_body + body),
                             decorator_list=[ast.Call(func=ast.Attribute(value=ast.Name(id='app', ctx=ast.Load()), attr='route', ctx=ast.Load()), args=[ast.Constant(value=f'/{method}', kind=None)], keywords=[ast.keyword(arg='methods', value=ast.List(elts=[ast.Constant(value='GET', kind=None), ast.Constant(value='POST', kind=None)], ctx=ast.Load()))])],
                         )

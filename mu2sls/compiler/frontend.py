@@ -157,7 +157,6 @@ class StateFinder(ast.NodeVisitor):
             ## Only a single target (lval)
             assert(len(node.targets) == 1)
             target = node.targets[0]
-            print(ast.dump(target))
             ## The lval needs to be an attribute access to self
             assert(isinstance(target, ast.Attribute))
             assert(StateFinder.is_self_name(target.value))
