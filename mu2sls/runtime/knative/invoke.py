@@ -3,6 +3,7 @@ import os
 import httpx
 
 from uuid import uuid4
+from runtime.beldi.common import *
 
 REQUEST_TIMEOUT=120.0
 
@@ -57,6 +58,7 @@ def invoke_core(client: str, method_name: str, http_client, *args, env=None):
                            timeout=REQUEST_TIMEOUT)
     return res
 
+@log_timer("sync_invoke")
 def SyncInvoke(client: str, method_name: str, *args, env=None):
     res = invoke_core(client, method_name, httpx, *args, env=env)
     return res.json()

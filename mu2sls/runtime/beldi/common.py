@@ -1,7 +1,10 @@
 import json
 import fdb
+import time
 import os
 import tempfile
+import sys
+import logging
 from uuid import uuid4
 
 fdb.api_version(630)
@@ -53,6 +56,19 @@ def get_load_balancer_ip():
         print("LOAD_BALANCER_IP environment variable is not set!")
         exit(1)
     return ip
+
+
+def log_timer(label):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            start = time.perf_counter_ns()
+            result = func(*args, **kwargs)
+            end = time.perf_counter_ns()
+            duration = (end - start) / 1000
+            logging.error(f'{label} {duration}')
+            return result
+        return wrapper
+    return decorator
 
 ##
 ## This file contains all possible environments that are used by our compiler

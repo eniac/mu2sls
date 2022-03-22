@@ -1,4 +1,5 @@
 import fdb.tuple
+import logging
 
 from runtime.beldi.common import *
 from runtime.serde import serialize, deserialize
@@ -28,6 +29,7 @@ def _eos_read(tr, env: Env, key: str):
         return deserialize(v2)
 
 
+@log_timer("read")
 def eos_read(env: Env, key: str):
     return _eos_read(env.db, env, key)
 
@@ -64,6 +66,7 @@ def _eos_write(tr, env: Env, key: str, value):
     env.step += 1
 
 
+@log_timer("write")
 def eos_write(env: Env, key: str, value):
     return _eos_write(env.db, env, key, value)
 
@@ -77,6 +80,7 @@ def _local_eos_write(tr, env: Env, key: str, value):
     env.step += 1
 
 
+@log_timer("localwrite")
 def local_eos_write(env: Env, key: str, value):
     return _local_eos_write(env.db, env, key, value)
 
@@ -129,6 +133,7 @@ def _lock(tr, env: Env, key: str):
         return True
 
 
+@log_timer("lock")
 def lock(env: Env, key: str):
     ret = _lock(env.db, env, key)
     print("Lock for key:", key, "returned:", ret)
@@ -164,10 +169,12 @@ def eos_set_if_not_exist(env: Env, key: str, value):
     return _eos_set_if_not_exist(env.db, env, key, value)
 
 
+@log_timer("unlock")
 def unlock(env: Env, key: str):
     return _unlock(env.db, env, key)
 
 
+@log_timer("tpl_read")
 def tpl_read(env: Env, key: str):
     if lock(env, key):
         v = local_eos_read(env, key)
@@ -179,6 +186,7 @@ def tpl_read(env: Env, key: str):
         return False, None
 
 
+@log_timer("tpl_write")
 def tpl_write(env: Env, key: str, value):
     if lock(env, key):
         local_eos_write(env, key, value)
