@@ -61,6 +61,7 @@ class Logger:
         read_succeeded, ret = self.read(key)
         print("Read for key:", key, "succeeded:", read_succeeded, "and returned value:", ret)
         while not read_succeeded:
+            # self.AbortTxNoExc()
             self.AbortTx()
             self.BeginTx()
             read_succeeded, ret = self.read(key)
@@ -80,6 +81,7 @@ class Logger:
         write_succeeded = self.write(key, val)
         print("Write for key:", key, "with value:", val, "succeeded:", write_succeeded)
         while not write_succeeded:
+            # self.AbortTxNoExc()
             self.AbortTx()
             self.BeginTx()
             write_succeeded = self.write(key, val)

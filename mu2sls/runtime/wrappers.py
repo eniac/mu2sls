@@ -251,6 +251,10 @@ class WrapperTerminal(Wrapper):
 ##
 ## TODO: Doesn't support iteration and access of all keys at the moment
 ##
+## TODO:
+## 1. Debug on Cloudlab
+## 2. Add a flag to run this with and without the custom dictionary
+##
 class WrapperDict(Wrapper):
     ## The current implementation doesn't support proper retrievals of all keys,
     ##   just a retrieval of each key separately.
@@ -290,14 +294,13 @@ class WrapperDict(Wrapper):
     def get_key_key(self, key):
         return f'{self._wrapper_obj_key}-{key}'
 
-
     ##
     ## Dict methods
     ##
     def __contains__(self, key):
         val = self.__getitem__core(key)
 
-        ret = (not (val == ""))
+        ret = (not (val_doesnt_exist(val)))
         print("Contains:", ret)
 
         return ret
@@ -306,7 +309,7 @@ class WrapperDict(Wrapper):
     def __getitem__(self, key):
         val = self.__getitem__core(key)
 
-        if val == "":
+        if val_doesnt_exist(val):
             raise KeyError(key)
 
         return val
@@ -347,10 +350,47 @@ class WrapperDict(Wrapper):
             return self.__getitem__(key)
         else:
             val = self.__getitem__core(key)
-            if val == "":
+            if val_doesnt_exist(val):
                 return default
             else:
                 return val
+    
+    def pop(self, key, default=None):
+        store_key = self.get_key_key(key)
+        print("Key:", key, store_key)
+
+        prior_in_txn = self._wrapper_store.in_txn()
+
+        ## TODO: Could we optimize this away to not need the transaction
+        val = begin_tx_and_read(self._wrapper_store, store_key)
+        print("Value:", val)
+
+        if val_doesnt_exist(val):
+            if default is None:
+                raise KeyError(key)
+            else:
+                val = default
+
+        ## Update the object in Beldi
+        ##
+        ## Note: This should always succeed since the lock was acquired for the read.
+        ##
+        ## TODO: Replace that with delete
+        write_success = self._wrapper_store.write(store_key, "")
+        assert write_success
+
+        ## Commit only if we were not in a transaction already.
+        if not prior_in_txn:
+            ## This should always succeed
+            self._wrapper_store.CommitTx()
+
+        return val
+
+## This checks if a return value shows non-existence
+## Currently this is done with None
+def val_doesnt_exist(val):
+    return val is None
+
 
 def wrap_terminal(object_key, object_init_val, store):
     
@@ -361,7 +401,12 @@ def wrap_terminal(object_key, object_init_val, store):
         wrapped_object = WrapperDict(object_key, object_init_val, store)
     else:
         ## The general wrapping that adds the object behind a key
-        wrapped_object = WrapperTerminal(object_key, object_init_val, store)
+        wrapped_object = wrap_default(object_key, object_init_val, store)
+
+    return wrapped_object
+
+def wrap_default(object_key, object_init_val, store):
+    wrapped_object = WrapperTerminal(object_key, object_init_val, store)
 
     return wrapped_object
 
@@ -371,9 +416,11 @@ def wrap_terminal(object_key, object_init_val, store):
 def begin_tx_and_read(store, key: str):
     ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
     if store.in_txn():
+        print("In txn")
         ## If this read fails, we throw an exception, to be caught in an above layer
         return store.read_throw(key)
     else:
+        print("Not in txn")
         return store.read_until_success(key)
 
 def begin_tx_and_write(store, key: str, val):
