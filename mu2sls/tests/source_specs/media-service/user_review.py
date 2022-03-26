@@ -11,12 +11,11 @@ class UserReview(object):
     ## - for x in self.reviews.keys() instead of for x in self.reviews
     ## - reviews.update([(key, value)]) instead of reviews[key] = value
     def upload_user_review(self, user_id, review_id, timestamp):
-        if user_id in self.reviews.keys():
-            prev_reviews = self.reviews.get(user_id)
-            self.reviews.update([(user_id,
-                                  prev_reviews + [{'review_id': review_id, 'timestamp': timestamp}])])
+        if user_id in self.reviews:
+            prev_reviews = self.reviews[user_id]
+            self.reviews[user_id] = prev_reviews + [{'review_id': review_id, 'timestamp': timestamp}]
         else:
-            self.reviews.update([(user_id, [{'review_id': review_id, 'timestamp': timestamp}])])
+            self.reviews[user_id] = [{'review_id': review_id, 'timestamp': timestamp}]
 
     async def read_reviews(self, user_id):        
         review_ids = [review['review_id'] for review in self.reviews.get(user_id, [])]

@@ -10,8 +10,9 @@ class ComposeReview(object):
     ## Notes:
     ## The reqs field in this service is only acting as a cache, 
     ##   since its importance is simply to delegate the writing to the actual review services.
-    async def _try_compose_and_upload(self, req_id):
-        review = self.reqs.get(req_id)
+
+    def _try_compose_and_upload(self, req_id):
+        review = self.reqs[req_id]
         if review["counter"] == 5:
             p1 = AsyncInvoke('ReviewStorage', "store_review", review)
 
@@ -24,39 +25,39 @@ class ComposeReview(object):
             await WaitAll(p1, p2, p3)
 
     def upload_req(self, req_id):
-        self.reqs.update([(req_id, {"counter": 0})])
+        self.reqs[req_id] = {"counter": 0}
 
     def upload_unique_id(self, req_id, review_id):
-        review = self.reqs.get(req_id)
+        review = self.reqs[req_id]
         review["review_id"] = review_id
         review["counter"] += 1
-        self.reqs.update([(req_id, review)]) 
+        self.reqs[req_id] = review
         self._try_compose_and_upload(req_id)
 
     def upload_text(self, req_id, text):
-        review = self.reqs.get(req_id)
+        review = self.reqs[req_id]
         review["text"] = text
         review["counter"] += 1
-        self.reqs.update([(req_id, review)]) 
+        self.reqs[req_id] = review 
         self._try_compose_and_upload(req_id)
 
     def upload_rating(self, req_id, rating):
-        review = self.reqs.get(req_id)
+        review = self.reqs[req_id]
         review["rating"] = rating
         review["counter"] += 1
-        self.reqs.update([(req_id, review)])
+        self.reqs[req_id] = review
         self._try_compose_and_upload(req_id)
 
     def upload_user_id(self, req_id, user_id):
-        review = self.reqs.get(req_id)
+        review = self.reqs[req_id]
         review["user_id"] = user_id
         review["counter"] += 1
-        self.reqs.update([(req_id, review)])
+        self.reqs[req_id] = review
         self._try_compose_and_upload(req_id)
 
     def upload_movie_id(self, req_id, movie_id):
-        review = self.reqs.get(req_id)
+        review = self.reqs[req_id]
         review["movie_id"] = movie_id
         review["counter"] += 1
-        self.reqs.update([(req_id, review)])
+        self.reqs[req_id] = review
         self._try_compose_and_upload(req_id)

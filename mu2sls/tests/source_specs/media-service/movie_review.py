@@ -6,12 +6,11 @@ class MovieReview(object):
         self.reviews = {} # type: Persistent[dict]
 
     def upload_movie_review(self, movie_id, review_id, timestamp):
-        if movie_id in self.reviews.keys():
-            prev_reviews = self.reviews.get(movie_id)
-            self.reviews.update([(movie_id,
-                                  prev_reviews + [{'review_id': review_id, 'timestamp': timestamp}])])
+        if movie_id in self.reviews:
+            prev_reviews = self.reviews[movie_id]
+            self.reviews[movie_id] = prev_reviews + [{'review_id': review_id, 'timestamp': timestamp}]
         else:
-            self.reviews.update([(movie_id, [{'review_id': review_id, 'timestamp': timestamp}])])
+            self.reviews[movie_id] = [{'review_id': review_id, 'timestamp': timestamp}]
 
     def read_reviews(self, movie_id):
         review_ids = [review['review_id'] for review in self.reviews.get(movie_id, [])]
