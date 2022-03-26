@@ -52,7 +52,7 @@ class LocalLogger(Logger):
             serialized_val = self.store[key]
             return serde.deserialize(serialized_val)
         except:
-            return None
+            return ""
     
     ## This implements a write method on the store
     ##
