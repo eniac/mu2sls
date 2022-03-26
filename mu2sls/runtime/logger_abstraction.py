@@ -74,6 +74,21 @@ class Logger:
         else:
             return ret
 
+    ## Only used by custom implementations
+    def write_until_success(self, key: str, val):
+        self.BeginTx()
+        write_succeeded = self.write(key, val)
+        print("Write for key:", key, "with value:", val, "succeeded:", write_succeeded)
+        while not write_succeeded:
+            self.AbortTx()
+            self.BeginTx()
+            write_succeeded = self.write(key, val)
+        
+    def write_throw(self, key: str, value):
+        write_succeeded = self.write(key, value)
+        if not write_succeeded:
+            raise TransactionException()
+
     ## This implements a read method on the store
     ##
     ## Normally, this would also use the environment

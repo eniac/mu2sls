@@ -78,7 +78,7 @@ def construct_descriptor_ast(field_name: str):
 
         def __set__(self, obj, value):
             # logging.info('Setting collection')
-            if(isinstance(value, wrappers.WrapperTerminal)):
+            if(isinstance(value, wrappers.Wrapper)):
                 # logging.info('Collection initialized')
                 # print('Collection initialized')
                 obj._wrapper_""" + field_name + """ = value

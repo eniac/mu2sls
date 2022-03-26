@@ -17,6 +17,9 @@ from runtime.transaction_exception import TransactionException
 ##  2. It is pretty naive asking Beldi everytime we want to get/set a field
 ##
 
+class Wrapper(object):
+    pass
+
 
 ## Wrap terminal is the simplest wrapper. It: 
 ##  1. Serializes the whole object
@@ -29,7 +32,7 @@ from runtime.transaction_exception import TransactionException
 ##      e. Close the transaction
 ##
 ## TODO: Investigate slots and descriptors
-class WrapperTerminal(object):
+class WrapperTerminal(Wrapper):
     '''
     Object wrapper class.
     This a wrapper for objects. It is initialiesed with the object to wrap
@@ -57,11 +60,7 @@ class WrapperTerminal(object):
         ##
         ## TODO: Check if we do have a request id here
         # val = store.read_until_success(self._wrapper_obj_key)
-        print(store.env)
-        if(not store.contains(self._wrapper_obj_key)):
-            print("Store doesn't contain key:", self._wrapper_obj_key)
-            ## NOTE: We need to use set_if_not_exists to ensure atomicity
-            store.set_if_not_exists(self._wrapper_obj_key, init_val)
+        initialize_key(store, self._wrapper_obj_key, init_val)
     
         ## Store beldi client for later use
         self._wrapper_store = store
@@ -92,6 +91,7 @@ class WrapperTerminal(object):
     ## Common method for wrapping all builtin_methods
     def _wrapper_builtin_method(self, func_name, *args, **kwargs):
         logging.debug(func_name)
+        print("Method called:", func_name)
         store = self._wrapper_store
         object_key = self._wrapper_obj_key
         return wrap_method_call(store, object_key, func_name, *args, **kwargs)
@@ -243,9 +243,126 @@ class WrapperTerminal(object):
         object_key = self._wrapper_obj_key
         return wrap_method_call(store, object_key, func_name, *args, **kwargs)
 
-## TODO: Rename this to Object Client/Interface since it doesn't actually wrap
+    def __contains__(self, *args, **kwargs):
+        func_name = "__contains__"
+        logging.debug(func_name)
+        return self._wrapper_builtin_method(func_name, *args, **kwargs)
+
+##
+## TODO: Doesn't support iteration and access of all keys at the moment
+##
+class WrapperDict(Wrapper):
+    ## The current implementation doesn't support proper retrievals of all keys,
+    ##   just a retrieval of each key separately.
+    def __init__(self, obj_key, init_val, store):
+        '''
+        Wrapper constructor.
+        @param obj_key: the key of the object to wrap the accesses to
+        @param init_val: the initial value for the object (if it doesn't exist in Beldi)
+        '''
+
+        ## Save the key    
+        self._wrapper_obj_key = obj_key
+
+        ## TODO: Since Python is not lazy, the init_val is always evaluated and we might want to avoid that if it is a performance bottleneck.
+
+
+        ## Initialize the collection if it doesn't already exist in Beldi
+        ## Potentially alternative way of doing it (though, we don't have a request id maybe here.)
+        ##
+        ## TODO: Check if we do have a request id here
+        # val = store.read_until_success(self._wrapper_obj_key)
+        initialize_key(store, self._wrapper_obj_key, init_val)
+    
+        ## Store beldi client for later use
+        self._wrapper_store = store
+
+        ## Keep the init_value around, to use it to check the dir for special methods and so on.
+        self._wrapper_init_value = init_val
+
+        print("Key given:", obj_key, ", init_val:", init_val)
+        ## Initialize all items of the dictionary separately
+        for key, val in init_val.items():
+            initialize_key(store, self.get_key_key(key), val)
+
+    
+    ## Get the key name (for the store) of a specific key (dict)
+    def get_key_key(self, key):
+        return f'{self._wrapper_obj_key}-{key}'
+
+
+    ##
+    ## Dict methods
+    ##
+    def __contains__(self, key):
+        val = self.__getitem__core(key)
+
+        ret = (not (val == ""))
+        print("Contains:", ret)
+
+        return ret
+
+    ## TODO: __getitem__ probably needs to throw an exception    
+    def __getitem__(self, key):
+        val = self.__getitem__core(key)
+
+        if val == "":
+            raise KeyError(key)
+
+        return val
+
+    def __getitem__core(self, key):
+        store_key = self.get_key_key(key)
+        print("Key:", key, store_key)
+
+        prior_in_txn = self._wrapper_store.in_txn()
+
+        ## TODO: Could we optimize this away to not need the transaction
+        val = begin_tx_and_read(self._wrapper_store, store_key)
+        print("Value:", val)
+
+        ## Commit only if we were not in a transaction already.
+        if not prior_in_txn:
+            ## This should always succeed
+            self._wrapper_store.CommitTx()
+
+        return val
+    
+    def __setitem__(self, key, val):
+        store_key = self.get_key_key(key)
+        print("Set key:", key, "to val:", val)
+
+        prior_in_txn = self._wrapper_store.in_txn()
+
+        begin_tx_and_write(self._wrapper_store, store_key, val)
+
+        ## Commit only if we were not in a transaction already.
+        if not prior_in_txn:
+            ## This should always succeed
+            self._wrapper_store.CommitTx()
+
+    ## Get with a possible default
+    def get(self, key, default=None):
+        if default == None:
+            return self.__getitem__(key)
+        else:
+            val = self.__getitem__core(key)
+            if val == "":
+                return default
+            else:
+                return val
+
 def wrap_terminal(object_key, object_init_val, store):
-    wrapped_object = WrapperTerminal(object_key, object_init_val, store)
+    
+    ## TODO: Currently this determines the type using the initial value,
+    ##       but it could also use the type.
+    if isinstance(object_init_val, dict):
+        print("Dictionary type:", object_init_val)
+        wrapped_object = WrapperDict(object_key, object_init_val, store)
+    else:
+        ## The general wrapping that adds the object behind a key
+        wrapped_object = WrapperTerminal(object_key, object_init_val, store)
+
     return wrapped_object
 
 ## This function determines whether to call a version of read that will always succeed,
@@ -258,6 +375,24 @@ def begin_tx_and_read(store, key: str):
         return store.read_throw(key)
     else:
         return store.read_until_success(key)
+
+def begin_tx_and_write(store, key: str, val):
+    ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
+    if store.in_txn():
+        ## If this write fails, we throw an exception, to be caught in an above layer
+        return store.write_throw(key, val)
+    else:
+        return store.write_until_success(key, val)
+
+## Initializes the key in the store
+##
+## TODO: Maybe this needs to be modified to happen in a transaction
+def initialize_key(store, key, val):
+    print(store.env)
+    if(not store.contains(key)):
+        print("Store doesn't contain key:", key)
+        ## NOTE: We need to use set_if_not_exists to ensure atomicity
+        store.set_if_not_exists(key, val)
 
 ## This is the core function that wraps method calls to remote objects
 def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
