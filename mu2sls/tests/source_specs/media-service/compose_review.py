@@ -10,7 +10,7 @@ class ComposeReview(object):
     ## Notes:
     ## The reqs field in this service is only acting as a cache, 
     ##   since its importance is simply to delegate the writing to the actual review services.
-    def _try_compose_and_upload(self, req_id):
+    async def _try_compose_and_upload(self, req_id):
         review = self.reqs.get(req_id)
         if review["counter"] == 5:
             p1 = AsyncInvoke('ReviewStorage', "store_review", review)
@@ -21,7 +21,7 @@ class ComposeReview(object):
             p3 = AsyncInvoke('MovieReview', "upload_movie_review", review["movie_id"], review["review_id"], ts)
             self.reqs.pop(req_id)
 
-            WaitAll(p1, p2, p3)
+            await WaitAll(p1, p2, p3)
 
     def upload_req(self, req_id):
         self.reqs.update([(req_id, {"counter": 0})])
