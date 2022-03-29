@@ -1,4 +1,4 @@
-require "socket"
+local socket = require("socket")
 local JSON = require("JSON")
 local UUID = require("uuid")
 time = socket.gettime() * 1000
