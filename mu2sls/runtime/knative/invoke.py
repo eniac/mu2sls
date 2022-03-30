@@ -66,6 +66,7 @@ def SyncInvoke(client: str, method_name: str, *args, env=None):
 ## TODO: Make a promise class
 
 ## TODO: Make that actual Async
+@log_timer("async_invoke")
 def AsyncInvoke(client: str, method_name: str, *args, env=None):
     ## TODO: Maybe move perform that once per request
     http_client = httpx.AsyncClient()
