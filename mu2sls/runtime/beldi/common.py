@@ -186,12 +186,12 @@ class Env:
             metadata_dict['txn_id'] = self.txn_id
             metadata_dict['instruction'] = self.instruction
         
-        print("Created metadata:", metadata_dict)
+        # print("Created metadata:", metadata_dict)
         return metadata_dict
 
     ## Modifies env to include the metadata from the request
     def extract_request_metadata(self, json_dict: dict):
-        print("Extracting metadata from:", json_dict)
+        # print("Extracting metadata from:", json_dict)
 
         ## The request should always have a request_id
         self.req_id = json_dict['req_id']

@@ -131,11 +131,11 @@ def _lock(tr, env: Env, key: str):
         return True
 
 
-@log_timer("lock")
-def lock(env: Env, key: str):
-    res = fdb.transactional(_lock)(env.db, env, key)
-    print("Lock for key:", key, "returned:", res)
-    return res
+# @log_timer("lock")
+# def lock(env: Env, key: str):
+#     res = fdb.transactional(_lock)(env.db, env, key)
+#     print("Lock for key:", key, "returned:", res)
+#     return res
 
 
 def _unlock(tr, env: Env, key: str):
@@ -148,15 +148,15 @@ def _unlock(tr, env: Env, key: str):
         return
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
-    assert owner == env.txn_id
+    assert owner == env.txn_id, "unlock for key: {} with txn_id: {} but owner is: {}".format(key, env.txn_id, owner)
     tr[lock_k] = serialize(None)  # leave None instead of deleting
     tr[log_k] = b''
     env.step += 1
 
 
-@log_timer("unlock")
-def unlock(env: Env, key: str):
-    fdb.transactional(_unlock)(env.db, env, key)
+# @log_timer("unlock")
+# def unlock(env: Env, key: str):
+#     fdb.transactional(_unlock)(env.db, env, key)
 
 
 def _add_lock(tr, env: Env, key: str):
@@ -232,6 +232,7 @@ def _commit_tx(tr, env: Env):
         _eos_write(tr, env, k, v)
     for k in locks:
         _unlock(tr, env, k)
+    del tr[local_k]
     return callees
 
 
@@ -255,6 +256,7 @@ def _abort_tx(tr, env: Env):
             continue
     for k in locks:
         _unlock(tr, env, k)
+    del tr[local_k]
     return callees
 
 

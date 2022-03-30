@@ -35,7 +35,7 @@ class User(object):
         return ret
 
 
-    def upload_user(self, req_id, username):
+    async def upload_user(self, req_id, username):
         user = self.users[username]
         promise = AsyncInvoke('ComposeReview', "upload_user_id", req_id, user['user_id'])
         ## TODO: DAG doesn't wait here
