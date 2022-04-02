@@ -344,6 +344,13 @@ class WrapperDict(Wrapper):
             ## This should always succeed
             self._wrapper_store.CommitTx()
 
+    def keys(self):
+        return self._wrapper_store.scan_dict(self._wrapper_obj_key)[0]
+
+    def values(self):
+        return self._wrapper_store.scan_dict(self._wrapper_obj_key)[1]
+
+
     ## Get with a possible default
     def get(self, key, default=None):
         if default == None:

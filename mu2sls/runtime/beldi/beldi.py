@@ -1,5 +1,4 @@
 import fdb.tuple
-import logging
 
 from runtime.beldi.common import *
 from runtime.serde import serialize, deserialize
@@ -71,7 +70,31 @@ def eos_set_if_not_exist(env: Env, key: str, value):
     fdb.transactional(_eos_set_if_not_exist)(env.db, env, key, value)
 
 
-@fdb.transactional
+def _scan_dict(tr, env: Env, dict_name: str):
+    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
+    prefix = fdb.tuple.pack(("data", env.table, f"{dict_name}-"))[:-1]  # tuple has trailing null byte
+    v2 = tr[log_k]
+    if not v2.present():
+        env.step += 1
+        res = tr.get_range_startswith(prefix)
+        keys = []
+        values = []
+        for k, v in res:
+            key = fdb.tuple.unpack(k)[-1]
+            key = key.split("-")[-1]
+            keys.append(key)
+            values.append(deserialize(v))
+        tr[log_k] = serialize((keys, values))
+        return keys, values
+    else:
+        env.step += 1
+        return deserialize(v2)
+
+
+def scan_dict(env: Env, dict_name: str):
+    return fdb.transactional(_scan_dict)(env.db, env, dict_name)
+
+
 def _local_eos_read(tr, env: Env, key: str):
     local_k = fdb.tuple.pack(("local", env.table, env.txn_id, key))
     log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
