@@ -85,11 +85,11 @@ async def Wait(promise):
 
 ## TODO: This implementation sucks
 async def WaitAll(*promises):
-    print("Promises", promises)
+    # print("Promises", promises)
     awaitables, clients = list(zip(*promises))
-    print("Awaitables", awaitables)
+    # print("Awaitables", awaitables)
     # clients = [client for _, client in promises]
-    print("Clients", clients)
+    # print("Clients", clients)
     rets = await asyncio.gather(*awaitables)
     await asyncio.gather(*[client.aclose() for client in clients])
     json_rets = [ret.json() for ret in rets]

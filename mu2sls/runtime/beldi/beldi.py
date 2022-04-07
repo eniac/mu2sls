@@ -1,5 +1,7 @@
-import fdb.tuple
+import logging
+import time
 
+import fdb.tuple
 from runtime.beldi.common import *
 from runtime.serde import serialize, deserialize
 
@@ -207,6 +209,126 @@ def _tpl_read(tr, env: Env, key: str):
 @log_timer("tpl_read")
 def tpl_read(env: Env, key: str):
     return fdb.transactional(_tpl_read)(env.db, env, key)
+
+
+# readonly until success
+def _check_read(tr, env: Env, key: str):
+    assert not env.in_txn()
+    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
+    v2 = tr[log_k]
+    if v2.present():
+        env.step += 1
+        return True, deserialize(v2)
+    lock_k = fdb.tuple.pack(("lock", env.table, key))
+    data_k = fdb.tuple.pack(("data", env.table, key))
+    vlock = tr[lock_k]
+    owner = deserialize(vlock) if vlock.present() else None
+    if owner is not None:
+        return False, None
+    else:
+        v1 = tr[data_k]
+        tr[log_k] = v1 if v1.present() else serialize(None)
+        env.step += 1
+        return True, None if not v1.present() else deserialize(v1)
+
+
+def check_read(env: Env, key: str):
+    return fdb.transactional(_check_read)(env.db, env, key)
+
+
+@log_timer("tpl_check_read")
+def tpl_check_read(env: Env, key: str):
+    counter = 0
+    while True:
+        ok, val = check_read(env, key)
+        if ok:
+            if counter > 0:
+                logging.error("Counter:", counter)
+            return val
+        # time.sleep(0.005)
+        counter += 1
+
+
+# readonly until success
+def _check_write(tr, env: Env, key: str, value):
+    assert not env.in_txn()
+    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
+    v2 = tr[log_k]
+    if v2.present():
+        env.step += 1
+        return True
+    lock_k = fdb.tuple.pack(("lock", env.table, key))
+    data_k = fdb.tuple.pack(("data", env.table, key))
+    vlock = tr[lock_k]
+    owner = deserialize(vlock) if vlock.present() else None
+    if owner is not None:
+        return False
+    else:
+        tr[data_k] = serialize(value)
+        tr[log_k] = b''  # value is never read
+        env.step += 1
+        return True
+
+
+def check_write(env: Env, key: str, value):
+    return fdb.transactional(_check_write)(env.db, env, key, value)
+
+
+@log_timer("tpl_check_write")
+def tpl_check_write(env: Env, key: str, value):
+    counter = 0
+    while True:
+        ok = check_write(env, key, value)
+        if ok:
+            if counter > 0:
+                logging.error("Counter:", counter)
+            return
+        # time.sleep(0.005)
+        counter += 1
+
+
+def _check_pop(tr, env: Env, key: str):
+    assert not env.in_txn()
+    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
+    v2 = tr[log_k]
+    if v2.present():
+        env.step += 1
+        return True, deserialize(v2)
+    lock_k = fdb.tuple.pack(("lock", env.table, key))
+    data_k = fdb.tuple.pack(("data", env.table, key))
+    vlock = tr[lock_k]
+    owner = deserialize(vlock) if vlock.present() else None
+    if owner is not None:
+        return False, None
+    else:
+        v1 = tr[data_k]
+        del tr[data_k]
+        tr[log_k] = v1 if v1.present() else serialize(None)
+        env.step += 1
+        return True, None if not v1.present() else deserialize(v1)
+
+
+def check_pop(env: Env, key: str):
+    return fdb.transactional(_check_pop)(env.db, env, key)
+
+
+@log_timer("tpl_check_pop")
+def tpl_check_pop(env: Env, key: str):
+    counter = 0
+    while True:
+        ok, val = check_pop(env, key)
+        if ok:
+            if counter > 0:
+                logging.error("Counter:", counter)
+            return val
+        # time.sleep(0.005)
+        counter += 1
+
+
+@log_timer("tpl_contains")
+def tpl_contains(env: Env, key: str):
+    ok, val = _tpl_read(env.db, env, key)
+    return ok, val is not None
 
 
 def _tpl_write(tr, env: Env, key: str, value):

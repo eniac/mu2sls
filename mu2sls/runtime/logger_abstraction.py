@@ -59,7 +59,7 @@ class Logger:
     def read_until_success(self, key: str):
         self.BeginTx()
         read_succeeded, ret = self.read(key)
-        print("Read for key:", key, "succeeded:", read_succeeded, "and returned value:", ret)
+        # print("Read for key:", key, "succeeded:", read_succeeded, "and returned value:", ret)
         while not read_succeeded:
             # self.AbortTxNoExc()
             self.AbortTx()
@@ -79,7 +79,7 @@ class Logger:
     def write_until_success(self, key: str, val):
         self.BeginTx()
         write_succeeded = self.write(key, val)
-        print("Write for key:", key, "with value:", val, "succeeded:", write_succeeded)
+        # print("Write for key:", key, "with value:", val, "succeeded:", write_succeeded)
         while not write_succeeded:
             # self.AbortTxNoExc()
             self.AbortTx()
@@ -105,11 +105,11 @@ class Logger:
     def eos_write(self, key, value):
         return None
     
-    def contains(self, key):
+    def eos_contains(self, key):
         return None
     
     ## This implements an atomic add if not exists
-    def set_if_not_exists(self, key, value):
+    def eos_set_if_not_exists(self, key, value):
         return None
 
     def BeginTx(self):

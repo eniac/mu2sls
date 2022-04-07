@@ -1,3 +1,5 @@
+import time
+import logging
 import hashlib
 from uuid import uuid4
 import jwt
@@ -36,7 +38,11 @@ class User(object):
 
 
     async def upload_user(self, req_id, username):
+        start = time.perf_counter_ns()
         user = self.users[username]
         promise = AsyncInvoke('ComposeReview', "upload_user_id", req_id, user['user_id'])
         ## TODO: DAG doesn't wait here
         await Wait(promise)
+        end = time.perf_counter_ns()
+        duration = (end - start) / 1000000
+        logging.error(f'APP User.upload_user: {duration}')

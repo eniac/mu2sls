@@ -1,3 +1,5 @@
+import time
+import logging
 from compiler import decorators
 
 @decorators.service
@@ -11,11 +13,15 @@ class UserReview(object):
     ## - for x in self.reviews.keys() instead of for x in self.reviews
     ## - reviews.update([(key, value)]) instead of reviews[key] = value
     def upload_user_review(self, user_id, review_id, timestamp):
+        start = time.perf_counter_ns()
         if user_id in self.reviews:
             prev_reviews = self.reviews[user_id]
             self.reviews[user_id] = prev_reviews + [{'review_id': review_id, 'timestamp': timestamp}]
         else:
             self.reviews[user_id] = [{'review_id': review_id, 'timestamp': timestamp}]
+        end = time.perf_counter_ns()
+        duration = (end - start) / 1000000
+        logging.error(f'APP UserReview.upload: {duration}')
 
     async def read_reviews(self, user_id):        
         review_ids = [review['review_id'] for review in self.reviews.get(user_id, [])]

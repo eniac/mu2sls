@@ -1,12 +1,9 @@
-from uuid import uuid4
+from runtime import request_lib
 from runtime.beldi import beldi
 from runtime.beldi import common
-
 from runtime.knative import invoke
-
 from runtime.logger_abstraction import Logger
 from runtime.transaction_exception import TransactionException
-from runtime import request_lib
 
 
 ##
@@ -57,7 +54,7 @@ class BeldiLogger(Logger):
         if request_lib.is_abort_response(res):
             print("Transaction was aborted by callee... aborting too")
             self.AbortTx()
-        
+
         return res
 
     async def WaitAll(self, *promises):
@@ -86,29 +83,26 @@ class BeldiLogger(Logger):
             beldi.eos_write(self.env, key, value)
             return True
 
-
     def eos_read(self, key):
         return beldi.eos_read(self.env, key)
-    
-    ## This implements a write method on the store
-    ##
-    ## Normally, this would also use the environment
-    ## to perform the invocation
+
     def eos_write(self, key, value):
         return beldi.eos_write(self.env, key, value)
-    
-    ## TODO: These are still empty and their APIs undecided.
-    ##
-    ## TODO: We need to implement them for Beldi
-    def contains(self, key):
+
+    def eos_contains(self, key):
         return beldi.eos_contains(self.env, key)
-    
-    ## TODO: @Haoran my goal was for this to be atomic. Maybe we need to either remove it
-    ##       or wrap it with some lock.
-    ##
-    ## TODO: We should not call `eos` here because it interferes with transactions
-    def set_if_not_exists(self, key, value):
+
+    def eos_set_if_not_exists(self, key, value):
         return beldi.eos_set_if_not_exist(self.env, key, value)
+
+    def tpl_check_read(self, key):
+        return beldi.tpl_check_read(self.env, key)
+
+    def tpl_check_write(self, key, value):
+        return beldi.tpl_check_write(self.env, key, value)
+
+    def tpl_check_pop(self, key):
+        return beldi.tpl_check_pop(self.env, key)
 
     def in_txn(self):
         return self.env.in_txn()
@@ -117,7 +111,7 @@ class BeldiLogger(Logger):
         return beldi.begin_tx(self.env)
 
     def CommitTx(self):
-        print("Commit was called!")
+        # print("Commit was called!")
         self.env.instruction = "COMMIT"
         callees = beldi.commit_tx(self.env)
         for client, method in callees:
@@ -126,7 +120,7 @@ class BeldiLogger(Logger):
         self.env.instruction = None
 
     def AbortTxNoExc(self):
-        print("Abort was called!")
+        # print("Abort was called!")
         self.env.instruction = "ABORT"
         callees = beldi.abort_tx(self.env)
         for client, method in callees:
@@ -140,7 +134,7 @@ class BeldiLogger(Logger):
 
         ## Throw the transaction exception so that the user code can run
         ##   abort handler code.
-        print("Throwing abort exc!")
+        # print("Throwing abort exc!")
         raise TransactionException()
 
     ## This function checks the env (.instruction and .txn_id) and
@@ -157,4 +151,3 @@ class BeldiLogger(Logger):
         else:
             assert False
         return {}
-

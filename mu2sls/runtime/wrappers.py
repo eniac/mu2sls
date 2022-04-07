@@ -33,21 +33,21 @@ class Wrapper(object):
 ##
 ## TODO: Investigate slots and descriptors
 class WrapperTerminal(Wrapper):
-    '''
+    """
     Object wrapper class.
     This a wrapper for objects. It is initialiesed with the object to wrap
     and then proxies the unhandled getattribute methods to it.
     Other classes are to inherit from it.
-    
+
     Taken from: https://code.activestate.com/recipes/577555-object-wrapper-class/
-    '''
+    """
     ## TODO: Figure out if `beldi` is a shared or a Beldi client per object.
     def __init__(self, obj_key, init_val, store):
-        '''
+        """
         Wrapper constructor.
         @param obj_key: the key of the object to wrap the accesses to
         @param init_val: the initial value for the object (if it doesn't exist in Beldi)
-        '''
+        """
 
         ## Save the key    
         self._wrapper_obj_key = obj_key
@@ -56,12 +56,8 @@ class WrapperTerminal(Wrapper):
 
 
         ## Initialize the collection if it doesn't already exist in Beldi
-        ## Potentially alternative way of doing it (though, we don't have a request id maybe here.)
-        ##
-        ## TODO: Check if we do have a request id here
-        # val = store.read_until_success(self._wrapper_obj_key)
         initialize_key(store, self._wrapper_obj_key, init_val)
-    
+
         ## Store beldi client for later use
         self._wrapper_store = store
 
@@ -82,7 +78,7 @@ class WrapperTerminal(Wrapper):
         store = self._wrapper_store
         ## Save the object
         store.eos_write(self._wrapper_obj_key, new_value)
-    
+
     def _wrapper_get(self):
         store = self._wrapper_store
         ## Return the value of the object
@@ -100,7 +96,7 @@ class WrapperTerminal(Wrapper):
     def __repr__(self) -> str:
         func_name = "__repr__"
         return self._wrapper_builtin_method(func_name)
-        
+
 
     def __int__(self) -> int:
         func_name = "__int__"
@@ -124,8 +120,8 @@ class WrapperTerminal(Wrapper):
         if(WrapperTerminal.is_wrapper_attr(attr)):
             # this object has it (for example, Beldi)
             return self.__dict__[attr]
-        
-        
+
+
         ## In this case the attribute is part of the original object and therefore we need to access it through Beldi.
         store = self._wrapper_store
 
@@ -159,7 +155,7 @@ class WrapperTerminal(Wrapper):
     ## Wraps a callable by delaying the get until it is actually called
     def _wrap_callable(self, attr_name):
         logging.debug("Attr name: " + attr_name)
-    
+
         ## This function is returned instead of the callable.
         ## When called, it retrieves the callable object from Beldi and calls it.
         def wrapper(*args, **kwargs):
@@ -186,7 +182,7 @@ class WrapperTerminal(Wrapper):
         ##
         ## Get the object from Beldi. This should never fail
         obj = store.eos_read(self._wrapper_obj_key)
-        
+
         ## This should never happen if the attribute is callable, i.e., a method should
         ## never be replaced.
         ##
@@ -214,7 +210,7 @@ class WrapperTerminal(Wrapper):
 
         ## TODO: Implement it for the wrapped object
         raise NotImplementedError
-    
+
     ########################################################
     ##
     ## Wrapper handling of Special Methods
@@ -228,17 +224,17 @@ class WrapperTerminal(Wrapper):
         logging.debug(func_name)
         if (not hasattr(self._wrapper_init_value, func_name)):
             raise TypeError()
-        
+
         store = self._wrapper_store
         object_key = self._wrapper_obj_key
         return wrap_method_call(store, object_key, func_name, *args, **kwargs)
-        
+
     def __eq__(self, *args, **kwargs):
         func_name = "__eq__"
         logging.debug(func_name)
         if (not hasattr(self._wrapper_init_value, func_name)):
             raise TypeError()
-        
+
         store = self._wrapper_store
         object_key = self._wrapper_obj_key
         return wrap_method_call(store, object_key, func_name, *args, **kwargs)
@@ -277,19 +273,19 @@ class WrapperDict(Wrapper):
         ## TODO: Check if we do have a request id here
         # val = store.read_until_success(self._wrapper_obj_key)
         initialize_key(store, self._wrapper_obj_key, init_val)
-    
+
         ## Store beldi client for later use
         self._wrapper_store = store
 
         ## Keep the init_value around, to use it to check the dir for special methods and so on.
         self._wrapper_init_value = init_val
 
-        print("Key given:", obj_key, ", init_val:", init_val)
+        # print("Key given:", obj_key, ", init_val:", init_val)
         ## Initialize all items of the dictionary separately
         for key, val in init_val.items():
             initialize_key(store, self.get_key_key(key), val)
 
-    
+
     ## Get the key name (for the store) of a specific key (dict)
     def get_key_key(self, key):
         return f'{self._wrapper_obj_key}-{key}'
@@ -299,50 +295,32 @@ class WrapperDict(Wrapper):
     ##
     def __contains__(self, key):
         val = self.__getitem__core(key)
-
         ret = (not (val_doesnt_exist(val)))
-        print("Contains:", ret)
-
         return ret
 
-    ## TODO: __getitem__ probably needs to throw an exception    
     def __getitem__(self, key):
         val = self.__getitem__core(key)
-
         if val_doesnt_exist(val):
             raise KeyError(key)
-
         return val
 
     def __getitem__core(self, key):
         store_key = self.get_key_key(key)
-        print("Key:", key, store_key)
+        in_txn = self._wrapper_store.in_txn()
 
-        prior_in_txn = self._wrapper_store.in_txn()
+        if in_txn:
+            return self._wrapper_store.read_throw(store_key)
+        else:
+            return self._wrapper_store.tpl_check_read(store_key)
 
-        ## TODO: Could we optimize this away to not need the transaction
-        val = begin_tx_and_read(self._wrapper_store, store_key)
-        print("Value:", val)
-
-        ## Commit only if we were not in a transaction already.
-        if not prior_in_txn:
-            ## This should always succeed
-            self._wrapper_store.CommitTx()
-
-        return val
-    
     def __setitem__(self, key, val):
         store_key = self.get_key_key(key)
-        print("Set key:", key, "to val:", val)
+        in_txn = self._wrapper_store.in_txn()
 
-        prior_in_txn = self._wrapper_store.in_txn()
-
-        begin_tx_and_write(self._wrapper_store, store_key, val)
-
-        ## Commit only if we were not in a transaction already.
-        if not prior_in_txn:
-            ## This should always succeed
-            self._wrapper_store.CommitTx()
+        if in_txn:
+            self._wrapper_store.write_throw(store_key, val)
+        else:
+            self._wrapper_store.tpl_check_write(store_key, val)
 
     def keys(self):
         return self._wrapper_store.scan_dict(self._wrapper_obj_key)[0]
@@ -353,7 +331,7 @@ class WrapperDict(Wrapper):
 
     ## Get with a possible default
     def get(self, key, default=None):
-        if default == None:
+        if default is None:
             return self.__getitem__(key)
         else:
             val = self.__getitem__core(key)
@@ -361,36 +339,23 @@ class WrapperDict(Wrapper):
                 return default
             else:
                 return val
-    
+
     def pop(self, key, default=None):
         store_key = self.get_key_key(key)
-        print("Key:", key, store_key)
+        in_txn = self._wrapper_store.in_txn()
 
-        prior_in_txn = self._wrapper_store.in_txn()
-
-        ## TODO: Could we optimize this away to not need the transaction
-        val = begin_tx_and_read(self._wrapper_store, store_key)
-        print("Value:", val)
+        if in_txn:
+            val = self._wrapper_store.read_throw(store_key)
+            write_success = self._wrapper_store.write(store_key, "")
+            assert write_success
+        else:
+            val = self._wrapper_store.tpl_check_pop(store_key)
 
         if val_doesnt_exist(val):
             if default is None:
                 raise KeyError(key)
             else:
                 val = default
-
-        ## Update the object in Beldi
-        ##
-        ## Note: This should always succeed since the lock was acquired for the read.
-        ##
-        ## TODO: Replace that with delete
-        write_success = self._wrapper_store.write(store_key, "")
-        assert write_success
-
-        ## Commit only if we were not in a transaction already.
-        if not prior_in_txn:
-            ## This should always succeed
-            self._wrapper_store.CommitTx()
-
         return val
 
 ## This checks if a return value shows non-existence
@@ -400,14 +365,14 @@ def val_doesnt_exist(val):
 
 
 def wrap_terminal(object_key, object_init_val, store):
-    
     ## TODO: Currently this determines the type using the initial value,
     ##       but it could also use the type.
     if isinstance(object_init_val, dict):
-        print("Dictionary type:", object_init_val)
+        # print("Dictionary type:", object_init_val)
         wrapped_object = WrapperDict(object_key, object_init_val, store)
     else:
         ## The general wrapping that adds the object behind a key
+        assert False
         wrapped_object = wrap_default(object_key, object_init_val, store)
 
     return wrapped_object
@@ -417,9 +382,9 @@ def wrap_default(object_key, object_init_val, store):
 
     return wrapped_object
 
-## This function determines whether to call a version of read that will always succeed,
-## or whether to call one that might fail (depending on whether we are already in a transaction)
-## or not.
+# This function determines whether to call a version of read that will always succeed,
+# or whether to call one that might fail (depending on whether we are already in a transaction)
+# or not.
 def begin_tx_and_read(store, key: str):
     ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
     if store.in_txn():
@@ -439,17 +404,13 @@ def begin_tx_and_write(store, key: str, val):
         return store.write_until_success(key, val)
 
 ## Initializes the key in the store
-##
-## TODO: Maybe this needs to be modified to happen in a transaction
 def initialize_key(store, key, val):
-    print(store.env)
-    if(not store.contains(key)):
-        print("Store doesn't contain key:", key)
-        ## NOTE: We need to use set_if_not_exists to ensure atomicity
-        store.set_if_not_exists(key, val)
+    store.eos_set_if_not_exists(key, val)
+
 
 ## This is the core function that wraps method calls to remote objects
 def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
+    assert False, "Not implemented"
 
     ## Check if the store was already in a transaction,
     ##   if so, we don't commit!
@@ -467,7 +428,7 @@ def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
     ret = callable_attr(*args, **kwargs)
 
     ## I assume that by calling the method like above the object does get updated.
-    
+
     ## Update the object in Beldi
     ##
     ## Note: This should always succeed since the lock was acquired for the read.

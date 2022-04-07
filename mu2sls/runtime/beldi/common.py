@@ -17,13 +17,13 @@ def connect():
     and if that fails, tries with a remote file.
     """
     fdb_clust_file_path = os.getenv('FDB_CLUSTER_FILE')
-    print("FDB_CLUSTER_FILE=", fdb_clust_file_path)
-    if not fdb_clust_file_path is None:
+    # print("FDB_CLUSTER_FILE=", fdb_clust_file_path)
+    if fdb_clust_file_path is not None:
         return connect_fdb_using_file(fdb_clust_file_path)
 
     ## If the FILE didn't work, then just try with data
     data = os.getenv('FDB_CLUSTER_DATA')
-    print("FDB_CLUSTER_DATA=", data)
+    # print("FDB_CLUSTER_DATA=", data)
     if data is None:
         print("FDB_CLUSTER_DATA environment variable is not set!")
         exit(1)
@@ -37,7 +37,7 @@ def connect():
 
 def connect_using_local_file():
     fdb_clust_file_path = os.getenv('FDB_CLUSTER_FILE')
-    print("FDB_CLUSTER_FILE=", fdb_clust_file_path)
+    # print("FDB_CLUSTER_FILE=", fdb_clust_file_path)
     if fdb_clust_file_path is None:
         print("FDB_CLUSTER_FILE environment variable is not set!")
         exit(1)
@@ -51,7 +51,7 @@ def get_load_balancer_ip():
     Find the cluster IP for calling other functions
     """
     ip = os.getenv('LOAD_BALANCER_IP')
-    print("LOAD_BALANCER_IP=", ip)
+    # print("LOAD_BALANCER_IP=", ip)
     if ip is None:
         print("LOAD_BALANCER_IP environment variable is not set!")
         exit(1)
@@ -64,7 +64,7 @@ def log_timer(label):
             start = time.perf_counter_ns()
             result = func(*args, **kwargs)
             end = time.perf_counter_ns()
-            duration = (end - start) / 1000
+            duration = (end - start) / 1000000
             logging.error(f'{label} {duration}')
             return result
         return wrapper
@@ -160,10 +160,10 @@ class Env:
         self.number_of_calls += 1
     
     def in_txn_commit_or_abort(self):
-        return (self.instruction in ["COMMIT", "ABORT"])
+        return self.instruction in ["COMMIT", "ABORT"]
 
     def in_txn(self):
-        return (self.instruction is not None)
+        return self.instruction is not None
 
     ##
     ## Two complementary methods that inject and extract metadata into calls
@@ -176,8 +176,6 @@ class Env:
         
         ## Get the request_id and the step_number from the environment
         ##   and use them to create a new request id for the call to the callee.
-        ##
-        ## TODO: @Haoran: is that OK? This corresponds to the formalization.
         metadata_dict['req_id'] = f'{self.req_id}-{self.number_of_calls}'
 
         ## If we are in a transaction

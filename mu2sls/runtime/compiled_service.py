@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 
 from runtime.transaction_exception import TransactionException
 from runtime import request_lib
@@ -18,9 +19,10 @@ class CompiledService:
     ##
     ## Set the environment for the new request
     async def apply_request(self, method_name: str, request) -> str:
-        print("Request Headers:", dict(request.headers))
+        logging.error("-" * 20)
+        # print("Request Headers:", dict(request.headers))
         request_json = await request.get_json()
-        print("Request JSON:", request_json)
+        # print("Request JSON:", request_json)
         
         ## Set the environment based on the request
         self.logger.set_env(request_json)
@@ -28,13 +30,13 @@ class CompiledService:
         ## Check whether we should execute request or whether it should just
         ##   be committed or aborted.
         if self.logger.env.in_txn_commit_or_abort():
-            print("Performing commit or abort!")
+            # print("Performing commit or abort!")
             ## If env.instruction is commit or abort, do that!
             ##
             ## In this case, the request might not even contain arguments
             return self.logger.commit_or_abort()
         else:
-            print("Applying request")
+            # print("Applying request")
             ## Catch Transaction exceptions and carefully return them to the user
             try:
                 func = getattr(self, method_name)
