@@ -7,6 +7,7 @@ import sys
 import logging
 from uuid import uuid4
 
+## TODO: Put that in a config file
 fdb.api_version(630)
 
 ## TODO: Add a test that runs media with local deployment + Beldi store on FDB
