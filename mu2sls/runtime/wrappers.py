@@ -2,6 +2,8 @@ import logging
 
 from runtime.transaction_exception import TransactionException
 
+TOGGLE_CUSTOM_DICT = True
+
 ##
 ## This is the main wrapper method that wraps an object to enforce correctness guarantees.
 ##
@@ -244,6 +246,18 @@ class WrapperTerminal(Wrapper):
         logging.debug(func_name)
         return self._wrapper_builtin_method(func_name, *args, **kwargs)
 
+    def __getitem__(self, *args, **kwargs):
+        func_name = "__getitem__"
+        logging.debug(func_name)
+        return self._wrapper_builtin_method(func_name, *args, **kwargs)
+    
+    def __setitem__(self, *args, **kwargs):
+        func_name = "__setitem__"
+        logging.debug(func_name)
+        return self._wrapper_builtin_method(func_name, *args, **kwargs)
+    
+
+
 ##
 ## TODO: Doesn't support iteration and access of all keys at the moment
 ##
@@ -367,12 +381,12 @@ def val_doesnt_exist(val):
 def wrap_terminal(object_key, object_init_val, store):
     ## TODO: Currently this determines the type using the initial value,
     ##       but it could also use the type.
-    if isinstance(object_init_val, dict):
+    if isinstance(object_init_val, dict) and TOGGLE_CUSTOM_DICT:
         # print("Dictionary type:", object_init_val)
         wrapped_object = WrapperDict(object_key, object_init_val, store)
     else:
         ## The general wrapping that adds the object behind a key
-        assert False
+        # assert False
         wrapped_object = wrap_default(object_key, object_init_val, store)
 
     return wrapped_object
@@ -410,22 +424,29 @@ def initialize_key(store, key, val):
 
 ## This is the core function that wraps method calls to remote objects
 def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
-    assert False, "Not implemented"
-
+    # assert False, "Not implemented"
+    # print("Wrapping method:", attr_name)
     ## Check if the store was already in a transaction,
     ##   if so, we don't commit!
     ##
     ## TODO: To solve this properly, we need to add a counter that checks how
     ##       many transactions in are we.
     prior_in_txn = store.in_txn()
+    # print("In txn:", prior_in_txn)
+    
 
     ## Begin the transaction and read
     obj = begin_tx_and_read(store, object_key)
+    # print("Obj is:", obj)
 
     ## Call the method
     callable_attr = getattr(obj, attr_name)
     assert(callable(callable_attr))
+
+    # print("Calling method:", attr_name, "with_args:", args, kwargs)
     ret = callable_attr(*args, **kwargs)
+    # print("Ret:", ret)
+    # print("New obj:", obj)
 
     ## I assume that by calling the method like above the object does get updated.
 
