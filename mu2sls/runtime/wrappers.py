@@ -17,6 +17,8 @@ from runtime.transaction_exception import TransactionException
 ##  2. It is pretty naive asking Beldi everytime we want to get/set a field
 ##
 
+ENABLE_CUSTOM_DICT = False
+
 class Wrapper(object):
     pass
 
@@ -367,12 +369,11 @@ def val_doesnt_exist(val):
 def wrap_terminal(object_key, object_init_val, store):
     ## TODO: Currently this determines the type using the initial value,
     ##       but it could also use the type.
-    if isinstance(object_init_val, dict):
+    if ENABLE_CUSTOM_DICT and isinstance(object_init_val, dict):
         # print("Dictionary type:", object_init_val)
         wrapped_object = WrapperDict(object_key, object_init_val, store)
     else:
         ## The general wrapping that adds the object behind a key
-        assert False
         wrapped_object = wrap_default(object_key, object_init_val, store)
 
     return wrapped_object
@@ -388,11 +389,9 @@ def wrap_default(object_key, object_init_val, store):
 def begin_tx_and_read(store, key: str):
     ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
     if store.in_txn():
-        print("In txn")
         ## If this read fails, we throw an exception, to be caught in an above layer
         return store.read_throw(key)
     else:
-        print("Not in txn")
         return store.read_until_success(key)
 
 def begin_tx_and_write(store, key: str, val):
@@ -410,8 +409,6 @@ def initialize_key(store, key, val):
 
 ## This is the core function that wraps method calls to remote objects
 def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
-    assert False, "Not implemented"
-
     ## Check if the store was already in a transaction,
     ##   if so, we don't commit!
     ##

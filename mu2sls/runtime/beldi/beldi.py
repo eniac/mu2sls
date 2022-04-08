@@ -5,7 +5,7 @@ from runtime.beldi.common import *
 from runtime.serde import serialize, deserialize
 
 ENABLE_LOGGING = True
-ENABLE_TXN = True
+ENABLE_TXN = False  # used in logger
 
 
 # bool, val
