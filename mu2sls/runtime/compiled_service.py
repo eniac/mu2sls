@@ -27,6 +27,9 @@ class CompiledService:
         ## Set the environment based on the request
         self.logger.set_env(request_json)
 
+        ## Initialize the persistent objects now that we have the environment
+        self.__init_per_objects__()
+
         ## Check whether we should execute request or whether it should just
         ##   be committed or aborted.
         if self.logger.env.in_txn_commit_or_abort():
