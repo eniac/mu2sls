@@ -4,17 +4,18 @@ import fdb.tuple
 from runtime.beldi.common import *
 from runtime.serde import serialize, deserialize
 
-LOGGING = True
+ENABLE_LOGGING = True
+ENABLE_TXN = True
 
 
 # bool, val
-def _check_log(tr, env: Env):
-    if LOGGING:
+def _check_log(tr, env: Env) -> (bool, bytes):
+    if ENABLE_LOGGING:
         log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
         v2 = tr[log_k]
         if v2.present():
             env.step += 1
-            return True, deserialize(v2)
+            return True, v2
         else:
             return False, None
     else:
@@ -24,7 +25,7 @@ def _check_log(tr, env: Env):
 # send raw_value
 # don't (de)serialize in the caller
 def _append_log(tr, env: Env, raw_value: bytes):
-    if LOGGING:
+    if ENABLE_LOGGING:
         log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
         tr[log_k] = raw_value
         env.step += 1
@@ -47,7 +48,7 @@ def _eos_read(tr, env: Env, key: str):
     data_k = fdb.tuple.pack(("data", env.table, key))
     exist, val = _check_log(tr, env)
     if exist:
-        return val
+        return deserialize(val)
     v1 = tr[data_k]
     _append_log(tr, env, v1 if v1.present() else serialize(None))
     return None if not v1.present() else deserialize(v1)
@@ -121,7 +122,7 @@ def _local_eos_read(tr, env: Env, key: str):
     local_k = fdb.tuple.pack(("local", env.table, env.txn_id, key))
     exist, val = _check_log(tr, env)
     if exist:
-        return val
+        return deserialize(val)
     v1 = tr[local_k]
     _append_log(tr, env, v1 if v1.present() else serialize(None))
     return None if not v1.present() else deserialize(v1)
@@ -150,7 +151,7 @@ def _lock(tr, env: Env, key: str):
     assert env.txn_id is not None
     exist, ok = _check_log(tr, env)
     if exist:
-        return ok
+        return deserialize(ok)
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     if owner is not None:
@@ -223,7 +224,7 @@ def _check_read(tr, env: Env, key: str):
     assert not env.in_txn()
     exist, val = _check_log(tr, env)
     if exist:
-        return True, val
+        return True, deserialize(val)
     lock_k = fdb.tuple.pack(("lock", env.table, key))
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
@@ -292,7 +293,7 @@ def _check_pop(tr, env: Env, key: str):
     assert not env.in_txn()
     exist, val = _check_log(tr, env)
     if exist:
-        return True, val
+        return True, deserialize(val)
     lock_k = fdb.tuple.pack(("lock", env.table, key))
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
