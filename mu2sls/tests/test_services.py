@@ -142,9 +142,12 @@ def main(args):
 
 def run_test_deployed_services(deployed_services, deployment_file, invoke_lib):
     deployment_file_basename = deployment_file.split('/')[-1]
-    test_func = TEST_FUNC_FROM_FILE[deployment_file_basename]
-
-    return test_func(deployed_services, invoke_lib)
+    try:
+        test_func = TEST_FUNC_FROM_FILE[deployment_file_basename]
+        test_func(deployed_services, invoke_lib)
+    except:
+        print("No test for this app, just deployed!")
+    
 
 ## TODO: Very hacky
 def deployment_list_from_deployment_file(deployment_file):
