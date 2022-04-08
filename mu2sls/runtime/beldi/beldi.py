@@ -5,6 +5,27 @@ import fdb.tuple
 from runtime.beldi.common import *
 from runtime.serde import serialize, deserialize
 
+## TODO: Add config variables here that:
+##   - enables/disables beldi logging 
+##     + kk: can we refactor log checking/saving in their own functions? I think so
+##     
+##   - toggles transactions 
+##     + Maybe easy to do that: probably toggles locking
+
+toggle_logging = True
+toggle_txn = True
+
+# def check_log(...):
+#     if toggle_logging:
+#         ...
+#     else:
+#         return False
+
+# def write_log(...):
+#     if toggle_logging:
+#         ...
+#     else:
+#         return "OK"
 
 ## Note that the current API accepts anything that can be serialized 
 ##   by `json.dumps` as values.
@@ -17,17 +38,22 @@ def base_read(env: Env, key: str):
 def base_write(env: Env, key: str, value):
     env.db[fdb.tuple.pack(("data", env.table, key))] = serialize(value)
 
-
 def _eos_read(tr, env: Env, key: str):
+    # print("env.req_id", env.req_id)
+    # print("env.step", env.step)
     data_k = fdb.tuple.pack(("data", env.table, key))
     log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
+    ## TODO: Isn't this an unneccessary get here? If v2 exists then 
+    ##       we paid for DB access with no reason.
     v1 = tr[data_k]
     v2 = tr[log_k]
     if not v2.present():
+        # print("Log not present")
         tr[log_k] = v1 if v1.present() else serialize(None)
         env.step += 1
         return None if not v1.present() else deserialize(v1)
     else:
+        # print("Log present")
         env.step += 1
         return deserialize(v2)
 
@@ -54,6 +80,7 @@ def eos_write(env: Env, key: str, value):
 
 def _eos_contains(tr, env: Env, key: str):
     res = _eos_read(tr, env, key)
+    # print("Key:", key, "read returned:", res)
     return res is not None
 
 
@@ -64,6 +91,7 @@ def eos_contains(env: Env, key: str):
 
 def _eos_set_if_not_exist(tr, env: Env, key: str, value):
     if not _eos_contains(tr, env, key):
+        print("Initializing key:", key)
         _eos_write(tr, env, key, value)
 
 
@@ -197,10 +225,13 @@ def _tpl_read(tr, env: Env, key: str):
     if _lock(tr, env, key):
         _add_lock(tr, env, key)
         v = _local_eos_read(tr, env, key)
+        # print("tpl_read for key:", key)
+        # print("|-- local returned:", v)
         if v is not None:
             return True, v
         else:
             v = _eos_read(tr, env, key)
+            # print("|-- eos returned:", v)
             return True, v
     else:
         return False, None
@@ -374,6 +405,7 @@ def _commit_tx(tr, env: Env):
             locks = deserialize(v)
             continue
         v = deserialize(v)
+        # print("Writing key:", k, "value:", v)
         _eos_write(tr, env, k, v)
     for k in locks:
         _unlock(tr, env, k)
