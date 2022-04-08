@@ -1,35 +1,40 @@
 import logging
-import time
 
 import fdb.tuple
 from runtime.beldi.common import *
 from runtime.serde import serialize, deserialize
 
-## TODO: Add config variables here that:
-##   - enables/disables beldi logging 
-##     + kk: can we refactor log checking/saving in their own functions? I think so
-##     
-##   - toggles transactions 
-##     + Maybe easy to do that: probably toggles locking
+ENABLE_LOGGING = True
+ENABLE_TXN = False  # used in logger
 
-toggle_logging = True
-toggle_txn = True
 
-# def check_log(...):
-#     if toggle_logging:
-#         ...
-#     else:
-#         return False
+# bool, val
+def _check_log(tr, env: Env) -> (bool, bytes):
+    if ENABLE_LOGGING:
+        log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
+        v2 = tr[log_k]
+        if v2.present():
+            env.step += 1
+            return True, v2
+        else:
+            return False, None
+    else:
+        return False, None
 
-# def write_log(...):
-#     if toggle_logging:
-#         ...
-#     else:
-#         return "OK"
 
-## Note that the current API accepts anything that can be serialized 
+# send raw_value
+# don't (de)serialize in the caller
+def _append_log(tr, env: Env, raw_value: bytes):
+    if ENABLE_LOGGING:
+        log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
+        tr[log_k] = raw_value
+        env.step += 1
+    else:
+        return
+
+
+## Note that the current API accepts anything that can be serialized
 ##   by `json.dumps` as values.
-
 def base_read(env: Env, key: str):
     res = env.db.get(fdb.tuple.pack(("data", env.table, key)))
     return None if res is None else deserialize(res)
@@ -42,20 +47,12 @@ def _eos_read(tr, env: Env, key: str):
     # print("env.req_id", env.req_id)
     # print("env.step", env.step)
     data_k = fdb.tuple.pack(("data", env.table, key))
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
-    ## TODO: Isn't this an unneccessary get here? If v2 exists then 
-    ##       we paid for DB access with no reason.
+    exist, val = _check_log(tr, env)
+    if exist:
+        return deserialize(val)
     v1 = tr[data_k]
-    v2 = tr[log_k]
-    if not v2.present():
-        # print("Log not present")
-        tr[log_k] = v1 if v1.present() else serialize(None)
-        env.step += 1
-        return None if not v1.present() else deserialize(v1)
-    else:
-        # print("Log present")
-        env.step += 1
-        return deserialize(v2)
+    _append_log(tr, env, v1 if v1.present() else serialize(None))
+    return None if not v1.present() else deserialize(v1)
 
 
 @log_timer("read")
@@ -65,12 +62,11 @@ def eos_read(env: Env, key: str):
 
 def _eos_write(tr, env: Env, key: str, value):
     data_k = fdb.tuple.pack(("data", env.table, key))
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
-    v2 = tr[log_k]
-    if not v2.present():
-        tr[data_k] = serialize(value)
-        tr[log_k] = b''  # value is never read
-    env.step += 1
+    exist, _ = _check_log(tr, env)
+    if exist:
+        return
+    tr[data_k] = serialize(value)
+    _append_log(tr, env, b'')
 
 
 @log_timer("write")
@@ -127,16 +123,12 @@ def scan_dict(env: Env, dict_name: str):
 
 def _local_eos_read(tr, env: Env, key: str):
     local_k = fdb.tuple.pack(("local", env.table, env.txn_id, key))
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
+    exist, val = _check_log(tr, env)
+    if exist:
+        return deserialize(val)
     v1 = tr[local_k]
-    v2 = tr[log_k]
-    if not v2.present():
-        tr[log_k] = v1 if v1.present() else serialize(None)
-        env.step += 1
-        return None if not v1.present() else deserialize(v1)
-    else:
-        env.step += 1
-        return deserialize(v2)
+    _append_log(tr, env, v1 if v1.present() else serialize(None))
+    return None if not v1.present() else deserialize(v1)
 
 
 def local_eos_read(env: Env, key: str):
@@ -145,12 +137,11 @@ def local_eos_read(env: Env, key: str):
 
 def _local_eos_write(tr, env: Env, key: str, value):
     local_k = fdb.tuple.pack(("local", env.table, env.txn_id, key))
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
-    v2 = tr[log_k]
-    if not v2.present():
-        tr[local_k] = serialize(value)
-        tr[log_k] = b''  # value is never read
-    env.step += 1
+    exist, _ = _check_log(tr, env)
+    if exist:
+        return
+    tr[local_k] = serialize(value)
+    _append_log(tr, env, b'')
 
 
 @log_timer("local_write")
@@ -159,28 +150,23 @@ def local_eos_write(env: Env, key: str, value):
 
 
 def _lock(tr, env: Env, key: str):
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
     lock_k = fdb.tuple.pack(("lock", env.table, key))
     assert env.txn_id is not None
-    v2 = tr[log_k]
-    if v2.present():
-        env.step += 1
-        return deserialize(v2)
+    exist, ok = _check_log(tr, env)
+    if exist:
+        return deserialize(ok)
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     if owner is not None:
         if owner == env.txn_id:
-            tr[log_k] = serialize(True)
-            env.step += 1
+            _append_log(tr, env, serialize(True))
             return True
         else:
-            tr[log_k] = serialize(False)
-            env.step += 1
+            _append_log(tr, env, serialize(False))
             return False
     else:
         tr[lock_k] = serialize(env.txn_id)
-        tr[log_k] = serialize(True)
-        env.step += 1
+        _append_log(tr, env, serialize(True))
         return True
 
 
@@ -192,19 +178,16 @@ def _lock(tr, env: Env, key: str):
 
 
 def _unlock(tr, env: Env, key: str):
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
     lock_k = fdb.tuple.pack(("lock", env.table, key))
     assert env.txn_id is not None
-    v2 = tr[log_k]
-    if v2.present():
-        env.step += 1
+    exist, _ = _check_log(tr, env)
+    if exist:
         return
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     assert owner == env.txn_id, "unlock for key: {} with txn_id: {} but owner is: {}".format(key, env.txn_id, owner)
     tr[lock_k] = serialize(None)  # leave None instead of deleting
-    tr[log_k] = b''
-    env.step += 1
+    _append_log(tr, env, b'')
 
 
 # @log_timer("unlock")
@@ -245,21 +228,18 @@ def tpl_read(env: Env, key: str):
 # readonly until success
 def _check_read(tr, env: Env, key: str):
     assert not env.in_txn()
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
-    v2 = tr[log_k]
-    if v2.present():
-        env.step += 1
-        return True, deserialize(v2)
+    exist, val = _check_log(tr, env)
+    if exist:
+        return True, deserialize(val)
     lock_k = fdb.tuple.pack(("lock", env.table, key))
-    data_k = fdb.tuple.pack(("data", env.table, key))
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     if owner is not None:
         return False, None
     else:
+        data_k = fdb.tuple.pack(("data", env.table, key))
         v1 = tr[data_k]
-        tr[log_k] = v1 if v1.present() else serialize(None)
-        env.step += 1
+        _append_log(tr, env, v1 if v1.present() else serialize(None))
         return True, None if not v1.present() else deserialize(v1)
 
 
@@ -283,21 +263,18 @@ def tpl_check_read(env: Env, key: str):
 # readonly until success
 def _check_write(tr, env: Env, key: str, value):
     assert not env.in_txn()
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
-    v2 = tr[log_k]
-    if v2.present():
-        env.step += 1
-        return True
+    exist, _ = _check_log(tr, env)
+    if exist:
+        return
     lock_k = fdb.tuple.pack(("lock", env.table, key))
-    data_k = fdb.tuple.pack(("data", env.table, key))
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     if owner is not None:
         return False
     else:
+        data_k = fdb.tuple.pack(("data", env.table, key))
         tr[data_k] = serialize(value)
-        tr[log_k] = b''  # value is never read
-        env.step += 1
+        _append_log(tr, env, b'')
         return True
 
 
@@ -320,22 +297,19 @@ def tpl_check_write(env: Env, key: str, value):
 
 def _check_pop(tr, env: Env, key: str):
     assert not env.in_txn()
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
-    v2 = tr[log_k]
-    if v2.present():
-        env.step += 1
-        return True, deserialize(v2)
+    exist, val = _check_log(tr, env)
+    if exist:
+        return True, deserialize(val)
     lock_k = fdb.tuple.pack(("lock", env.table, key))
-    data_k = fdb.tuple.pack(("data", env.table, key))
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     if owner is not None:
         return False, None
     else:
+        data_k = fdb.tuple.pack(("data", env.table, key))
         v1 = tr[data_k]
         del tr[data_k]
-        tr[log_k] = v1 if v1.present() else serialize(None)
-        env.step += 1
+        _append_log(tr, env, v1 if v1.present() else serialize(None))
         return True, None if not v1.present() else deserialize(v1)
 
 
@@ -443,13 +417,10 @@ def abort_tx(env: Env):
 
 
 def _log_invoke(tr, env: Env):
-    log_k = fdb.tuple.pack(("log", env.table, env.req_id, env.step))
-    v2 = tr[log_k]
-    if v2.present():
-        env.step += 1
-    else:
-        tr[log_k] = b''
-        env.step += 1
+    exist, _ = _check_log(tr, env)
+    if exist:
+        return
+    _append_log(tr, env, b'')
 
 
 @log_timer("log_invoke")

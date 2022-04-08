@@ -108,46 +108,51 @@ class BeldiLogger(Logger):
         return self.env.in_txn()
 
     def BeginTx(self):
-        return beldi.begin_tx(self.env)
+        if beldi.ENABLE_TXN:
+            return beldi.begin_tx(self.env)
 
     def CommitTx(self):
-        # print("Commit was called!")
-        self.env.instruction = "COMMIT"
-        callees = beldi.commit_tx(self.env)
-        for client, method in callees:
-            self.SyncInvoke(client, method, "")
-        self.env.txn_id = None
-        self.env.instruction = None
+        if beldi.ENABLE_TXN:
+            self.env.instruction = "COMMIT"
+            callees = beldi.commit_tx(self.env)
+            for client, method in callees:
+                self.SyncInvoke(client, method, "")
+            self.env.txn_id = None
+            self.env.instruction = None
 
     def AbortTxNoExc(self):
-        # print("Abort was called!")
-        self.env.instruction = "ABORT"
-        callees = beldi.abort_tx(self.env)
-        for client, method in callees:
-            self.SyncInvoke(client, method, {})
-        self.env.txn_id = None
-        self.env.instruction = None
+        if beldi.ENABLE_TXN:
+            self.env.instruction = "ABORT"
+            callees = beldi.abort_tx(self.env)
+            for client, method in callees:
+                self.SyncInvoke(client, method, {})
+            self.env.txn_id = None
+            self.env.instruction = None
 
     def AbortTx(self):
-        ## First call the Abort core
-        self.AbortTxNoExc()
+        if beldi.ENABLE_TXN:
+            ## First call the Abort core
+            self.AbortTxNoExc()
 
-        ## Throw the transaction exception so that the user code can run
-        ##   abort handler code.
-        # print("Throwing abort exc!")
-        raise TransactionException()
+            ## Throw the transaction exception so that the user code can run
+            ##   abort handler code.
+            # print("Throwing abort exc!")
+            raise TransactionException()
 
     ## This function checks the env (.instruction and .txn_id) and
     ## completes a transaction or aborts it.
     ##
     ## It is invoked by the request handler (in CompiledService)
     def commit_or_abort(self):
-        assert self.env.txn_id is not None
-        if self.env.instruction == "COMMIT":
-            self.CommitTx()
-        elif self.env.instruction == "ABORT":
-            ## We don't want to throw an exception when aborting due to a parent.
-            self.AbortTxNoExc()
+        if beldi.ENABLE_TXN:
+            assert self.env.txn_id is not None
+            if self.env.instruction == "COMMIT":
+                self.CommitTx()
+            elif self.env.instruction == "ABORT":
+                ## We don't want to throw an exception when aborting due to a parent.
+                self.AbortTxNoExc()
+            else:
+                assert False
+            return {}
         else:
-            assert False
-        return {}
+            return {}
