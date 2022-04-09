@@ -12,6 +12,8 @@ class DataPoint:
     def set_latency(self, latency, percentile="50.000"):
         if latency.endswith("ms"):
             self.latencies[percentile] = round(float(latency.split("ms")[0]) * 1000)
+        elif latency == "0.00us":
+            self.latencies[percentile] = round(1000000000)
         elif latency.endswith("s"):
             self.latencies[percentile] = round(float(latency.split("s")[0]) * 1000000)
         else:
@@ -97,7 +99,8 @@ label_map = {
 
 benchmark_map = {
     "single_stateful": "Stateful Service",
-    "chain": "3 Service Chain"
+    "chain": "3 Service Chain",
+    "tree": "Cross Service Txn"
 }
 
 ## TODO: Get the mean and a big percentile instead of what we get now
@@ -129,7 +132,8 @@ def plot(results, benchmark):
     plt.savefig(filename)
 
 benchmarks = ["single_stateful",
-              "chain"]
+              "chain",
+              "tree"]
 
 for benchmark in benchmarks:
     log_file = f"results/{benchmark}.log"
