@@ -11,13 +11,13 @@ function run_wrk()
 {
 
     echo "Rate: 1"
-        ./wrk2/wrk -t1 -c1 -d${duration} -R1 http://${LOAD_BALANCER_IP}/req -s ${file} | grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
+        ./wrk2/wrk -t1 -c1 -d${duration} -R1 --latency http://${LOAD_BALANCER_IP}/req -s ${file} #| grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
 
-    for rate in 60 100 140 180 220 260 300 340 380 
+    for rate in 20 40 60 80 100 120 140 160 180 240 300 360 
     do
         ## TODO: Also check for patterns of non 2xx responses
         echo "Rate: ${rate}"
-        ./wrk2/wrk -t${threads} -c${connections} -d${duration} -R${rate} http://${LOAD_BALANCER_IP}/req -s ${file} | grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
+        ./wrk2/wrk -t${threads} -c${connections} -d${duration} -R${rate} --latency http://${LOAD_BALANCER_IP}/req -s ${file} # | grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
     done
 }
 

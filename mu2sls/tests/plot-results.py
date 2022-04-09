@@ -3,23 +3,28 @@ import matplotlib.pyplot as plt
 class DataPoint:
     def __init__(self, rate):
         self.rate = rate
-        self.latency = None
+        self.latencies = {}
         self.throughput = None
 
     def __repr__(self):
-        return f'Point(r={self.rate},l={self.latency},t={self.throughput})'
+        return f'Point(r={self.rate},median_l={self.median_latency()},t={self.throughput})'
     
-    def set_latency(self, latency):
+    def set_latency(self, latency, percentile="50.000"):
         if latency.endswith("ms"):
-            self.latency = round(float(latency.split("ms")[0]) * 1000)
+            self.latencies[percentile] = round(float(latency.split("ms")[0]) * 1000)
         elif latency.endswith("s"):
-            self.latency = round(float(latency.split("s")[0]) * 1000000)
+            self.latencies[percentile] = round(float(latency.split("s")[0]) * 1000000)
         else:
             assert False
     
     def set_throughput(self, throughput):
         self.throughput = float(throughput)
 
+    def median_latency(self):
+        return self.latencies["50.000"]
+    
+    def ninety_latency(self):
+        return self.latencies["90.000"]
 
 
 def parse_raw_wrk_results(log_file):
@@ -53,16 +58,23 @@ def parse_raw_wrk_results(log_file):
             rate = line.split("Rate: ")[1]
             curr_res = DataPoint(rate)
             # print("Rate:", rate)
+        ## This is average latency, and therefore not useful
         elif line.startswith("Latency"):
             latency = line.split()[1]
-            curr_res.set_latency(latency)
+            # curr_res.set_latency(latency)
             # print("Latency:", latency)
+        elif line.startswith(("50.000%",
+                              "75.000%",
+                              "90.000%")):
+            percentile = line.split("%")[0]
+            latency = line.split()[1]
+            curr_res.set_latency(latency, percentile)
         elif line.startswith("Requests/sec:"):
             throughput = line.split()[1]
             curr_res.set_throughput(throughput)
         else:
-            pass
             # print(line)
+            pass
     
     if curr_toggles is not None:
         # print("Results:", curr_results)
@@ -89,11 +101,19 @@ def plot(results, benchmark):
         ## We dont want the 1 rate result
         res = all_res[1:]
         xs = [dp.throughput for dp in res]
-        ys = [dp.latency / 1000.0 for dp in res]
-        plt.plot(xs, ys, label=label_map[key],
-                 marker='.')
+        ys = [dp.median_latency() / 1000.0 for dp in res]
+        errors = [(0, dp.ninety_latency() / 1000.0 - dp.median_latency())
+                  for dp in res]
+        up_errors = [(dp.ninety_latency() - dp.median_latency()) / 1000.0
+                     for dp in res]
+        down_errors = [0 for dp in res]
+        errors = (down_errors, up_errors)
+        plt.errorbar(xs, ys, yerr=errors, label=label_map[key],
+                     marker='.', capsize=3.0,
+                     elinewidth=1,
+                     linewidth=1.0)
     plt.legend()
-    plt.ylabel('Latency (ms)')
+    plt.ylabel('Latency (ms) (50th/90th)')
     plt.xlabel('Throughput')
     plt.ylim(0, 400)
     fig.suptitle(benchmark_map[benchmark])
@@ -102,4 +122,5 @@ def plot(results, benchmark):
 
 log_file = "results/single_stateful.log"
 results = parse_raw_wrk_results(log_file)
+# print(results)
 plot(results, "single_stateful")
