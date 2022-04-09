@@ -1,11 +1,29 @@
 import logging
+import os
 
 import fdb.tuple
 from runtime.beldi.common import *
 from runtime.serde import serialize, deserialize
 
-ENABLE_LOGGING = True
-ENABLE_TXN = False  # used in logger
+enable_logging = os.getenv('ENABLE_LOGGING')
+if enable_logging is None:
+    print("ENABLE_LOGGING wasn't set in the environment")
+    ENABLE_LOGGING = True
+elif enable_logging == "True":
+    ENABLE_LOGGING = True
+else:
+    ENABLE_LOGGING = False
+print("Logging:", ENABLE_LOGGING)
+
+enable_txn = os.getenv('ENABLE_TXN')
+if enable_txn is None:
+    print("ENABLE_TXN wasn't set in the environment")
+    ENABLE_TXN = True
+elif enable_txn == "True":
+    ENABLE_TXN = True
+else:
+    ENABLE_TXN = False
+print("TXN:", ENABLE_TXN)
 
 
 # bool, val

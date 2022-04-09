@@ -132,7 +132,10 @@ def main(args):
         clear_db.main()
 
         deployment_list, service_list = deployment_list_from_deployment_file(deployment_file)
-        knative_dev.deploy_services(docker_io_username, deployment_list, deployment_file)
+        knative_dev.deploy_services(docker_io_username, deployment_list, deployment_file, 
+                                    enable_logging=args.enable_logging,
+                                    enable_txn=args.enable_txn,
+                                    enable_custom_dict=args.enable_custom_dict)
 
         services = {k: k for k in service_list}
         run_test_deployed_services(services, deployment_file, knative_invoke_lib)
@@ -180,6 +183,15 @@ def parse_arguments():
     parser.add_argument("--docker_io_username", 
                         help="the docker_io username to push/pull the images",
                         default="default")
+    parser.add_argument("--enable_logging", 
+                        help="whether to enable beldi logging",
+                        action='store_true')
+    parser.add_argument("--enable_txn", 
+                        help="whether to enable transactions",
+                        action='store_true')
+    parser.add_argument("--enable_custom_dict", 
+                        help="whether to enable custom logging",
+                        action='store_true')
     args = parser.parse_args()
     return args
 

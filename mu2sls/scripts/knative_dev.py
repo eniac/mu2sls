@@ -58,7 +58,10 @@ def docker_push(docker_username, image_namespace, service_name):
     res = subprocess.run(["docker", "push", f'{docker_username}/{image_namespace}-{service_name}'])
     return res 
 
-def deploy_services(docker_username, service_list, deployment_file):
+def deploy_services(docker_username, service_list, deployment_file,
+                    enable_logging=True,
+                    enable_txn=True,
+                    enable_custom_dict=False):
     ## Get the basename of the deployment file as namespace for the docker images
     image_namespace = os.path.basename(deployment_file).split(".")[0]
 
@@ -67,7 +70,10 @@ def deploy_services(docker_username, service_list, deployment_file):
         res = subprocess.run(["bash", "deploy.sh", 
                               docker_username,
                               knative_service_name,
-                              f'{image_namespace}-{docker_io_name}'])
+                              f'{image_namespace}-{docker_io_name}',
+                              '--env', f'ENABLE_LOGGING={enable_logging}',
+                              '--env', f'ENABLE_TXN={enable_txn}',
+                              '--env', f'ENABLE_CUSTOM_DICT={enable_custom_dict}'])
 
 def main():
     args = parse_arguments()

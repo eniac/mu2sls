@@ -5,6 +5,10 @@ connections=16
 duration=30s
 file=single-stateful.lua
 
+python3 test_services.py single-stateful.csv knative \
+    --docker_io_username konstantinoskallas \
+    --enable_logging
+
 echo "Executing: -t${threads} -c${connections} -d${duration} -s ${file}"
 
 echo "Rate: 1"
@@ -18,7 +22,5 @@ do
 done
 
 ## TODO: Investigate why Logging with txn is faster than logging without txn (in general why txn is so fast)
-##
-## TODO: Probably has to do with AbortTxExc and proper aborting. Make sure that all of them return correct responses
 ##
 ## TODO: Plot results for better understanding

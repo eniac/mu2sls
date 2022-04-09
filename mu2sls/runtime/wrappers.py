@@ -1,4 +1,5 @@
 import logging
+import os
 
 from runtime.transaction_exception import TransactionException
 
@@ -17,7 +18,16 @@ from runtime.transaction_exception import TransactionException
 ##  2. It is pretty naive asking Beldi everytime we want to get/set a field
 ##
 
-ENABLE_CUSTOM_DICT = False
+enable_custom_dict = os.getenv('ENABLE_CUSTOM_DICT')
+if enable_custom_dict is None:
+    print("ENABLE_CUSTOM_DICT wasn't set in the environment")
+    ENABLE_CUSTOM_DICT = False
+elif enable_custom_dict == "True":
+    ENABLE_CUSTOM_DICT = True
+else:
+    ENABLE_CUSTOM_DICT = False
+print("Custom Dict:", ENABLE_CUSTOM_DICT)
+
 
 class Wrapper(object):
     pass
