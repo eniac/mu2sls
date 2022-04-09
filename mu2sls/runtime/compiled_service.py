@@ -48,5 +48,5 @@ class CompiledService:
                     ret_val = await ret_val
                 return json.dumps(ret_val)
             except TransactionException as e:
-                return json.dumps(request_lib.abort_response())
+                return (json.dumps(request_lib.abort_response()), 400)
             
