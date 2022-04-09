@@ -25,6 +25,15 @@ else:
     ENABLE_TXN = False
 print("TXN:", ENABLE_TXN)
 
+BUCKET_SIZE = 16
+
+
+def hash2(s: str):
+    res = 5381
+    for c in s:
+        res = ((res << 5) + res) + ord(c)
+    return res
+
 
 # bool, val
 def _check_log(tr, env: Env) -> (bool, bytes):
@@ -60,6 +69,7 @@ def base_read(env: Env, key: str):
 
 def base_write(env: Env, key: str, value):
     env.db[fdb.tuple.pack(("data", env.table, key))] = serialize(value)
+
 
 def _eos_read(tr, env: Env, key: str):
     # print("env.req_id", env.req_id)
@@ -246,19 +256,33 @@ def tpl_read(env: Env, key: str):
 # readonly until success
 def _check_read(tr, env: Env, key: str):
     assert not env.in_txn()
+    assert '-' in key
     exist, val = _check_log(tr, env)
     if exist:
         return True, deserialize(val)
-    lock_k = fdb.tuple.pack(("lock", env.table, key))
+    ks = key.split('-')
+    user_key = ks[-1]
+    dict_key = '-'.join(ks[:-1])
+    shard_id = str(hash2(user_key) % BUCKET_SIZE)
+    shard_key = f"{dict_key}-{shard_id}"
+    lock_k = fdb.tuple.pack(("lock", env.table, shard_key))
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     if owner is not None:
         return False, None
     else:
-        data_k = fdb.tuple.pack(("data", env.table, key))
+        data_k = fdb.tuple.pack(("data", env.table, shard_key))
         v1 = tr[data_k]
-        _append_log(tr, env, v1 if v1.present() else serialize(None))
-        return True, None if not v1.present() else deserialize(v1)
+        if v1.present():
+            shard = deserialize(v1)
+            if user_key in shard:
+                res = shard[user_key]
+            else:
+                res = None
+        else:
+            res = None
+        _append_log(tr, env, serialize(res))
+        return True, res
 
 
 def check_read(env: Env, key: str):
@@ -272,7 +296,7 @@ def tpl_check_read(env: Env, key: str):
         ok, val = check_read(env, key)
         if ok:
             if counter > 0:
-                logging.error("Counter:", counter)
+                logging.error(f"Counter: {counter}")
             return val
         # time.sleep(0.005)
         counter += 1
@@ -281,17 +305,29 @@ def tpl_check_read(env: Env, key: str):
 # readonly until success
 def _check_write(tr, env: Env, key: str, value):
     assert not env.in_txn()
+    assert '-' in key
     exist, _ = _check_log(tr, env)
     if exist:
-        return
-    lock_k = fdb.tuple.pack(("lock", env.table, key))
+        return True
+    ks = key.split('-')
+    user_key = ks[-1]
+    dict_key = '-'.join(ks[:-1])
+    shard_id = str(hash2(user_key) % BUCKET_SIZE)
+    shard_key = f"{dict_key}-{shard_id}"
+    lock_k = fdb.tuple.pack(("lock", env.table, shard_key))
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     if owner is not None:
         return False
     else:
-        data_k = fdb.tuple.pack(("data", env.table, key))
-        tr[data_k] = serialize(value)
+        data_k = fdb.tuple.pack(("data", env.table, shard_key))
+        v1 = tr[data_k]
+        if v1.present():
+            shard = deserialize(v1)
+            shard[user_key] = value
+            tr[data_k] = serialize(shard)
+        else:
+            tr[data_k] = serialize({user_key: value})
         _append_log(tr, env, b'')
         return True
 
@@ -307,7 +343,7 @@ def tpl_check_write(env: Env, key: str, value):
         ok = check_write(env, key, value)
         if ok:
             if counter > 0:
-                logging.error("Counter:", counter)
+                logging.error(f"Counter: {counter}")
             return
         # time.sleep(0.005)
         counter += 1
@@ -315,20 +351,35 @@ def tpl_check_write(env: Env, key: str, value):
 
 def _check_pop(tr, env: Env, key: str):
     assert not env.in_txn()
+    assert '-' in key
     exist, val = _check_log(tr, env)
     if exist:
         return True, deserialize(val)
-    lock_k = fdb.tuple.pack(("lock", env.table, key))
+    ks = key.split('-')
+    user_key = ks[-1]
+    dict_key = '-'.join(ks[:-1])
+    shard_id = str(hash2(user_key) % BUCKET_SIZE)
+    shard_key = f"{dict_key}-{shard_id}"
+    lock_k = fdb.tuple.pack(("lock", env.table, shard_key))
     vlock = tr[lock_k]
     owner = deserialize(vlock) if vlock.present() else None
     if owner is not None:
         return False, None
     else:
-        data_k = fdb.tuple.pack(("data", env.table, key))
+        data_k = fdb.tuple.pack(("data", env.table, shard_key))
         v1 = tr[data_k]
-        del tr[data_k]
-        _append_log(tr, env, v1 if v1.present() else serialize(None))
-        return True, None if not v1.present() else deserialize(v1)
+        if v1.present():
+            shard = deserialize(v1)
+            if user_key in shard:
+                res = shard[user_key]
+                del shard[user_key]
+                tr[data_k] = serialize(shard)
+            else:
+                res = None
+        else:
+            res = None
+        _append_log(tr, env, serialize(res))
+        return True, res
 
 
 def check_pop(env: Env, key: str):
@@ -342,7 +393,46 @@ def tpl_check_pop(env: Env, key: str):
         ok, val = check_pop(env, key)
         if ok:
             if counter > 0:
-                logging.error("Counter:", counter)
+                logging.error(f"Counter: {counter}")
+            return val
+        # time.sleep(0.005)
+        counter += 1
+
+
+def _check_scan(tr, env: Env, key: str):
+    assert not env.in_txn()
+    exist, val = _check_log(tr, env)
+    if exist:
+        return True, deserialize(val)
+    keys = []
+    values = []
+    for i in range(BUCKET_SIZE):
+        shard_key = f"{key}-{str(i)}"
+        lock_k = fdb.tuple.pack(("lock", env.table, shard_key))
+        vlock = tr[lock_k]
+        owner = deserialize(vlock) if vlock.present() else None
+        if owner is not None:
+            return False, None
+        data_k = fdb.tuple.pack(("data", env.table, shard_key))
+        v1 = tr[data_k]
+        v1 = deserialize(v1) if v1.present() else {}
+        keys.extend(list(v1.keys()))
+        values.extend(list(v1.values()))
+    _append_log(tr, env, serialize((keys, values)))
+    return True, (keys, values)
+
+
+def check_scan(env: Env, key: str):
+    return fdb.transactional(_check_scan)(env.db, env, key)
+
+
+def tpl_check_scan(env: Env, key: str):
+    counter = 0
+    while True:
+        ok, val = check_scan(env, key)
+        if ok:
+            if counter > 0:
+                logging.error(f"Counter: {counter}")
             return val
         # time.sleep(0.005)
         counter += 1

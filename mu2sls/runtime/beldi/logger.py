@@ -104,6 +104,9 @@ class BeldiLogger(Logger):
     def tpl_check_pop(self, key):
         return beldi.tpl_check_pop(self.env, key)
 
+    def tpl_check_scan(self, key):
+        return beldi.tpl_check_scan(self.env, key)
+
     def in_txn(self):
         return self.env.in_txn()
 

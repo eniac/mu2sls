@@ -1,8 +1,6 @@
 import logging
 import os
 
-from runtime.transaction_exception import TransactionException
-
 ##
 ## This is the main wrapper method that wraps an object to enforce correctness guarantees.
 ##
@@ -53,6 +51,7 @@ class WrapperTerminal(Wrapper):
 
     Taken from: https://code.activestate.com/recipes/577555-object-wrapper-class/
     """
+
     ## TODO: Figure out if `beldi` is a shared or a Beldi client per object.
     def __init__(self, obj_key, init_val, store):
         """
@@ -65,7 +64,6 @@ class WrapperTerminal(Wrapper):
         self._wrapper_obj_key = obj_key
 
         ## TODO: Since Python is not lazy, the init_val is always evaluated and we might want to avoid that if it is a performance bottleneck.
-
 
         ## Initialize the collection if it doesn't already exist in Beldi
         initialize_key(store, self._wrapper_obj_key, init_val)
@@ -109,7 +107,6 @@ class WrapperTerminal(Wrapper):
         func_name = "__repr__"
         return self._wrapper_builtin_method(func_name)
 
-
     def __int__(self) -> int:
         func_name = "__int__"
         return self._wrapper_builtin_method(func_name)
@@ -129,10 +126,9 @@ class WrapperTerminal(Wrapper):
         # see if this object has attr
         # NOTE do not use hasattr, it goes into
         # infinite recursion
-        if(WrapperTerminal.is_wrapper_attr(attr)):
+        if (WrapperTerminal.is_wrapper_attr(attr)):
             # this object has it (for example, Beldi)
             return self.__dict__[attr]
-
 
         ## In this case the attribute is part of the original object and therefore we need to access it through Beldi.
         store = self._wrapper_store
@@ -159,7 +155,7 @@ class WrapperTerminal(Wrapper):
         ##       
         ## Note: The optimization assumption (no modification of callable)
         ##       can actually be checked at runtime, so we should check it. 
-        if(callable(ret_attribute)):
+        if (callable(ret_attribute)):
             ret_attribute = self._wrap_callable(attr)
 
         return ret_attribute
@@ -180,7 +176,7 @@ class WrapperTerminal(Wrapper):
     def __setattr__(self, attr: str, val) -> None:
         logging.debug("Set: " + attr)
         ## If it is a wrapper specific method
-        if(WrapperTerminal.is_wrapper_attr(attr)):
+        if (WrapperTerminal.is_wrapper_attr(attr)):
             self.__dict__[attr] = val
             return
             # return setattr(self, attr, val)
@@ -199,8 +195,8 @@ class WrapperTerminal(Wrapper):
         ## never be replaced.
         ##
         ## This will allow us an optimization that only does the method wrapping once.
-        if(hasattr(obj, attr)):
-            assert(not callable(getattr(obj, attr)))
+        if (hasattr(obj, attr)):
+            assert (not callable(getattr(obj, attr)))
 
         ## Get the attribute of the object
         ret = setattr(obj, attr, val)
@@ -216,7 +212,7 @@ class WrapperTerminal(Wrapper):
     def __delattr__(self, attr: str) -> None:
         logging.debug("Del: " + attr)
         ## If it is a wrapper specific method
-        if(WrapperTerminal.is_wrapper_attr(attr)):
+        if (WrapperTerminal.is_wrapper_attr(attr)):
             del self.__dict__[attr]
             return
 
@@ -290,7 +286,6 @@ class WrapperDict(Wrapper):
 
         ## TODO: Since Python is not lazy, the init_val is always evaluated and we might want to avoid that if it is a performance bottleneck.
 
-
         ## Initialize the collection if it doesn't already exist in Beldi
         ## Potentially alternative way of doing it (though, we don't have a request id maybe here.)
         ##
@@ -308,7 +303,6 @@ class WrapperDict(Wrapper):
         ## Initialize all items of the dictionary separately
         for key, val in init_val.items():
             initialize_key(store, self.get_key_key(key), val)
-
 
     ## Get the key name (for the store) of a specific key (dict)
     def get_key_key(self, key):
@@ -347,11 +341,10 @@ class WrapperDict(Wrapper):
             self._wrapper_store.tpl_check_write(store_key, val)
 
     def keys(self):
-        return self._wrapper_store.scan_dict(self._wrapper_obj_key)[0]
+        return self._wrapper_store.tpl_check_scan(self._wrapper_obj_key)[0]
 
     def values(self):
-        return self._wrapper_store.scan_dict(self._wrapper_obj_key)[1]
-
+        return self._wrapper_store.tpl_check_scan(self._wrapper_obj_key)[1]
 
     ## Get with a possible default
     def get(self, key, default=None):
@@ -382,6 +375,7 @@ class WrapperDict(Wrapper):
                 val = default
         return val
 
+
 ## This checks if a return value shows non-existence
 ## Currently this is done with None
 def val_doesnt_exist(val):
@@ -402,10 +396,12 @@ def wrap_terminal(object_key, object_init_val, store):
 
     return wrapped_object
 
+
 def wrap_default(object_key, object_init_val, store):
     wrapped_object = WrapperTerminal(object_key, object_init_val, store)
 
     return wrapped_object
+
 
 # This function determines whether to call a version of read that will always succeed,
 # or whether to call one that might fail (depending on whether we are already in a transaction)
@@ -418,6 +414,7 @@ def begin_tx_and_read(store, key: str):
     else:
         return store.read_until_success(key)
 
+
 def begin_tx_and_write(store, key: str, val):
     ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
     if store.in_txn():
@@ -425,6 +422,7 @@ def begin_tx_and_write(store, key: str, val):
         return store.write_throw(key, val)
     else:
         return store.write_until_success(key, val)
+
 
 ## Initializes the key in the store
 def initialize_key(store, key, val):
@@ -452,6 +450,7 @@ def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
     assert(callable(callable_attr))
 
     # print("Calling method:", attr_name, "with_args:", args, kwargs)
+
     ret = callable_attr(*args, **kwargs)
     # print("Ret:", ret)
     # print("New obj:", obj)
