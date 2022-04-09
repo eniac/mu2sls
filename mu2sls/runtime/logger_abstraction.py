@@ -61,8 +61,8 @@ class Logger:
         read_succeeded, ret = self.read(key)
         # print("Read for key:", key, "succeeded:", read_succeeded, "and returned value:", ret)
         while not read_succeeded:
-            # self.AbortTxNoExc()
-            self.AbortTx()
+            self.AbortTxNoExc()
+            # self.AbortTx()
             self.BeginTx()
             read_succeeded, ret = self.read(key)
         return ret
@@ -71,7 +71,9 @@ class Logger:
     def read_throw(self, key: str):
         read_succeeded, ret = self.read(key)
         if not read_succeeded:
-            raise TransactionException()
+            ## This also throws an exception
+            self.AbortTx()
+            # raise TransactionException()
         else:
             return ret
 
@@ -81,15 +83,17 @@ class Logger:
         write_succeeded = self.write(key, val)
         # print("Write for key:", key, "with value:", val, "succeeded:", write_succeeded)
         while not write_succeeded:
-            # self.AbortTxNoExc()
-            self.AbortTx()
+            self.AbortTxNoExc()
+            # self.AbortTx()
             self.BeginTx()
             write_succeeded = self.write(key, val)
         
     def write_throw(self, key: str, value):
         write_succeeded = self.write(key, value)
         if not write_succeeded:
-            raise TransactionException()
+            ## This also throws an exception
+            self.AbortTx()
+            # raise TransactionException()
 
     ## This implements a read method on the store
     ##

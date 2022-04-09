@@ -15,8 +15,11 @@ class Backend(object):
         ##       Make this proper again when we change to picke...
         value = str(int_value)
 
+        i = 0
         retry = True
         while retry:
+            # print("Trying to perform transaction:", i)
+            i += 1
             try:
                 BeginTx()
                 if value in self.val:
@@ -31,7 +34,7 @@ class Backend(object):
                 CommitTx()
                 retry = False
             except TransactionException as e:
-                AbortTx()
                 retry = True
 
+        print("Transaction took", i, "tries")
         return ret
