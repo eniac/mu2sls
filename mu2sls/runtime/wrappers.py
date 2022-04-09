@@ -382,9 +382,11 @@ def wrap_terminal(object_key, object_init_val, store):
     ## TODO: Currently this determines the type using the initial value,
     ##       but it could also use the type.
     if ENABLE_CUSTOM_DICT and isinstance(object_init_val, dict):
+        print("Custom dictionary")
         # print("Dictionary type:", object_init_val)
         wrapped_object = WrapperDict(object_key, object_init_val, store)
     else:
+        print("Default dictionary")
         ## The general wrapping that adds the object behind a key
         wrapped_object = wrap_default(object_key, object_init_val, store)
 
