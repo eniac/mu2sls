@@ -156,6 +156,9 @@ def construct_object_init_ast(persistent_objects):
     for per_obj_name, per_obj_init_ast in persistent_objects.items():
         body += construct_init_method_persistent_object_ast(per_obj_name, per_obj_init_ast)
     
+    if len(body) == 0:
+        body = [ast.Pass()]
+        
     ## Create the function
     function_ast = ast.FunctionDef(name='__init_per_objects__', 
                                    args=ast.arguments(posonlyargs=[], 
