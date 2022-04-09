@@ -1,0 +1,220 @@
+Running with: 
+Deploying backend...
+Downloading image from docker.io/konstantinoskallas/single-stateful-backend...
+Updating Service 'backend' in namespace 'default':
+
+  0.015s The Configuration is still working to reflect the latest desired specification.
+ 26.405s Traffic is not yet migrated to the latest revision.
+ 26.429s Ingress has not yet been reconciled.
+ 26.460s Waiting for load balancer to be ready
+ 26.642s Ready to serve.
+
+Service 'backend' updated to latest revision 'backend-00039' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Executing: -t4 -c16 -d30s -s single-stateful.lua
+Rate: 1
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    16.07ms    8.47ms  34.94ms   65.00%
+Requests/sec:      1.00
+Rate: 60
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    28.85ms   22.19ms 144.90ms   77.83%
+Requests/sec:     60.22
+Rate: 100
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    28.57ms   20.59ms 126.53ms   74.37%
+Requests/sec:    100.20
+Rate: 140
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    29.80ms   21.29ms 109.70ms   68.73%
+Requests/sec:    140.13
+Rate: 180
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    33.06ms   20.88ms  90.94ms   49.30%
+Requests/sec:    180.12
+Rate: 220
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    46.60ms   16.22ms  94.85ms   78.11%
+Requests/sec:    219.89
+Rate: 260
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    46.07ms   18.77ms 101.06ms   74.89%
+Requests/sec:    259.70
+Rate: 300
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    67.54ms   16.07ms 151.42ms   84.76%
+Requests/sec:    299.53
+Rate: 340
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     2.29s   643.93ms   3.50s    57.30%
+Requests/sec:    301.70
+Rate: 380
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.15s     1.20s    6.35s    57.57%
+Requests/sec:    301.19
+Running with: --enable_logging
+Deploying backend...
+Downloading image from docker.io/konstantinoskallas/single-stateful-backend...
+Updating Service 'backend' in namespace 'default':
+
+  0.018s The Configuration is still working to reflect the latest desired specification.
+  4.551s Traffic is not yet migrated to the latest revision.
+  4.579s Ingress has not yet been reconciled.
+  4.592s Waiting for load balancer to be ready
+  4.770s Ready to serve.
+
+Service 'backend' updated to latest revision 'backend-00040' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Executing: -t4 -c16 -d30s -s single-stateful.lua
+Rate: 1
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    11.02ms    3.63ms  25.17ms   90.00%
+Requests/sec:      1.00
+Rate: 60
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    47.60ms   32.16ms 242.82ms   69.00%
+Requests/sec:     60.22
+Rate: 100
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    64.69ms   53.67ms 581.12ms   89.78%
+Requests/sec:    100.06
+Rate: 140
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   222.71ms  360.43ms   2.37s    90.83%
+Requests/sec:    139.31
+Rate: 180
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     3.53s     1.65s    9.21s    67.04%
+Requests/sec:    145.49
+Rate: 220
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     7.07s     2.68s   14.08s    63.34%
+Requests/sec:    141.20
+Rate: 260
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     9.31s     2.81s   16.39s    60.52%
+Requests/sec:    134.79
+Rate: 300
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    13.83s     4.79s   26.00s    62.34%
+Requests/sec:     61.13
+Rate: 340
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    17.06s     5.43s   28.97s    59.80%
+Requests/sec:     18.19
+Rate: 380
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    18.37s     5.59s   29.23s    57.47%
+Requests/sec:      4.99
+Running with: --enable_txn
+Deploying backend...
+Downloading image from docker.io/konstantinoskallas/single-stateful-backend...
+Updating Service 'backend' in namespace 'default':
+
+  0.016s The Configuration is still working to reflect the latest desired specification.
+  4.790s Traffic is not yet migrated to the latest revision.
+  4.810s Ingress has not yet been reconciled.
+  4.822s Waiting for load balancer to be ready
+  5.023s Ready to serve.
+
+Service 'backend' updated to latest revision 'backend-00041' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Executing: -t4 -c16 -d30s -s single-stateful.lua
+Rate: 1
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    34.43ms   16.61ms  85.82ms   85.00%
+Requests/sec:      1.00
+Rate: 60
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   107.36ms   63.61ms 474.88ms   65.16%
+Requests/sec:     60.09
+Rate: 100
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.13s     1.08s    5.43s    79.77%
+Requests/sec:     94.47
+Rate: 140
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     4.57s     4.48s   17.68s    77.55%
+Requests/sec:     98.10
+Rate: 180
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     7.04s     5.60s   20.97s    75.95%
+Requests/sec:     95.53
+Rate: 220
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     8.79s     5.89s   21.00s    63.26%
+Requests/sec:     98.23
+Rate: 260
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    11.28s     4.52s   23.79s    66.88%
+Requests/sec:     95.30
+Rate: 300
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    11.90s     5.17s   22.94s    62.65%
+Requests/sec:     98.62
+Rate: 340
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    13.54s     4.46s   25.13s    64.95%
+Requests/sec:     95.06
+Rate: 380
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    13.79s     4.67s   25.25s    62.98%
+Requests/sec:     98.84
+Running with: --enable_logging --enable_txn
+Deploying backend...
+Downloading image from docker.io/konstantinoskallas/single-stateful-backend...
+Updating Service 'backend' in namespace 'default':
+
+  0.015s The Configuration is still working to reflect the latest desired specification.
+  5.305s Traffic is not yet migrated to the latest revision.
+  5.329s Ingress has not yet been reconciled.
+  5.343s Waiting for load balancer to be ready
+  5.533s Ready to serve.
+
+Service 'backend' updated to latest revision 'backend-00042' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Executing: -t4 -c16 -d30s -s single-stateful.lua
+Rate: 1
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    22.44ms   15.22ms  66.50ms   90.00%
+Requests/sec:      1.00
+Rate: 60
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   198.43ms  131.28ms 813.57ms   71.89%
+Requests/sec:     59.92
+Rate: 100
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     6.45s     4.54s   18.84s    65.55%
+Requests/sec:     63.15
+Rate: 140
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     8.37s     6.25s   21.66s    50.36%
+Requests/sec:     61.66
+Rate: 180
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    10.27s     6.62s   23.53s    56.07%
+Requests/sec:     61.76
+Rate: 220
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    12.93s     5.11s   25.48s    65.21%
+Requests/sec:     61.36
+Rate: 260
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    13.90s     4.83s   26.66s    64.12%
+Requests/sec:     61.29
+Rate: 300
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    14.86s     5.07s   26.03s    62.34%
+Requests/sec:     62.03
+Rate: 340
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    15.60s     4.88s   26.44s    60.49%
+Requests/sec:     62.19
+Rate: 380
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    15.89s     4.99s   26.64s    61.50%
+Requests/sec:     62.38
