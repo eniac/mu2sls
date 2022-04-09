@@ -41,12 +41,18 @@ def parse_raw_wrk_results(log_file):
 
 
         if line.startswith("Running with:"):
+            if curr_res is not None:
+                # print(curr_res)
+                curr_results.append(curr_res)
+                curr_res = None
+            
             if curr_toggles is not None:
                 # print("Results:", curr_results)
                 results[curr_toggles] = curr_results
+                curr_results = []
 
             curr_toggles = line.split("Running with:")[1]
-            curr_results = []
+            curr_results = []            
             # print("Curr toggles:", curr_toggles)
         elif line.startswith("Executing:"):
             main_conf = line.split("Executing:")[1]
@@ -90,7 +96,8 @@ label_map = {
 }
 
 benchmark_map = {
-    "single_stateful": "Stateful Service"
+    "single_stateful": "Stateful Service",
+    "chain": "3 Service Chain"
 }
 
 ## TODO: Get the mean and a big percentile instead of what we get now
@@ -116,11 +123,16 @@ def plot(results, benchmark):
     plt.ylabel('Latency (ms) (50th/90th)')
     plt.xlabel('Throughput')
     plt.ylim(0, 400)
+    plt.xlim(left=0)
     fig.suptitle(benchmark_map[benchmark])
     filename = f"plots/{benchmark}.pdf"
     plt.savefig(filename)
 
-log_file = "results/single_stateful.log"
-results = parse_raw_wrk_results(log_file)
-# print(results)
-plot(results, "single_stateful")
+benchmarks = ["single_stateful",
+              "chain"]
+
+for benchmark in benchmarks:
+    log_file = f"results/{benchmark}.log"
+    results = parse_raw_wrk_results(log_file)
+    # print(results)
+    plot(results, benchmark)
