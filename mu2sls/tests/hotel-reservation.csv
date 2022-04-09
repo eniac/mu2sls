@@ -1,0 +1,4 @@
+Frontend,tests/source_specs/hotel-reservation/frontend.py
+Hotel,tests/source_specs/hotel-reservation/hotel.py
+Flight,tests/source_specs/hotel-reservation/flight.py
+Order,tests/source_specs/hotel-reservation/order.py

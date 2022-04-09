@@ -63,6 +63,29 @@ def run_test_media_service(deployed_services, invoke_lib):
 
     ## TODO: Can use populate.py and compressed.json to populate movies and users
 
+def run_test_hotel_reservation(deployed_services, invoke_lib):
+    ## Add hotel
+    invoke_lib.SyncInvoke(deployed_services['Hotel'], "add_hotel", "hotel1", 4)
+
+    ## Add flight
+    invoke_lib.SyncInvoke(deployed_services['Flight'], "add_flight", "flight1", 3)
+
+    for user_id in range(3):
+        ret = invoke_lib.SyncInvoke(deployed_services['Frontend'],
+                                    "req",
+                                    str(user_id), "flight1", "hotel1")
+        
+        assert ret[0] == True
+        assert ret[1] == "Order Successful"
+
+    ret = invoke_lib.SyncInvoke(deployed_services['Frontend'],
+                                "req",
+                                "4", "flight1", "hotel1")
+
+    assert ret[0] == False
+    assert ret[1] == "Flight Reservation Failed"
+
+
 def run_test_cross_service_txn(deployed_services, invoke_lib):
     val1 = 5
     val2 = 42
@@ -111,7 +134,8 @@ TEST_FUNC_FROM_FILE = {
     'media-service-test.csv': run_test_media_service,
     'cross-service-txn-test.csv': run_test_cross_service_txn,
     'cross-service-txn-abort-test.csv': run_test_cross_service_txn_abort,
-    'async-test.csv': run_test_async
+    'async-test.csv': run_test_async,
+    'hotel-reservation.csv': run_test_hotel_reservation,
 }
 
 ## TODO: Extend it to do the calls using SyncInvoke maybe?
@@ -147,9 +171,12 @@ def run_test_deployed_services(deployed_services, deployment_file, invoke_lib):
     deployment_file_basename = deployment_file.split('/')[-1]
     try:
         test_func = TEST_FUNC_FROM_FILE[deployment_file_basename]
-        test_func(deployed_services, invoke_lib)
     except:
+        print(deployment_file_basename, TEST_FUNC_FROM_FILE)
         print("No test for this app, just deployed!")
+        return
+
+    test_func(deployed_services, invoke_lib)
     
 
 ## TODO: Very hacky
