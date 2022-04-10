@@ -425,8 +425,10 @@ def _check_scan(tr, env: Env, key: str):
         data_k = fdb.tuple.pack(("data", env.table, shard_key))
         v1 = tr[data_k]
         v1 = deserialize(v1) if v1.present() else {}
-        keys.extend(list(v1.keys()))
-        values.extend(list(v1.values()))
+        if v1 is not None:
+            for k, v in v1.items():
+                keys.append(k)
+                values.append(v)
     _append_log(tr, env, serialize((keys, values)))
     return True, (keys, values)
 

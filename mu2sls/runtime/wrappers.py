@@ -1,7 +1,7 @@
 import logging
 import os
 
-from runtime.beldi.beldi import get_shard_key
+from runtime.beldi.beldi import get_shard_key, BUCKET_SIZE
 
 ##
 ## This is the main wrapper method that wraps an object to enforce correctness guarantees.
@@ -33,7 +33,12 @@ class Wrapper(object):
     pass
 
 
-## Wrap terminal is the simplest wrapper. It: 
+## Initializes the key in the store
+def initialize_key(store, key, val):
+    store.eos_set_if_not_exists(key, val)
+
+
+## Wrap terminal is the simplest wrapper. It:
 ##  1. Serializes the whole object
 ##  2. Stores it to Beldi
 ##  3. Wraps all its methods to:
@@ -102,7 +107,7 @@ class WrapperTerminal(Wrapper):
         print("Method called:", func_name)
         store = self._wrapper_store
         object_key = self._wrapper_obj_key
-        return wrap_method_call(store, object_key, func_name, *args, **kwargs)
+        return self.wrap_method_call(store, object_key, func_name, *args, **kwargs)
 
     ## TODO: Do we need to reimplement all default functions?
     def __repr__(self) -> str:
@@ -171,7 +176,7 @@ class WrapperTerminal(Wrapper):
         def wrapper(*args, **kwargs):
             store = self._wrapper_store
             object_key = self._wrapper_obj_key
-            return wrap_method_call(store, object_key, attr_name, *args, **kwargs)
+            return self.wrap_method_call(store, object_key, attr_name, *args, **kwargs)
 
         return wrapper
 
@@ -237,7 +242,7 @@ class WrapperTerminal(Wrapper):
 
         store = self._wrapper_store
         object_key = self._wrapper_obj_key
-        return wrap_method_call(store, object_key, func_name, *args, **kwargs)
+        return self.wrap_method_call(store, object_key, func_name, *args, **kwargs)
 
     def __eq__(self, *args, **kwargs):
         func_name = "__eq__"
@@ -247,7 +252,7 @@ class WrapperTerminal(Wrapper):
 
         store = self._wrapper_store
         object_key = self._wrapper_obj_key
-        return wrap_method_call(store, object_key, func_name, *args, **kwargs)
+        return self.wrap_method_call(store, object_key, func_name, *args, **kwargs)
 
     def __contains__(self, *args, **kwargs):
         func_name = "__contains__"
@@ -263,6 +268,64 @@ class WrapperTerminal(Wrapper):
         func_name = "__setitem__"
         logging.debug(func_name)
         return self._wrapper_builtin_method(func_name, *args, **kwargs)
+
+    # This function determines whether to call a version of read that will always succeed,
+    # or whether to call one that might fail (depending on whether we are already in a transaction)
+    # or not.
+    def begin_tx_and_read(self, store, key: str):
+        ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
+        if store.in_txn():
+            ## If this read fails, we throw an exception, to be caught in an above layer
+            return store.read_throw(key)
+        else:
+            return store.read_until_success(key)
+
+    def begin_tx_and_write(self, store, key: str, val):
+        ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
+        if store.in_txn():
+            ## If this write fails, we throw an exception, to be caught in an above layer
+            return store.write_throw(key, val)
+        else:
+            return store.write_until_success(key, val)
+
+    ## This is the core function that wraps method calls to remote objects
+    def wrap_method_call(self, store, object_key, attr_name, *args, **kwargs):
+        # print("Wrapping method:", attr_name)
+        ## Check if the store was already in a transaction,
+        ##   if so, we don't commit!
+        ##
+        ## TODO: To solve this properly, we need to add a counter that checks how
+        ##       many transactions in are we.
+        prior_in_txn = store.in_txn()
+        # print("In txn:", prior_in_txn)
+
+        ## Begin the transaction and read
+        obj = self.begin_tx_and_read(store, object_key)
+        # print("Obj is:", obj)
+
+        ## Call the method
+        callable_attr = getattr(obj, attr_name)
+        assert (callable(callable_attr))
+
+        # print("Calling method:", attr_name, "with_args:", args, kwargs)
+
+        ret = callable_attr(*args, **kwargs)
+        # print("Ret:", ret)
+        # print("New obj:", obj)
+
+        ## I assume that by calling the method like above the object does get updated.
+
+        ## Update the object in Beldi
+        ##
+        ## Note: This should always succeed since the lock was acquired for the read.
+        write_success = store.write(object_key, obj)
+        assert write_success
+
+        ## Commit only if we were not in a transaction already.
+        if not prior_in_txn:
+            ## This should always succeed
+            store.CommitTx()
+        return ret
 
 
 ##
@@ -328,7 +391,13 @@ class WrapperDict(Wrapper):
         in_txn = self._wrapper_store.in_txn()
 
         if in_txn:
-            return self._wrapper_store.read_throw(store_key)
+            # print("In txn, reading:", store_key)
+            shard_key = get_shard_key(store_key)
+            res = self._wrapper_store.read_throw(shard_key)
+            if res is None:
+                return None
+            else:
+                return res[key] if key in res else None
         else:
             return self._wrapper_store.tpl_check_read(store_key)
 
@@ -337,15 +406,43 @@ class WrapperDict(Wrapper):
         in_txn = self._wrapper_store.in_txn()
 
         if in_txn:
-            self._wrapper_store.write_throw(store_key, val)
+            # print("In txn, writing:", store_key)
+            shard_key = get_shard_key(store_key)
+            res = self._wrapper_store.read_throw(shard_key)
+            if res is None:
+                res = {key: val}
+            else:
+                res[key] = val
+            self._wrapper_store.write_throw(shard_key, res)
         else:
             self._wrapper_store.tpl_check_write(store_key, val)
 
+    def kvs(self):
+        assert self._wrapper_store.in_txn()
+        keys = []
+        values = []
+        for bucket_id in range(BUCKET_SIZE):
+            shard_key = f"{self._wrapper_obj_key}-{bucket_id}"
+            res = self._wrapper_store.read_throw(shard_key)
+            if res is not None:
+                for k, v in res.items():
+                    keys.append(k)
+                    values.append(v)
+        return keys, values
+
     def keys(self):
-        return self._wrapper_store.tpl_check_scan(self._wrapper_obj_key)[0]
+        in_txn = self._wrapper_store.in_txn()
+        if in_txn:
+            return self.kvs()[0]
+        else:
+            return self._wrapper_store.tpl_check_scan(self._wrapper_obj_key)[0]
 
     def values(self):
-        return self._wrapper_store.tpl_check_scan(self._wrapper_obj_key)[1]
+        in_txn = self._wrapper_store.in_txn()
+        if in_txn:
+            return self.kvs()[1]
+        else:
+            return self._wrapper_store.tpl_check_scan(self._wrapper_obj_key)[1]
 
     ## Get with a possible default
     def get(self, key, default=None):
@@ -402,72 +499,3 @@ def wrap_default(object_key, object_init_val, store):
     wrapped_object = WrapperTerminal(object_key, object_init_val, store)
 
     return wrapped_object
-
-
-# This function determines whether to call a version of read that will always succeed,
-# or whether to call one that might fail (depending on whether we are already in a transaction)
-# or not.
-def begin_tx_and_read(store, key: str):
-    ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
-    if store.in_txn():
-        ## If this read fails, we throw an exception, to be caught in an above layer
-        return store.read_throw(key)
-    else:
-        return store.read_until_success(key)
-
-
-def begin_tx_and_write(store, key: str, val):
-    ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
-    if store.in_txn():
-        ## If this write fails, we throw an exception, to be caught in an above layer
-        return store.write_throw(key, val)
-    else:
-        return store.write_until_success(key, val)
-
-
-## Initializes the key in the store
-def initialize_key(store, key, val):
-    store.eos_set_if_not_exists(key, val)
-
-
-## This is the core function that wraps method calls to remote objects
-def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
-    # print("Wrapping method:", attr_name)
-    ## Check if the store was already in a transaction,
-    ##   if so, we don't commit!
-    ##
-    ## TODO: To solve this properly, we need to add a counter that checks how
-    ##       many transactions in are we.
-    prior_in_txn = store.in_txn()
-    # print("In txn:", prior_in_txn)
-
-    if ENABLE_CUSTOM_DICT:
-        object_key = get_shard_key(f"{object_key}-{attr_name}")
-
-    ## Begin the transaction and read
-    obj = begin_tx_and_read(store, object_key)
-    # print("Obj is:", obj)
-
-    ## Call the method
-    callable_attr = getattr(obj, attr_name)
-    assert (callable(callable_attr))
-
-    # print("Calling method:", attr_name, "with_args:", args, kwargs)
-
-    ret = callable_attr(*args, **kwargs)
-    # print("Ret:", ret)
-    # print("New obj:", obj)
-
-    ## I assume that by calling the method like above the object does get updated.
-
-    ## Update the object in Beldi
-    ##
-    ## Note: This should always succeed since the lock was acquired for the read.
-    write_success = store.write(object_key, obj)
-    assert write_success
-
-    ## Commit only if we were not in a transaction already.
-    if not prior_in_txn:
-        ## This should always succeed
-        store.CommitTx()
-    return ret
