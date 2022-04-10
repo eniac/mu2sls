@@ -98,6 +98,7 @@ label_map = {
     " --enable_logging --enable_txn --enable_custom_dict": "log, txn, custom_dict",
 }
 
+
 benchmark_map = {
     "single_stateful": "Stateful Service",
     "chain": "3 Service Chain",
@@ -105,29 +106,46 @@ benchmark_map = {
     "media-service-test": "Media Service"
 }
 
+ylim_map = {
+    "tree": 1000,
+    "media-service-test": 1000
+}
+
+plot_order = ["",
+              " --enable_logging",
+              " --enable_txn",
+              " --enable_logging --enable_txn",
+              " --enable_logging --enable_txn --enable_custom_dict"]
+
 ## TODO: Get the mean and a big percentile instead of what we get now
 def plot(results, benchmark):
     fig = plt.figure()
-    for key, all_res in results.items():
-        # print(key, res)
-        ## We dont want the 1 rate result
-        res = all_res[1:]
-        xs = [dp.throughput for dp in res]
-        ys = [dp.median_latency() / 1000.0 for dp in res]
-        errors = [(0, dp.ninety_latency() / 1000.0 - dp.median_latency())
-                  for dp in res]
-        up_errors = [(dp.ninety_latency() - dp.median_latency()) / 1000.0
-                     for dp in res]
-        down_errors = [0 for dp in res]
-        errors = (down_errors, up_errors)
-        plt.errorbar(xs, ys, yerr=errors, label=label_map[key],
-                     marker='.', capsize=3.0,
-                     elinewidth=1,
-                     linewidth=1.0)
+    for key in plot_order:
+    # for key, all_res in results.items():
+        if key in results:
+            all_res = results[key]
+            # print(key, res)
+            ## We dont want the 1 rate result
+            res = all_res[1:]
+            xs = [dp.throughput for dp in res]
+            ys = [dp.median_latency() / 1000.0 for dp in res]
+            errors = [(0, dp.ninety_latency() / 1000.0 - dp.median_latency())
+                    for dp in res]
+            up_errors = [(dp.ninety_latency() - dp.median_latency()) / 1000.0
+                        for dp in res]
+            down_errors = [0 for dp in res]
+            errors = (down_errors, up_errors)
+            plt.errorbar(xs, ys, yerr=errors, label=label_map[key],
+                        marker='.', capsize=3.0,
+                        elinewidth=1,
+                        linewidth=1.0)
     plt.legend()
     plt.ylabel('Latency (ms) (50th/90th)')
     plt.xlabel('Throughput')
-    plt.ylim(0, 400)
+    ylim = 400
+    if benchmark in ylim_map:
+        ylim = ylim_map[benchmark]
+    plt.ylim(0, ylim)
     plt.xlim(left=0)
     fig.suptitle(benchmark_map[benchmark])
     filename = f"plots/{benchmark}.pdf"
