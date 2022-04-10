@@ -5,6 +5,7 @@ class DataPoint:
         self.rate = rate
         self.latencies = {}
         self.throughput = None
+        self.non2xx = 0
 
     def __repr__(self):
         return f'Point(r={self.rate},median_l={self.median_latency()},t={self.throughput})'
@@ -77,6 +78,9 @@ def parse_raw_wrk_results(log_file):
             percentile = line.split("%")[0]
             latency = line.split()[1]
             curr_res.set_latency(latency, percentile)
+        elif line.startswith("Non-2xx or 3xx responses:"):
+            non2xx = line.split("Non-2xx or 3xx responses:")[1]
+            curr_res.non2xx = int(non2xx)
         elif line.startswith("Requests/sec:"):
             throughput = line.split()[1]
             curr_res.set_throughput(throughput)
@@ -95,6 +99,7 @@ label_map = {
     " --enable_logging": "log, no_txn",
     " --enable_txn": "no_log, txn",
     " --enable_logging --enable_txn": "log, txn",
+    " --enable_txn --enable_custom_dict": "no log, txn, custom_dict",
     " --enable_logging --enable_txn --enable_custom_dict": "log, txn, custom_dict",
 }
 
@@ -108,13 +113,14 @@ benchmark_map = {
 
 ylim_map = {
     "tree": 1000,
-    "media-service-test": 1000
+    "media-service-test": 10000
 }
 
 plot_order = ["",
               " --enable_logging",
               " --enable_txn",
               " --enable_logging --enable_txn",
+              " --enable_txn --enable_custom_dict",
               " --enable_logging --enable_txn --enable_custom_dict"]
 
 ## TODO: Get the mean and a big percentile instead of what we get now
@@ -135,8 +141,11 @@ def plot(results, benchmark):
                         for dp in res]
             down_errors = [0 for dp in res]
             errors = (down_errors, up_errors)
+            marker='.'
+            if any([dp.non2xx > 0 for dp in res]):
+                marker='X'
             plt.errorbar(xs, ys, yerr=errors, label=label_map[key],
-                        marker='.', capsize=3.0,
+                        marker=marker, capsize=3.0,
                         elinewidth=1,
                         linewidth=1.0)
     plt.legend()

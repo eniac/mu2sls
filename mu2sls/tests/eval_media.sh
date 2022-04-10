@@ -46,14 +46,6 @@ echo "Executing: -t${threads} -c${connections} -d${duration} -s ${wrk_file}"
 ## Only needs to be done once
 set_min_max_scale
 
-# extra_args="--enable_txn"
-# python3 test_services.py "${csv_file}" knative \
-#     --docker_io_username konstantinoskallas ${extra_args}
-# echo "Populating database..."
-# python3 populate_media.py
-# echo "Running with: ${extra_args}"
-# run_wrk
-
 extra_args="--enable_logging --enable_txn --enable_custom_dict"
 python3 test_services.py "${csv_file}" knative \
     --docker_io_username konstantinoskallas ${extra_args}
@@ -62,7 +54,31 @@ python3 populate_media.py
 echo "Running with: ${extra_args}"
 run_wrk
 
+extra_args="--enable_txn --enable_custom_dict"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Populating database..."
+python3 populate_media.py
+echo "Running with: ${extra_args}"
+run_wrk
+
 extra_args="--enable_logging --enable_txn"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Populating database..."
+python3 populate_media.py
+echo "Running with: ${extra_args}"
+run_wrk
+
+extra_args="--enable_txn"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Populating database..."
+python3 populate_media.py
+echo "Running with: ${extra_args}"
+run_wrk
+
+extra_args=""
 python3 test_services.py "${csv_file}" knative \
     --docker_io_username konstantinoskallas ${extra_args}
 echo "Populating database..."
