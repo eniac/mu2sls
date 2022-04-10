@@ -41,20 +41,20 @@ def run_test_media_service(deployed_services, invoke_lib):
                           "Titanic", '42')
 
     ## Add plot and movie info
-    info = json.loads('{"movie_id": "42", "title": "Titanic", "casts": [], "plot_id": "299534", "thumbnail_ids": ["/or06FN3Dka5tukK1e9sl16pB3iy.jpg"], "photo_ids": [], "video_ids": [], "avg_rating": 8.6, "num_rating": 4789}')    
-    invoke_lib.SyncInvoke(deployed_services['MovieInfo'], 
-                          "write_movie_info", 
-                          info)
+    # info = json.loads('{"movie_id": "42", "title": "Titanic", "casts": [], "plot_id": "299534", "thumbnail_ids": ["/or06FN3Dka5tukK1e9sl16pB3iy.jpg"], "photo_ids": [], "video_ids": [], "avg_rating": 8.6, "num_rating": 4789}')    
+    # invoke_lib.SyncInvoke(deployed_services['MovieInfo'], 
+    #                       "write_movie_info", 
+    #                       info)
 
-    invoke_lib.SyncInvoke(deployed_services['Plot'],
-                          "write_plot",
-                          info['plot_id'], "ship hits iceberg")
+    # invoke_lib.SyncInvoke(deployed_services['Plot'],
+    #                       "write_plot",
+    #                       info['plot_id'], "ship hits iceberg")
 
-    ret = invoke_lib.SyncInvoke(deployed_services['Plot'],
-                                "read_plot",
-                                info['plot_id'])
+    # ret = invoke_lib.SyncInvoke(deployed_services['Plot'],
+    #                             "read_plot",
+    #                             info['plot_id'])
 
-    assert ret == 'ship hits iceberg'
+    # assert ret == 'ship hits iceberg'
 
     ## Compose Review
     invoke_lib.SyncInvoke(deployed_services['Frontend'],

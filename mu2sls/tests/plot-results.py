@@ -100,7 +100,8 @@ label_map = {
 benchmark_map = {
     "single_stateful": "Stateful Service",
     "chain": "3 Service Chain",
-    "tree": "Cross Service Txn"
+    "tree": "Cross Service Txn",
+    "media-service-test": "Media Service"
 }
 
 ## TODO: Get the mean and a big percentile instead of what we get now
@@ -133,7 +134,8 @@ def plot(results, benchmark):
 
 benchmarks = ["single_stateful",
               "chain",
-              "tree"]
+              "tree",
+              "media-service-test"]
 
 for benchmark in benchmarks:
     log_file = f"results/{benchmark}.log"
