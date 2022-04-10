@@ -1,6 +1,8 @@
 import logging
 import os
 
+from runtime.beldi.beldi import get_shard_key
+
 ##
 ## This is the main wrapper method that wraps an object to enforce correctness guarantees.
 ##
@@ -406,46 +408,21 @@ def wrap_default(object_key, object_init_val, store):
 # or whether to call one that might fail (depending on whether we are already in a transaction)
 # or not.
 def begin_tx_and_read(store, key: str):
-    if ENABLE_CUSTOM_DICT:
-        if store.in_txn():
-            shard_key = store.get_shard_key(key)
-            res = store.read_throw(shard_key)
-            user_key = key.split("-")[-1]
-            if res is None:
-                return None
-            else:
-                return res[user_key] if user_key in res else None
-        else:
-            assert False, "Use tpl_check_read while not in a txn"
+    ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
+    if store.in_txn():
+        ## If this read fails, we throw an exception, to be caught in an above layer
+        return store.read_throw(key)
     else:
-        ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
-        if store.in_txn():
-            ## If this read fails, we throw an exception, to be caught in an above layer
-            return store.read_throw(key)
-        else:
-            return store.read_until_success(key)
+        return store.read_until_success(key)
 
 
 def begin_tx_and_write(store, key: str, val):
-    if ENABLE_CUSTOM_DICT:
-        if store.in_txn():
-            shard_key = store.get_shard_key(key)
-            res = store.read_throw(shard_key)
-            user_key = key.split("-")[-1]
-            if res is None:
-                res = {user_key: val}
-            else:
-                res[user_key] = val
-            store.write_throw(shard_key, res)
-        else:
-            assert False, "Use tpl_check_write while not in a txn"
+    ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
+    if store.in_txn():
+        ## If this write fails, we throw an exception, to be caught in an above layer
+        return store.write_throw(key, val)
     else:
-        ## If we are already in a transaction, it means that an update might abort, and so we don't need to repeat it until it succeeds
-        if store.in_txn():
-            ## If this write fails, we throw an exception, to be caught in an above layer
-            return store.write_throw(key, val)
-        else:
-            return store.write_until_success(key, val)
+        return store.write_until_success(key, val)
 
 
 ## Initializes the key in the store
@@ -463,6 +440,9 @@ def wrap_method_call(store, object_key, attr_name, *args, **kwargs):
     ##       many transactions in are we.
     prior_in_txn = store.in_txn()
     # print("In txn:", prior_in_txn)
+
+    if ENABLE_CUSTOM_DICT:
+        object_key = get_shard_key(f"{object_key}-{attr_name}")
 
     ## Begin the transaction and read
     obj = begin_tx_and_read(store, object_key)
