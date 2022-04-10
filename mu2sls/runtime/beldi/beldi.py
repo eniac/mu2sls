@@ -35,6 +35,15 @@ def hash2(s: str):
     return res
 
 
+def get_shard_key(key: str):
+    ks = key.split('-')
+    user_key = ks[-1]
+    dict_key = '-'.join(ks[:-1])
+    shard_id = str(hash2(user_key) % BUCKET_SIZE)
+    shard_key = f"{dict_key}-{shard_id}"
+    return shard_key
+
+
 # bool, val
 def _check_log(tr, env: Env) -> (bool, bytes):
     if ENABLE_LOGGING:

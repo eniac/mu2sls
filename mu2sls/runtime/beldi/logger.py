@@ -159,3 +159,22 @@ class BeldiLogger(Logger):
             return {}
         else:
             return {}
+
+    def read_throw(self, key: str):
+        shard_key = beldi.get_shard_key(key)
+        read_succeeded, ret = self.read(shard_key)
+        if not read_succeeded:
+            self.AbortTx()
+        else:
+            return ret[key.split("-")[-1]]
+
+    def write_throw(self, key: str, value):
+        shard_key = beldi.get_shard_key(key)
+        read_succeeded, ret = self.read(shard_key)
+        if not read_succeeded:
+            self.AbortTx()
+        else:
+            ret[key.split("-")[-1]] = value
+            write_succeeded = self.write(shard_key, ret)
+            if not write_succeeded:
+                self.AbortTx()
