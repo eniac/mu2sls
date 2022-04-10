@@ -94,7 +94,8 @@ label_map = {
     "": "no_log, no_txn",
     " --enable_logging": "log, no_txn",
     " --enable_txn": "no_log, txn",
-    " --enable_logging --enable_txn": "log, txn"
+    " --enable_logging --enable_txn": "log, txn",
+    " --enable_logging --enable_txn --enable_custom_dict": "log, txn, custom_dict",
 }
 
 benchmark_map = {

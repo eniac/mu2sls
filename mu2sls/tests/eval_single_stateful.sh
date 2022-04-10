@@ -2,6 +2,8 @@
 
 trap "exit" INT
 
+## Remember to set min-max scale
+
 benchmark="single-stateful"
 rates="20 40 60 80 100 120 140 160 180 240 300 360 420"
 
@@ -53,6 +55,12 @@ echo "Running with: ${extra_args}"
 run_wrk
 
 extra_args="--enable_logging --enable_txn"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Running with: ${extra_args}"
+run_wrk
+
+extra_args="--enable_logging --enable_txn --enable_custom_dict"
 python3 test_services.py "${csv_file}" knative \
     --docker_io_username konstantinoskallas ${extra_args}
 echo "Running with: ${extra_args}"
