@@ -6,6 +6,7 @@ class DataPoint:
         self.latencies = {}
         self.throughput = None
         self.non2xx = 0
+        self.requests = 0
 
     def __repr__(self):
         return f'Point(r={self.rate},median_l={self.median_latency()},t={self.throughput})'
@@ -30,7 +31,7 @@ class DataPoint:
         return self.latencies["90.000"]
     
     def non2xx_out_of(self):
-        return str(self.non2xx)
+        return str(self.non2xx) + " out of: " + str(self.requests)
 
 
 def parse_raw_wrk_results(log_file):
@@ -87,6 +88,9 @@ def parse_raw_wrk_results(log_file):
         elif line.startswith("Requests/sec:"):
             throughput = line.split()[1]
             curr_res.set_throughput(throughput)
+        elif "requests in" in line and "read" in line:
+            requests = line.split()[0]
+            curr_res.requests = int(requests)
         else:
             # print(line)
             pass
@@ -127,9 +131,12 @@ plot_order = ["",
               " --enable_logging --enable_txn --enable_custom_dict"]
 
 def print_non2xx_res(res):
-    print("|-- non2xx")
+    # print("|-- non2xx")
     for dp in res:
-        print("|---- Rate:", dp.rate, "--", dp.non2xx_out_of())
+        print_non_2xx_dp(dp)
+
+def print_non_2xx_dp(dp):
+    print("|---- WARNING: non-2xx:", dp.non2xx_out_of(), " -- for rate:", dp.rate)
 
 ## TODO: Label plots as tolerates faults, etc
 
@@ -156,13 +163,23 @@ def plot(results, benchmark):
             down_errors = [0 for dp in res]
             errors = (down_errors, up_errors)
             marker='.'
-            if any([dp.non2xx > 0 for dp in res]):
-                marker='X'
-                print_non2xx_res(res)
             plt.errorbar(xs, ys, yerr=errors, label=label_map[key],
-                        marker=marker, capsize=3.0,
+                        marker='.', capsize=3.0,
                         elinewidth=1,
-                        linewidth=1.0)
+                        linewidth=1.0,
+                        zorder=1)
+            ## Plot X markers if point is wrong
+            for dp in res:
+                if dp.non2xx > 0:
+                    print_non_2xx_dp(dp)
+                    plt.plot(dp.throughput,
+                                dp.median_latency() / 1000.0,
+                                marker='X',
+                                markersize=10.0,
+                                color='red',
+                                zorder=2)
+                if dp.requests == 0:
+                    print("|---- WARNING: There were 0 completed requests for rate:", dp.rate)
     plt.legend()
     plt.ylabel('Latency (ms) (50th/90th)')
     plt.xlabel('Throughput')
