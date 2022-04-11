@@ -1,3 +1,5 @@
+import asyncio
+
 from runtime import request_lib
 from runtime.beldi import beldi
 from runtime.beldi import common
@@ -114,21 +116,53 @@ class BeldiLogger(Logger):
         if beldi.ENABLE_TXN:
             return beldi.begin_tx(self.env)
 
+    ## TODO: Hide async behind commit correctly
+    # def CommitTx(self):
+    #     ## TODO: This is not totally correct, we would normally want to
+    #     ##       run it in the current running loop, but I am not
+    #     ##       sure how to wait for it here then without having the
+    #     ##       await keyword propagate in the whole application.
+    #     eloop = asyncio.get_event_loop()
+    #     eloop.run_until_complete(self._CommitTx())
+
+    # def AbortTxNoExc(self):
+    #     eloop = asyncio.get_event_loop()
+    #     eloop.run_until_complete(self._AbortTxNoExc())
+
     def CommitTx(self):
+        return self._CommitTx()
+
+    def AbortTxNoExc(self):
+        return self._AbortTxNoExc()
+
+    # def CommitTx(self):
+    #     return await self._CommitTx()
+
+    # def AbortTxNoExc(self):
+    #     return await self._AbortTxNoExc()
+
+    ## TODO: Not sure why commit and abort have a different value
+    def _inform_callees(self, callees, val):
+        if len(callees) > 0:
+            fs = []
+            for client, method in callees:
+                fs.append(self.AsyncInvoke(client, method, val))
+            asyncio.create_task(self.WaitAll(*fs))
+
+    def _CommitTx(self):
         if beldi.ENABLE_TXN:
             self.env.instruction = "COMMIT"
             callees = beldi.commit_tx(self.env)
-            for client, method in callees:
-                self.SyncInvoke(client, method, "")
+            self._inform_callees(callees, "")
             self.env.txn_id = None
             self.env.instruction = None
 
-    def AbortTxNoExc(self):
+
+    def _AbortTxNoExc(self):
         if beldi.ENABLE_TXN:
             self.env.instruction = "ABORT"
             callees = beldi.abort_tx(self.env)
-            for client, method in callees:
-                self.SyncInvoke(client, method, {})
+            self._inform_callees(callees, {})
             self.env.txn_id = None
             self.env.instruction = None
 

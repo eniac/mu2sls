@@ -172,7 +172,7 @@ def run_test_deployed_services(deployed_services, deployment_file, invoke_lib):
     try:
         test_func = TEST_FUNC_FROM_FILE[deployment_file_basename]
     except:
-        print(deployment_file_basename, TEST_FUNC_FROM_FILE)
+        # print(deployment_file_basename, TEST_FUNC_FROM_FILE)
         print("No test for this app, just deployed!")
         return
 

@@ -28,6 +28,9 @@ class DataPoint:
     
     def ninety_latency(self):
         return self.latencies["90.000"]
+    
+    def non2xx_out_of(self):
+        return str(self.non2xx)
 
 
 def parse_raw_wrk_results(log_file):
@@ -123,12 +126,23 @@ plot_order = ["",
               " --enable_txn --enable_custom_dict",
               " --enable_logging --enable_txn --enable_custom_dict"]
 
+def print_non2xx_res(res):
+    print("|-- non2xx")
+    for dp in res:
+        print("|---- Rate:", dp.rate, "--", dp.non2xx_out_of())
+
+## TODO: Label plots as tolerates faults, etc
+
+## TODO: Buckets in custom Dict increase
+
 ## TODO: Get the mean and a big percentile instead of what we get now
 def plot(results, benchmark):
+    print(benchmark)
     fig = plt.figure()
     for key in plot_order:
     # for key, all_res in results.items():
         if key in results:
+            print("Plotting:", key)
             all_res = results[key]
             # print(key, res)
             ## We dont want the 1 rate result
@@ -144,6 +158,7 @@ def plot(results, benchmark):
             marker='.'
             if any([dp.non2xx > 0 for dp in res]):
                 marker='X'
+                print_non2xx_res(res)
             plt.errorbar(xs, ys, yerr=errors, label=label_map[key],
                         marker=marker, capsize=3.0,
                         elinewidth=1,
