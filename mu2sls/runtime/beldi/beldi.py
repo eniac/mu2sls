@@ -26,6 +26,7 @@ else:
 print("TXN:", ENABLE_TXN)
 
 BUCKET_SIZE = 16
+BUCKET_SIZE = 1024 # More reasonable bucket number
 
 
 def hash2(s: str):
