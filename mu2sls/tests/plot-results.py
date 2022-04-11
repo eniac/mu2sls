@@ -119,7 +119,7 @@ benchmark_map = {
 }
 
 ylim_map = {
-    "tree": 1000,
+    "tree": 500,
     "media-service-test": 10000
 }
 

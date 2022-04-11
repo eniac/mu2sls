@@ -5,13 +5,17 @@ trap "exit" INT
 ## Remember to set min-max scale
 
 benchmark="single-stateful"
-rates="20 40 60 80 100 120 140 160 180 240 300 360 420"
+rates="20 60 100 140 180 220 260 300 340 380"
+services="backend"
 
 benchmark="chain"
-rates="10 20 30 40 50 60 70 80 90 100 110"
+rates="20 30 40 50 60 70 80 90 100 110"
+services="caller1 caller2 backend"
 
 benchmark="tree"
 rates="10 20 30 40 50 60 70 80 90 100 110"
+services="callertxn backend1 backend2"
+
 
 threads=4
 connections=16
@@ -33,8 +37,30 @@ function run_wrk()
     done
 }
 
+function set_min_max_scale()
+{
+    for service in $services
+    do
+        kn service update "$service" --scale-min ${scale} --scale-max ${scale} --annotation "autoscaling.knative.dev/target=500"
+    done
+}
+
 echo "Executing: -t${threads} -c${connections} -d${duration} -s ${wrk_file}"
 
+echo "Setting scale"
+set_min_max_scale
+
+extra_args="--enable_logging --enable_txn --enable_custom_dict"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Running with: ${extra_args}"
+run_wrk
+
+extra_args="--enable_logging --enable_txn"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Running with: ${extra_args}"
+run_wrk
 
 extra_args=""
 python3 test_services.py "${csv_file}" knative \
@@ -54,14 +80,3 @@ python3 test_services.py "${csv_file}" knative \
 echo "Running with: ${extra_args}"
 run_wrk
 
-extra_args="--enable_logging --enable_txn"
-python3 test_services.py "${csv_file}" knative \
-    --docker_io_username konstantinoskallas ${extra_args}
-echo "Running with: ${extra_args}"
-run_wrk
-
-extra_args="--enable_logging --enable_txn --enable_custom_dict"
-python3 test_services.py "${csv_file}" knative \
-    --docker_io_username konstantinoskallas ${extra_args}
-echo "Running with: ${extra_args}"
-run_wrk
