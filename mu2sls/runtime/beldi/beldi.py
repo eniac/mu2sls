@@ -26,7 +26,7 @@ else:
 print("TXN:", ENABLE_TXN)
 
 BUCKET_SIZE = 16
-BUCKET_SIZE = 1024 # More reasonable bucket number
+BUCKET_SIZE = 1024  # More reasonable bucket number
 
 
 def hash2(s: str):
@@ -558,3 +558,11 @@ def _add_callee(tr, env: Env, client: str, method: str):
 
 def add_callee(env: Env, client: str, method: str):
     fdb.transactional(_add_callee)(env.db, env, client, method)
+
+
+def _clear_logs(tr, env: Env):
+    del tr[fdb.tuple.range(("log", env.table, env.req_id))]
+
+
+def clear_logs(env: Env):
+    fdb.transactional(_clear_logs)(env.db, env)

@@ -1,4 +1,6 @@
 import asyncio
+import time
+
 
 from runtime import request_lib
 from runtime.beldi import beldi
@@ -29,7 +31,7 @@ class BeldiLogger(Logger):
 
     def SyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
-        if self.env.txn_id is not None:
+        if self.env.txn_id is not None and self.env.instruction == "EXECUTE":
             beldi.add_callee(self.env, client_name, method_name)
         beldi.log_invoke(self.env)
         res = super().SyncInvoke(client_name, method_name, *args)
@@ -193,3 +195,6 @@ class BeldiLogger(Logger):
             return {}
         else:
             return {}
+
+    def clear_logs(self):
+        beldi.clear_logs(self.env)
