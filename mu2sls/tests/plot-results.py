@@ -115,12 +115,14 @@ benchmark_map = {
     "single_stateful": "Stateful Service",
     "chain": "3 Service Chain",
     "tree": "Cross Service Txn",
-    "media-service-test": "Media Service"
+    "media-service-test": "Media Service",
+    "hotel-reservation": "Hotel Service",
 }
 
 ylim_map = {
     "tree": 500,
-    "media-service-test": 3000
+    "media-service-test": 3000,
+    "hotel-reservation": 1000,
 }
 
 plot_order = ["",
@@ -192,10 +194,7 @@ def plot(results, benchmark):
     filename = f"plots/{benchmark}.pdf"
     plt.savefig(filename)
 
-benchmarks = ["single_stateful",
-              "chain",
-              "tree",
-              "media-service-test"]
+benchmarks = ["hotel-reservation"]
 
 for benchmark in benchmarks:
     log_file = f"results/{benchmark}.log"

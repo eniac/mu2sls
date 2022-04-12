@@ -71,7 +71,7 @@ def invoke_core(client: str, method_name: str, http_client, *args, env=None, int
 
 
 @log_timer("sync_invoke")
-def SyncInvoke(client: str, method_name: str, *args, env=None, internal=True):
+def SyncInvoke(client: str, method_name: str, *args, env=None, internal=False):
     res = invoke_core(client, method_name, httpx, *args, env=env, internal=internal)
     return res.json()
 
@@ -80,7 +80,7 @@ def SyncInvoke(client: str, method_name: str, *args, env=None, internal=True):
 
 ## TODO: Make that actual Async
 @log_timer("async_invoke")
-def AsyncInvoke(client: str, method_name: str, *args, env=None, internal=True):
+def AsyncInvoke(client: str, method_name: str, *args, env=None, internal=False):
     ## TODO: Maybe move perform that once per request
     http_client = httpx.AsyncClient()
     promise = invoke_core(client, method_name, http_client, *args, env=env, internal=internal)
