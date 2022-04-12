@@ -5,7 +5,7 @@ trap "exit" INT
 ## Remember to set min-max scale
 
 benchmark="media-service-test"
-rates="10 20 30 40 50"
+rates="2 4 6 8 10 12 14 16 18 20"
 
 threads=4
 connections=16

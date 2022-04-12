@@ -120,7 +120,7 @@ benchmark_map = {
 
 ylim_map = {
     "tree": 500,
-    "media-service-test": 10000
+    "media-service-test": 3000
 }
 
 plot_order = ["",
