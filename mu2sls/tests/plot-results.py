@@ -182,7 +182,7 @@ def plot(results, benchmark):
                     print("|---- WARNING: There were 0 completed requests for rate:", dp.rate)
     plt.legend()
     plt.ylabel('Latency (ms) (50th/90th)')
-    plt.xlabel('Throughput')
+    plt.xlabel('Throughput (requests/second)')
     ylim = 400
     if benchmark in ylim_map:
         ylim = ylim_map[benchmark]

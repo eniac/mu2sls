@@ -3,6 +3,7 @@
 trap "exit" INT
 
 ## Remember to set min-max scale
+scale=2
 
 benchmark="single-stateful"
 rates="20 60 100 140 180 220 260 300 340 380"
@@ -61,6 +62,25 @@ python3 test_services.py "${csv_file}" knative \
     --docker_io_username konstantinoskallas ${extra_args}
 echo "Running with: ${extra_args}"
 run_wrk
+
+extra_args="--enable_txn --enable_custom_dict"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Running with: ${extra_args}"
+run_wrk
+
+extra_args="--enable_logging --enable_custom_dict"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Running with: ${extra_args}"
+run_wrk
+
+extra_args="--enable_custom_dict"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+echo "Running with: ${extra_args}"
+run_wrk
+
 
 extra_args=""
 python3 test_services.py "${csv_file}" knative \
