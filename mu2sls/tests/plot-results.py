@@ -143,7 +143,7 @@ def print_non_2xx_dp(dp):
 ## TODO: Buckets in custom Dict increase
 
 ## TODO: Get the mean and a big percentile instead of what we get now
-def plot(results, benchmark):
+def plot(results, benchmark, plot_order, output_file_prefix="", debug=False):
     print(benchmark)
     fig = plt.figure()
     for key in plot_order:
@@ -169,17 +169,18 @@ def plot(results, benchmark):
                         linewidth=1.0,
                         zorder=1)
             ## Plot X markers if point is wrong
-            for dp in res:
-                if dp.non2xx > 0:
-                    print_non_2xx_dp(dp)
-                    plt.plot(dp.throughput,
-                                dp.median_latency() / 1000.0,
-                                marker='X',
-                                markersize=10.0,
-                                color='red',
-                                zorder=2)
-                if dp.requests == 0:
-                    print("|---- WARNING: There were 0 completed requests for rate:", dp.rate)
+            if debug:
+                for dp in res:
+                    if dp.non2xx > 0:
+                        print_non_2xx_dp(dp)
+                        plt.plot(dp.throughput,
+                                    dp.median_latency() / 1000.0,
+                                    marker='X',
+                                    markersize=10.0,
+                                    color='red',
+                                    zorder=2)
+                    if dp.requests == 0:
+                        print("|---- WARNING: There were 0 completed requests for rate:", dp.rate)
     plt.legend()
     plt.ylabel('Latency (ms) (50th/90th)')
     plt.xlabel('Throughput (requests/second)')
@@ -189,7 +190,9 @@ def plot(results, benchmark):
     plt.ylim(0, ylim)
     plt.xlim(left=0)
     fig.suptitle(benchmark_map[benchmark])
-    filename = f"plots/{benchmark}.pdf"
+    filename = f"plots/{output_file_prefix}{benchmark}.pdf"
+    fig.set_tight_layout(True)
+    fig.set_size_inches(5, 4)
     plt.savefig(filename)
 
 benchmarks = ["single_stateful",
@@ -201,4 +204,65 @@ for benchmark in benchmarks:
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
     # print(results)
-    plot(results, benchmark)
+    plot(results, benchmark, plot_order, debug=True)
+
+##
+## Logging benchmark
+##
+benchmarks = ["single_stateful",
+              "chain"]
+
+plot_order = ["",
+              " --enable_logging"]
+
+for benchmark in benchmarks:
+    log_file = f"results/{benchmark}.log"
+    results = parse_raw_wrk_results(log_file)
+    output_file_prefix = "logging_"
+    # print(results)
+    plot(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
+
+##
+## Transactions
+##
+benchmarks = ["single_stateful",
+              "chain",
+              "tree"]
+
+plot_order = [" --enable_logging",
+              " --enable_logging --enable_txn",
+              " --enable_logging --enable_txn --enable_custom_dict"]
+
+for benchmark in benchmarks:
+    log_file = f"results/{benchmark}.log"
+    results = parse_raw_wrk_results(log_file)
+    output_file_prefix = "txn_"
+    # print(results)
+    plot(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
+
+##
+## Real apps
+##
+
+benchmarks = ["single_stateful",
+              "chain",
+              "tree"]
+
+plot_order = [" --enable_logging",
+              " --enable_logging --enable_txn",
+              " --enable_logging --enable_txn --enable_custom_dict"]
+
+for benchmark in benchmarks:
+    log_file = f"results/{benchmark}.log"
+    results = parse_raw_wrk_results(log_file)
+    output_file_prefix = "txn_"
+    # print(results)
+    plot(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
+
+
+plot_order = ["",
+              " --enable_logging",
+              " --enable_txn",
+              " --enable_logging --enable_txn",
+              " --enable_txn --enable_custom_dict",
+              " --enable_logging --enable_txn --enable_custom_dict"]
