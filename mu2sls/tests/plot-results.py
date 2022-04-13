@@ -243,25 +243,15 @@ for benchmark in benchmarks:
 ## Real apps
 ##
 
-benchmarks = ["single_stateful",
-              "chain",
-              "tree"]
+benchmarks = ["media-service-test",
+              "hotel-reservation"]
 
-plot_order = [" --enable_logging",
-              " --enable_logging --enable_txn",
+plot_order = ["",
               " --enable_logging --enable_txn --enable_custom_dict"]
 
 for benchmark in benchmarks:
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
-    output_file_prefix = "txn_"
+    output_file_prefix = "real_apps_"
     # print(results)
     plot(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
-
-
-plot_order = ["",
-              " --enable_logging",
-              " --enable_txn",
-              " --enable_logging --enable_txn",
-              " --enable_txn --enable_custom_dict",
-              " --enable_logging --enable_txn --enable_custom_dict"]
