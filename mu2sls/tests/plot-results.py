@@ -253,8 +253,8 @@ figsize=(9,3)
 ## TODO: Can we get these results instead?
 plot_order = [" --enable_txn --enable_custom_dict",
               " --enable_logging --enable_txn --enable_custom_dict"]
-plot_order = ["",
-              " --enable_logging"]
+# plot_order = ["",
+#               " --enable_logging"]
 ##
 ## Combined
 ##
