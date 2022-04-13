@@ -1,11 +1,12 @@
 import asyncio
 import os
-import httpx
-
 from uuid import uuid4
+
+import httpx
 from runtime.beldi.common import *
 
-REQUEST_TIMEOUT=120.0
+REQUEST_TIMEOUT = 120.0
+
 
 ## This is an auxiliary function used to get the ip
 def get_ip(env):
@@ -36,9 +37,10 @@ def get_metadata_dict(env):
 
     return metadata_dict
 
+
 ## TODO: We also need to check that the result is not an abort!
 
-def invoke_core(client: str, method_name: str, http_client, *args, env=None):
+def invoke_core(client: str, method_name: str, http_client, *args, env=None, internal=True):
     ## Extract the ip, req_id from the environment or generate them
     ip = get_ip(env)
 
@@ -52,26 +54,38 @@ def invoke_core(client: str, method_name: str, http_client, *args, env=None):
     ## Note: This is obsolete. We are now passing data using json.
     # res = requests.get(f'http://{ip}/{method_name}', headers={"Host": f"{client}.default.example.com"},
     #                    params={"args": args}).json()
-    res = http_client.post(f'http://{ip}/{method_name}', 
-                           headers={"Host": f"{client}.default.example.com"},
-                           json=metadata_dict,
-                           timeout=REQUEST_TIMEOUT)
+    # res = http_client.post(f'http://{ip}/{method_name}',
+    #                        headers={"Host": f"{client}.default.example.com"},
+    #                        json=metadata_dict,
+    #                        timeout=REQUEST_TIMEOUT)
+    if internal:
+        res = http_client.post(f'http://{client}.default.svc.cluster.local/{method_name}',
+                               json=metadata_dict,
+                               timeout=REQUEST_TIMEOUT)
+    else:
+        res = http_client.post(f'http://{ip}/{method_name}',
+                               headers={"Host": f"{client}.default.example.com"},
+                               json=metadata_dict,
+                               timeout=REQUEST_TIMEOUT)
     return res
 
+
 @log_timer("sync_invoke")
-def SyncInvoke(client: str, method_name: str, *args, env=None):
-    res = invoke_core(client, method_name, httpx, *args, env=env)
+def SyncInvoke(client: str, method_name: str, *args, env=None, internal=False):
+    res = invoke_core(client, method_name, httpx, *args, env=env, internal=internal)
     return res.json()
+
 
 ## TODO: Make a promise class
 
 ## TODO: Make that actual Async
 @log_timer("async_invoke")
-def AsyncInvoke(client: str, method_name: str, *args, env=None):
+def AsyncInvoke(client: str, method_name: str, *args, env=None, internal=False):
     ## TODO: Maybe move perform that once per request
     http_client = httpx.AsyncClient()
-    promise = invoke_core(client, method_name, http_client, *args, env=env)
+    promise = invoke_core(client, method_name, http_client, *args, env=env, internal=internal)
     return (promise, http_client)
+
 
 async def Wait(promise):
     res, client = promise
@@ -82,6 +96,7 @@ async def Wait(promise):
     ## Wait until the client closes
     await client.aclose()
     return ret.json()
+
 
 ## TODO: This implementation sucks
 async def WaitAll(*promises):

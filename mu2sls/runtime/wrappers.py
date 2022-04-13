@@ -355,7 +355,7 @@ class WrapperDict(Wrapper):
         ##
         ## TODO: Check if we do have a request id here
         # val = store.read_until_success(self._wrapper_obj_key)
-        initialize_key(store, self._wrapper_obj_key, init_val)
+        # initialize_key(store, self._wrapper_obj_key, init_val)
 
         ## Store beldi client for later use
         self._wrapper_store = store
