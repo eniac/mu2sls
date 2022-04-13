@@ -267,7 +267,7 @@ for i in range(n):
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
     ax = axs[i]
-    plot(ax, results, benchmark, plot_order)
+    plot(ax, results, benchmark, plot_order[::-1])
     ax.set_xlabel(None)
     ax.set_title(benchmark_map[benchmark])
     if i > 0:
@@ -316,7 +316,7 @@ for i in range(n):
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
     ax = axs[i]
-    plot(ax, results, benchmark, plot_order)
+    plot(ax, results, benchmark, plot_order[::-1])
     ax.set_xlabel(None)
     ax.set_title(benchmark_map[benchmark])
     if i > 0:
@@ -360,7 +360,7 @@ for i in range(n):
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
     ax = axs[i]
-    plot(ax, results, benchmark, plot_order)
+    plot(ax, results, benchmark, plot_order[::-1])
     ax.set_xlabel(None)
     ax.set_title(benchmark_map[benchmark])
     if i > 0:
