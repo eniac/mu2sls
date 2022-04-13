@@ -115,11 +115,11 @@ label_map = {
 
 label_map = {
     "": "μ2sls-base",
-    " --enable_logging": "μ2sls -OD -TX",
-    " --enable_txn": "μ2sls -FT -OD",
-    " --enable_logging --enable_txn": "μ2sls -OD",
-    " --enable_txn --enable_custom_dict": "μ2sls -FT",
-    " --enable_logging --enable_txn --enable_custom_dict": "μsls",
+    " --enable_logging": "μ2sls $-$OD $-$TX",
+    " --enable_txn": "μ2sls $-$FT $-$OD",
+    " --enable_logging --enable_txn": "μ2sls $-$OD",
+    " --enable_txn --enable_custom_dict": "μ2sls $-$FT",
+    " --enable_logging --enable_txn --enable_custom_dict": "μ2sls",
 }
 
 benchmark_map = {
@@ -249,7 +249,7 @@ for benchmark in benchmarks:
     # print(results)
     plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
 
-figsize=(8,3)
+figsize=(9,3)
 ## TODO: Can we get these results instead?
 plot_order = [" --enable_txn --enable_custom_dict",
               " --enable_logging --enable_txn --enable_custom_dict"]
