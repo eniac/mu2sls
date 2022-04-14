@@ -12,7 +12,7 @@ class DataPoint:
         self.requests = 0
 
     def __repr__(self):
-        return f'Point(r={self.rate},median_l={self.median_latency()},t={self.throughput})'
+        return f'Point(r={self.rate},median_l={self.median_latency()},p90={self.ninety_latency()},t={self.throughput})'
     
     def set_latency(self, latency, percentile="50.000"):
         if latency.endswith("ms"):
@@ -28,10 +28,10 @@ class DataPoint:
         self.throughput = float(throughput)
 
     def median_latency(self):
-        return self.latencies["50.000"]
+        return self.latencies["50.000"] if "50.000" in self.latencies else None
     
     def ninety_latency(self):
-        return self.latencies["90.000"]
+        return self.latencies["90.000"] if "90.000" in self.latencies else None
     
     def non2xx_out_of(self):
         return str(self.non2xx) + " out of: " + str(self.requests)
@@ -166,11 +166,11 @@ def print_non_2xx_dp(dp):
 
 ## TODO: Get the mean and a big percentile instead of what we get now
 def plot(plot_ax, results, benchmark, plot_order, debug=False):
-    print(benchmark)
+    # print(benchmark)
     for key in plot_order:
     # for key, all_res in results.items():
         if key in results:
-            print("Plotting:", key)
+            # print("Plotting:", key)
             all_res = results[key]
             # print(key, res)
             ## We dont want the 1 rate result
@@ -228,7 +228,7 @@ benchmarks = ["hotel-reservation"]
 for benchmark in benchmarks:
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
-    # print(results)    
+    from pprint import pprint
     plot_fig(results, benchmark, plot_order, debug=True)
 
 
@@ -245,8 +245,10 @@ plot_order = ["",
 for benchmark in benchmarks:
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
+    from pprint import pprint
+    pprint(results)
+    pprint("-" * 20)
     output_file_prefix = "logging_"
-    # print(results)
     plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
 
 figsize=(9,3)
@@ -315,6 +317,7 @@ for i in range(n):
     benchmark = benchmarks[i]
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
+    from pprint import pprint
     ax = axs[i]
     plot(ax, results, benchmark, plot_order[::-1])
     ax.set_xlabel(None)
@@ -357,8 +360,10 @@ fig, axs = plt.subplots(ncols=n, figsize=figsize,
                         constrained_layout=True)
 for i in range(n):
     benchmark = benchmarks[i]
+    print(benchmark)
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
+    pprint(results)
     ax = axs[i]
     plot(ax, results, benchmark, plot_order[::-1])
     ax.set_xlabel(None)
