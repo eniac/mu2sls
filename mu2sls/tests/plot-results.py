@@ -249,7 +249,7 @@ for benchmark in benchmarks:
     # print(results)
     plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
 
-figsize=(9,3)
+figsize=(9,2.5)
 ## TODO: Can we get these results instead?
 plot_order = [" --enable_txn --enable_custom_dict",
               " --enable_logging --enable_txn --enable_custom_dict"]
