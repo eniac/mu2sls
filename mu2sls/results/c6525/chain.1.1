@@ -1,3 +1,125 @@
+Executing: -t4 -c16 -d30s -s chain.lua
+Setting scale
+Updating Service 'caller1' in namespace 'default':
+
+  0.019s The Configuration is still working to reflect the latest desired specification.
+  3.560s Traffic is not yet migrated to the latest revision.
+  3.586s Ingress has not yet been reconciled.
+  3.616s Waiting for load balancer to be ready
+  3.791s Ready to serve.
+
+Service 'caller1' updated to latest revision 'caller1-00002' is available at URL:
+http://caller1.default.example.com
+Updating Service 'caller2' in namespace 'default':
+
+  0.017s The Configuration is still working to reflect the latest desired specification.
+  3.469s Traffic is not yet migrated to the latest revision.
+  3.495s Ingress has not yet been reconciled.
+  3.511s Waiting for load balancer to be ready
+  3.715s Ready to serve.
+
+Service 'caller2' updated to latest revision 'caller2-00002' is available at URL:
+http://caller2.default.example.com
+Updating Service 'backend' in namespace 'default':
+
+  0.026s The Configuration is still working to reflect the latest desired specification.
+  3.572s Traffic is not yet migrated to the latest revision.
+  3.612s Ingress has not yet been reconciled.
+  3.637s Waiting for load balancer to be ready
+  3.798s Ready to serve.
+
+Service 'backend' updated to latest revision 'backend-00002' is available at URL:
+http://backend.default.example.com
+Deploying caller1...
+Downloading image from docker.io/konstantinoskallas/chain-caller1...
+Updating Service 'caller1' in namespace 'default':
+
+  0.018s The Configuration is still working to reflect the latest desired specification.
+  4.078s Traffic is not yet migrated to the latest revision.
+  4.108s Ingress has not yet been reconciled.
+  4.127s Waiting for load balancer to be ready
+  4.294s Ready to serve.
+
+Service 'caller1' updated to latest revision 'caller1-00003' is available at URL:
+http://caller1.default.example.com
+Deploying caller2...
+Downloading image from docker.io/konstantinoskallas/chain-caller2...
+Updating Service 'caller2' in namespace 'default':
+
+  0.021s The Configuration is still working to reflect the latest desired specification.
+  4.465s Traffic is not yet migrated to the latest revision.
+  4.479s Ingress has not yet been reconciled.
+  4.507s Waiting for load balancer to be ready
+  4.681s Ready to serve.
+
+Service 'caller2' updated to latest revision 'caller2-00003' is available at URL:
+http://caller2.default.example.com
+Deploying backend...
+Downloading image from docker.io/konstantinoskallas/chain-backend...
+Updating Service 'backend' in namespace 'default':
+
+  0.018s The Configuration is still working to reflect the latest desired specification.
+  5.386s Traffic is not yet migrated to the latest revision.
+  5.428s Ingress has not yet been reconciled.
+  5.440s Waiting for load balancer to be ready
+  5.617s Ready to serve.
+
+Service 'backend' updated to latest revision 'backend-00003' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Running with: --enable_txn --enable_custom_dict
+Rate: 1
+Running 30s test @ http://10.109.141.175/req
+  1 threads and 1 connections
+  Thread calibration: mean lat.: 44.086ms, rate sampling interval: 106ms
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    42.87ms   11.10ms  60.93ms   60.00%
+    Req/Sec     0.96      2.77     9.00     89.36%
+  Latency Distribution (HdrHistogram - Recorded Latency)
+ 50.000%   35.58ms
+ 75.000%   53.57ms
+ 90.000%   54.43ms
+ 99.000%   60.96ms
+ 99.900%   60.96ms
+ 99.990%   60.96ms
+ 99.999%   60.96ms
+100.000%   60.96ms
+
+  Detailed Percentile spectrum:
+       Value   Percentile   TotalCount 1/(1-Percentile)
+
+      28.143     0.000000            1         1.00
+      28.559     0.100000            2         1.11
+      32.191     0.200000            4         1.25
+      32.991     0.300000            6         1.43
+      34.975     0.400000            8         1.67
+      35.583     0.500000           10         2.00
+      42.367     0.550000           11         2.22
+      50.399     0.600000           12         2.50
+      51.391     0.650000           13         2.86
+      53.311     0.700000           14         3.33
+      53.567     0.750000           15         4.00
+      54.079     0.775000           16         4.44
+      54.079     0.800000           16         5.00
+      54.143     0.825000           17         5.71
+      54.143     0.850000           17         6.67
+      54.431     0.875000           18         8.00
+      54.431     0.887500           18         8.89
+      54.431     0.900000           18        10.00
+      58.623     0.912500           19        11.43
+      58.623     0.925000           19        13.33
+      58.623     0.937500           19        16.00
+      58.623     0.943750           19        17.78
+      58.623     0.950000           19        20.00
+      60.959     0.956250           20        22.86
+      60.959     1.000000           20          inf
+#[Mean    =       42.866, StdDeviation   =       11.096]
+#[Max     =       60.928, Total count    =           20]
+#[Buckets =           27, SubBuckets     =         2048]
+----------------------------------------------------------
+  30 requests in 30.01s, 4.98KB read
+Requests/sec:      1.00
+Transfer/sec:     169.97B
 Rate: 120
 Running 30s test @ http://10.109.141.175/req
   4 threads and 16 connections
