@@ -361,7 +361,7 @@ for i in range(n):
     st_res = single_threaded_results[benchmark]
     line = " --enable_logging"
     dp = st_res[line]  
-    ax.axvline(x = dp.throughput, color = 'black', linestyle = '-.', label = 'unsafe-seq (w FT)')
+    ax.axvline(x = dp.throughput, color = 'black', linestyle = '-.', label = 'unsafe (w FT) (seq)')
     ax.legend()
     handles, labels = ax.get_legend_handles_labels()
 
@@ -426,7 +426,7 @@ for i in range(n):
     st_res = single_threaded_results[benchmark]
     line = ""
     dp = st_res[line]  
-    ax.axvline(x = dp.throughput, color = 'black', linestyle = '-.', label = 'unsafe-seq')
+    ax.axvline(x = dp.throughput, color = 'black', linestyle = '-.', label = 'unsafe (seq)')
     ax.legend()
     handles, labels = ax.get_legend_handles_labels()
 
