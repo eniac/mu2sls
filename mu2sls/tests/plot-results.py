@@ -4,12 +4,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class DataPoint:
-    def __init__(self, rate):
+    def __init__(self, rate, latencies = None, throughput = None, avg_latency = None):
         self.rate = rate
-        self.latencies = {}
-        self.throughput = None
+        if latencies is None:
+            self.latencies = {}
+        else:
+            self.latencies = latencies
+        self.throughput = throughput
         self.non2xx = 0
         self.requests = 0
+        self.avg_latency = avg_latency
 
     def __repr__(self):
         return f'Point(r={self.rate},median_l={self.median_latency()},p90={self.ninety_latency()},t={self.throughput})'
@@ -114,11 +118,19 @@ label_map = {
 }
 
 label_map = {
-    "": "μ2sls-base",
-    " --enable_logging": "μ2sls $-$OD $-$TX",
-    " --enable_txn": "μ2sls $-$FT $-$OD",
-    " --enable_logging --enable_txn": "μ2sls $-$OD",
-    " --enable_txn --enable_custom_dict": "μ2sls $-$FT",
+    # "": "μ2sls-base",
+    "": "unsafe",
+    # " --enable_logging": "μ2sls $-$OD $-$TX",
+    # " --enable_logging": "TX-unsafe",
+    " --enable_logging": "unsafe (w FT)",
+    # " --enable_txn": "μ2sls $-$FT $-$OD",
+    # " --enable_txn": "FT-unsafe",
+    " --enable_txn": "no FT",
+    # " --enable_logging --enable_txn": "μ2sls $-$OD",
+    " --enable_logging --enable_txn": "μ2sls (w/o OD)",
+    # " --enable_txn --enable_custom_dict": "μ2sls $-$FT",
+    # " --enable_txn --enable_custom_dict": "FT-unsafe",
+    " --enable_txn --enable_custom_dict": "no FT",
     " --enable_logging --enable_txn --enable_custom_dict": "μ2sls",
 }
 
@@ -142,6 +154,29 @@ plot_order = ["",
               " --enable_logging --enable_txn",
               " --enable_txn --enable_custom_dict",
               " --enable_logging --enable_txn --enable_custom_dict"]
+
+single_threaded_results = {
+    "single_stateful": {
+            "": DataPoint(None, {"50.000":52.1}, throughput=19.08, avg_latency=52.4),
+            " --enable_logging": DataPoint(None, {"50.000":52.0}, throughput=18.27, avg_latency=54.7),
+        },
+    "chain": {
+            "": DataPoint(None, {"50.000":67.6}, throughput=16.60, avg_latency=60.2),
+            " --enable_logging": DataPoint(None, {"50.000": 71.7}, throughput=15.92, avg_latency=62.8),
+        },
+    "tree": {
+            "": DataPoint(None, {"50.000":65.1}, throughput=16.97, avg_latency=58.9),
+            " --enable_logging": DataPoint(None, {"50.000":69.5}, throughput=15.51, avg_latency=64.4),
+        },
+    "media-service-test": {
+            "": DataPoint(None, {"50.000":154.8}, throughput=6.9, avg_latency=144.8),
+            " --enable_logging": DataPoint(None, {"50.000":152.1}, throughput=5.46, avg_latency=183.1),
+        },
+    "hotel-reservation": {
+            "": DataPoint(None, {"50.000":57.8}, throughput=14.58, avg_latency=68.5),
+            " --enable_logging": DataPoint(None, {"50.000":75.4}, throughput=14.28, avg_latency=69.9),
+        },
+}
 
 label_colors = {}
 cmap = matplotlib.cm.get_cmap('terrain')
@@ -319,7 +354,22 @@ for i in range(n):
     results = parse_raw_wrk_results(log_file)
     from pprint import pprint
     ax = axs[i]
+
     plot(ax, results, benchmark, plot_order[::-1])
+
+    ## Plot sequential
+    st_res = single_threaded_results[benchmark]
+    line = " --enable_logging"
+    dp = st_res[line]  
+    ax.axvline(x = dp.throughput, color = 'black', linestyle = '-.', label = 'unsafe-seq (w FT)')
+    ax.legend()
+    handles, labels = ax.get_legend_handles_labels()
+
+    #specify order of items in legend
+    order = [1,2,0,3]
+    #add legend to plot
+    ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+
     ax.set_xlabel(None)
     ax.set_title(benchmark_map[benchmark])
     if i > 0:
@@ -371,6 +421,20 @@ for i in range(n):
     pprint(results)
     ax = axs[i]
     plot(ax, results, benchmark, plot_order[::-1])
+
+    ## Plot sequential
+    st_res = single_threaded_results[benchmark]
+    line = ""
+    dp = st_res[line]  
+    ax.axvline(x = dp.throughput, color = 'black', linestyle = '-.', label = 'unsafe-seq')
+    ax.legend()
+    handles, labels = ax.get_legend_handles_labels()
+
+    #specify order of items in legend
+    order = [1,0,2]
+    #add legend to plot
+    ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+
     ax.set_xlabel(None)
     ax.set_title(benchmark_map[benchmark])
     if i > 0:
