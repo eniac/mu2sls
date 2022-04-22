@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: shared-logs
+  labels:
+    app: logs-collector
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  storageClassName: manual
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: logs-log-collector-0
+    namespace: logging
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: /mnt/logs
