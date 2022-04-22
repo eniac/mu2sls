@@ -41,20 +41,20 @@ def run_test_media_service(deployed_services, invoke_lib):
                           "Titanic", '42')
 
     ## Add plot and movie info
-    info = json.loads('{"movie_id": "42", "title": "Titanic", "casts": [], "plot_id": "299534", "thumbnail_ids": ["/or06FN3Dka5tukK1e9sl16pB3iy.jpg"], "photo_ids": [], "video_ids": [], "avg_rating": 8.6, "num_rating": 4789}')    
-    invoke_lib.SyncInvoke(deployed_services['MovieInfo'], 
-                          "write_movie_info", 
-                          info)
+    # info = json.loads('{"movie_id": "42", "title": "Titanic", "casts": [], "plot_id": "299534", "thumbnail_ids": ["/or06FN3Dka5tukK1e9sl16pB3iy.jpg"], "photo_ids": [], "video_ids": [], "avg_rating": 8.6, "num_rating": 4789}')    
+    # invoke_lib.SyncInvoke(deployed_services['MovieInfo'], 
+    #                       "write_movie_info", 
+    #                       info)
 
-    invoke_lib.SyncInvoke(deployed_services['Plot'],
-                          "write_plot",
-                          info['plot_id'], "ship hits iceberg")
+    # invoke_lib.SyncInvoke(deployed_services['Plot'],
+    #                       "write_plot",
+    #                       info['plot_id'], "ship hits iceberg")
 
-    ret = invoke_lib.SyncInvoke(deployed_services['Plot'],
-                                "read_plot",
-                                info['plot_id'])
+    # ret = invoke_lib.SyncInvoke(deployed_services['Plot'],
+    #                             "read_plot",
+    #                             info['plot_id'])
 
-    assert ret == 'ship hits iceberg'
+    # assert ret == 'ship hits iceberg'
 
     ## Compose Review
     invoke_lib.SyncInvoke(deployed_services['Frontend'],
@@ -62,6 +62,29 @@ def run_test_media_service(deployed_services, invoke_lib):
                           username, password, "Titanic", 5, "Titanic is the worst movie I have ever watched!")
 
     ## TODO: Can use populate.py and compressed.json to populate movies and users
+
+def run_test_hotel_reservation(deployed_services, invoke_lib):
+    ## Add hotel
+    invoke_lib.SyncInvoke(deployed_services['Hotel'], "add_hotel", "hotel1", 4)
+
+    ## Add flight
+    invoke_lib.SyncInvoke(deployed_services['Flight'], "add_flight", "flight1", 3)
+
+    for user_id in range(3):
+        ret = invoke_lib.SyncInvoke(deployed_services['Frontend'],
+                                    "req",
+                                    str(user_id), "flight1", "hotel1")
+        
+        assert ret[0] == True
+        assert ret[1] == "Order Successful"
+
+    ret = invoke_lib.SyncInvoke(deployed_services['Frontend'],
+                                "req",
+                                "4", "flight1", "hotel1")
+
+    assert ret[0] == False
+    assert ret[1] == "Flight Reservation Failed"
+
 
 def run_test_cross_service_txn(deployed_services, invoke_lib):
     val1 = 5
@@ -111,7 +134,8 @@ TEST_FUNC_FROM_FILE = {
     'media-service-test.csv': run_test_media_service,
     'cross-service-txn-test.csv': run_test_cross_service_txn,
     'cross-service-txn-abort-test.csv': run_test_cross_service_txn_abort,
-    'async-test.csv': run_test_async
+    'async-test.csv': run_test_async,
+    'hotel-reservation.csv': run_test_hotel_reservation,
 }
 
 ## TODO: Extend it to do the calls using SyncInvoke maybe?
@@ -132,7 +156,10 @@ def main(args):
         clear_db.main()
 
         deployment_list, service_list = deployment_list_from_deployment_file(deployment_file)
-        knative_dev.deploy_services(docker_io_username, deployment_list, deployment_file)
+        knative_dev.deploy_services(docker_io_username, deployment_list, deployment_file, 
+                                    enable_logging=args.enable_logging,
+                                    enable_txn=args.enable_txn,
+                                    enable_custom_dict=args.enable_custom_dict)
 
         services = {k: k for k in service_list}
         run_test_deployed_services(services, deployment_file, knative_invoke_lib)
@@ -142,9 +169,15 @@ def main(args):
 
 def run_test_deployed_services(deployed_services, deployment_file, invoke_lib):
     deployment_file_basename = deployment_file.split('/')[-1]
-    test_func = TEST_FUNC_FROM_FILE[deployment_file_basename]
+    try:
+        test_func = TEST_FUNC_FROM_FILE[deployment_file_basename]
+    except:
+        # print(deployment_file_basename, TEST_FUNC_FROM_FILE)
+        print("No test for this app, just deployed!")
+        return
 
-    return test_func(deployed_services, invoke_lib)
+    test_func(deployed_services, invoke_lib)
+    
 
 ## TODO: Very hacky
 def deployment_list_from_deployment_file(deployment_file):
@@ -177,6 +210,15 @@ def parse_arguments():
     parser.add_argument("--docker_io_username", 
                         help="the docker_io username to push/pull the images",
                         default="default")
+    parser.add_argument("--enable_logging", 
+                        help="whether to enable beldi logging",
+                        action='store_true')
+    parser.add_argument("--enable_txn", 
+                        help="whether to enable transactions",
+                        action='store_true')
+    parser.add_argument("--enable_custom_dict", 
+                        help="whether to enable custom logging",
+                        action='store_true')
     args = parser.parse_args()
     return args
 

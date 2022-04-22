@@ -1,12 +1,13 @@
-from uuid import uuid4
+import asyncio
+import time
+
+
+from runtime import request_lib
 from runtime.beldi import beldi
 from runtime.beldi import common
-
 from runtime.knative import invoke
-
 from runtime.logger_abstraction import Logger
 from runtime.transaction_exception import TransactionException
-from runtime import request_lib
 
 
 ##
@@ -30,7 +31,7 @@ class BeldiLogger(Logger):
 
     def SyncInvoke(self, client_name: str, method_name: str, *args):
         self.env.increase_calls()
-        if self.env.txn_id is not None:
+        if self.env.txn_id is not None and self.env.instruction == "EXECUTE":
             beldi.add_callee(self.env, client_name, method_name)
         beldi.log_invoke(self.env)
         res = super().SyncInvoke(client_name, method_name, *args)
@@ -57,7 +58,7 @@ class BeldiLogger(Logger):
         if request_lib.is_abort_response(res):
             print("Transaction was aborted by callee... aborting too")
             self.AbortTx()
-        
+
         return res
 
     async def WaitAll(self, *promises):
@@ -86,75 +87,114 @@ class BeldiLogger(Logger):
             beldi.eos_write(self.env, key, value)
             return True
 
-
     def eos_read(self, key):
         return beldi.eos_read(self.env, key)
-    
-    ## This implements a write method on the store
-    ##
-    ## Normally, this would also use the environment
-    ## to perform the invocation
+
     def eos_write(self, key, value):
         return beldi.eos_write(self.env, key, value)
-    
-    ## TODO: These are still empty and their APIs undecided.
-    ##
-    ## TODO: We need to implement them for Beldi
-    def contains(self, key):
+
+    def eos_contains(self, key):
         return beldi.eos_contains(self.env, key)
-    
-    ## TODO: @Haoran my goal was for this to be atomic. Maybe we need to either remove it
-    ##       or wrap it with some lock.
-    ##
-    ## TODO: We should not call `eos` here because it interferes with transactions
-    def set_if_not_exists(self, key, value):
+
+    def eos_set_if_not_exists(self, key, value):
         return beldi.eos_set_if_not_exist(self.env, key, value)
+
+    def tpl_check_read(self, key):
+        return beldi.tpl_check_read(self.env, key)
+
+    def tpl_check_write(self, key, value):
+        return beldi.tpl_check_write(self.env, key, value)
+
+    def tpl_check_pop(self, key):
+        return beldi.tpl_check_pop(self.env, key)
+
+    def tpl_check_scan(self, key):
+        return beldi.tpl_check_scan(self.env, key)
 
     def in_txn(self):
         return self.env.in_txn()
 
     def BeginTx(self):
-        return beldi.begin_tx(self.env)
+        if beldi.ENABLE_TXN:
+            return beldi.begin_tx(self.env)
+
+    ## TODO: Hide async behind commit correctly
+    # def CommitTx(self):
+    #     ## TODO: This is not totally correct, we would normally want to
+    #     ##       run it in the current running loop, but I am not
+    #     ##       sure how to wait for it here then without having the
+    #     ##       await keyword propagate in the whole application.
+    #     eloop = asyncio.get_event_loop()
+    #     eloop.run_until_complete(self._CommitTx())
+
+    # def AbortTxNoExc(self):
+    #     eloop = asyncio.get_event_loop()
+    #     eloop.run_until_complete(self._AbortTxNoExc())
 
     def CommitTx(self):
-        print("Commit was called!")
-        self.env.instruction = "COMMIT"
-        callees = beldi.commit_tx(self.env)
-        for client, method in callees:
-            self.SyncInvoke(client, method, "")
-        self.env.txn_id = None
-        self.env.instruction = None
+        return self._CommitTx()
 
     def AbortTxNoExc(self):
-        print("Abort was called!")
-        self.env.instruction = "ABORT"
-        callees = beldi.abort_tx(self.env)
-        for client, method in callees:
-            self.SyncInvoke(client, method, {})
-        self.env.txn_id = None
-        self.env.instruction = None
+        return self._AbortTxNoExc()
+
+    # def CommitTx(self):
+    #     return await self._CommitTx()
+
+    # def AbortTxNoExc(self):
+    #     return await self._AbortTxNoExc()
+
+    ## TODO: Not sure why commit and abort have a different value
+    def _inform_callees(self, callees, val):
+        if len(callees) > 0:
+            fs = []
+            for client, method in callees:
+                fs.append(self.AsyncInvoke(client, method, val))
+            asyncio.create_task(self.WaitAll(*fs))
+
+    def _CommitTx(self):
+        if beldi.ENABLE_TXN:
+            self.env.instruction = "COMMIT"
+            callees = beldi.commit_tx(self.env)
+            self._inform_callees(callees, "")
+            self.env.txn_id = None
+            self.env.instruction = None
+
+
+    def _AbortTxNoExc(self):
+        if beldi.ENABLE_TXN:
+            self.env.instruction = "ABORT"
+            callees = beldi.abort_tx(self.env)
+            self._inform_callees(callees, {})
+            self.env.txn_id = None
+            self.env.instruction = None
 
     def AbortTx(self):
-        ## First call the Abort core
-        self.AbortTxNoExc()
+        if beldi.ENABLE_TXN:
+            ## First call the Abort core
+            self.AbortTxNoExc()
 
-        ## Throw the transaction exception so that the user code can run
-        ##   abort handler code.
-        print("Throwing abort exc!")
-        raise TransactionException()
+            ## Throw the transaction exception so that the user code can run
+            ##   abort handler code.
+            # print("Throwing abort exc!")
+            raise TransactionException()
 
     ## This function checks the env (.instruction and .txn_id) and
     ## completes a transaction or aborts it.
     ##
     ## It is invoked by the request handler (in CompiledService)
     def commit_or_abort(self):
-        assert self.env.txn_id is not None
-        if self.env.instruction == "COMMIT":
-            self.CommitTx()
-        elif self.env.instruction == "ABORT":
-            ## We don't want to throw an exception when aborting due to a parent.
-            self.AbortTxNoExc()
+        if beldi.ENABLE_TXN:
+            assert self.env.txn_id is not None
+            if self.env.instruction == "COMMIT":
+                self.CommitTx()
+            elif self.env.instruction == "ABORT":
+                ## We don't want to throw an exception when aborting due to a parent.
+                self.AbortTxNoExc()
+            else:
+                assert False
+            return {}
         else:
-            assert False
-        return {}
+            return {}
 
+    def clear_logs(self):
+        beldi.clear_logs(self.env)

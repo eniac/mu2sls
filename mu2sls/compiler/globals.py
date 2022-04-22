@@ -3,7 +3,7 @@
 INVOKE_FUNCTION_NAMES = ['SyncInvoke', 'AsyncInvoke']
 INVOKE_LIB_FUNCTION_NAMES = INVOKE_FUNCTION_NAMES + ['Wait', 'WaitAll']
 
-TXN_FUNCTION_NAMES = ['BeginTx', 'CommitTx', 'AbortTx']
+TXN_FUNCTION_NAMES = ['BeginTx', 'CommitTx', 'AbortTx', 'AbortTxNoExc']
 
 BELDI_LOGGER_CLASS_NAME = 'BeldiLogger'
 

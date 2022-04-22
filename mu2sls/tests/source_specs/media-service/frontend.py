@@ -1,4 +1,6 @@
 from uuid import uuid4
+import time
+import logging
 
 from compiler import decorators
 
@@ -8,6 +10,7 @@ class Frontend(object):
         pass
 
     async def compose(self, username, password, title, rating, text):
+        start = time.perf_counter_ns()
         token = SyncInvoke('User', 'login', username, password)
         assert token is not None
         req_id = str(uuid4())
@@ -18,5 +21,7 @@ class Frontend(object):
         p2 = AsyncInvoke('User', "upload_user", req_id, username)
         p3 = AsyncInvoke('MovieId', "upload_movie", req_id, title, rating)
         p4 = AsyncInvoke('Text', "upload_text", req_id, text)
-
         await WaitAll(p1, p2, p3, p4)
+        end = time.perf_counter_ns()
+        duration = (end - start) / 1000000
+        logging.error(f'APP Frontend.compose: {duration}')

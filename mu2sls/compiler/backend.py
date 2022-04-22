@@ -78,7 +78,7 @@ def construct_descriptor_ast(field_name: str):
 
         def __set__(self, obj, value):
             # logging.info('Setting collection')
-            if(isinstance(value, wrappers.WrapperTerminal)):
+            if(isinstance(value, wrappers.Wrapper)):
                 # logging.info('Collection initialized')
                 # print('Collection initialized')
                 obj._wrapper_""" + field_name + """ = value
@@ -118,7 +118,8 @@ def construct_init_method_persistent_object_ast(per_obj_name: str, per_obj_init_
                                ast.Call(func=ast.Attribute(value=ast.Name(id='wrappers', ctx=ast.Load()), attr='wrap_terminal', ctx=ast.Load()), 
                                         args=[ast.Name(id=beldi_key_var_name, ctx=ast.Load()), 
                                               ast.Name(id=init_val_var_name, ctx=ast.Load()),
-                                              ast.Name(id=STORE_FIELD_NAME, ctx=ast.Load())],
+                                              make_self_field_access(STORE_FIELD_NAME)],
+                                            #   ast.Name(id=STORE_FIELD_NAME, ctx=ast.Load())],
                                         keywords=[]))
 
     return [assgn1, assgn2, assgn3]
@@ -136,8 +137,8 @@ def construct_init_method_ast(persistent_objects):
     body.append(assgn_logger)
 
     ## Then initialize all the objects
-    for per_obj_name, per_obj_init_ast in persistent_objects.items():
-        body += construct_init_method_persistent_object_ast(per_obj_name, per_obj_init_ast)
+    # for per_obj_name, per_obj_init_ast in persistent_objects.items():
+    #     body += construct_init_method_persistent_object_ast(per_obj_name, per_obj_init_ast)
 
     ## Create the function
     function_ast = ast.FunctionDef(name='__init__', 
@@ -148,6 +149,25 @@ def construct_init_method_ast(persistent_objects):
                                    body=body, 
                                    decorator_list=[], returns=None, type_comment=None)
     return function_ast
+
+def construct_object_init_ast(persistent_objects):
+    body = []
+    ## Then initialize all the objects
+    for per_obj_name, per_obj_init_ast in persistent_objects.items():
+        body += construct_init_method_persistent_object_ast(per_obj_name, per_obj_init_ast)
+    
+    if len(body) == 0:
+        body = [ast.Pass()]
+        
+    ## Create the function
+    function_ast = ast.FunctionDef(name='__init_per_objects__', 
+                                   args=ast.arguments(posonlyargs=[], 
+                                                      args=[make_arg('self')],
+                                                      vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]), 
+                                   body=body, 
+                                   decorator_list=[], returns=None, type_comment=None)
+    return function_ast
+
 
 ## TODO: Not sure if this should be a method of Service or a function here
 def service_to_ast(service: Service):
@@ -172,6 +192,11 @@ def service_to_ast(service: Service):
     ## TODO: This should take some form of configuration to use beldi or not
     init_method = construct_init_method_ast(persistent_objects)
 
+    ## Creates a method that initializes persistent objects
+    ##
+    ## It needs to be called after init to have a request identifier
+    object_init_method = construct_object_init_ast(persistent_objects)
+
     ## Instead of making these methods that are always the same,
     ## we simply inherit them from a superclass.
     compiled_service_base_class = make_var_expr('CompiledService')
@@ -183,7 +208,7 @@ def service_to_ast(service: Service):
         new_method = invocationModifier.visit(method)
         new_methods.append(new_method)
 
-    body = assignments + [init_method] + new_methods
+    body = assignments + [init_method, object_init_method] + new_methods
     
     new_class = ast.ClassDef(name=service.name(),
                              bases= [compiled_service_base_class] + service.bases(),

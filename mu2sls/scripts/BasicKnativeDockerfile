@@ -1,4 +1,4 @@
-FROM foundationdb/foundationdb:6.3.15 as fdb
+FROM foundationdb/foundationdb:6.3.23 as fdb
 FROM python:3.8-slim
 
 ENV PYTHONUNBUFFERED True
@@ -7,7 +7,7 @@ COPY --from=fdb /usr/lib/libfdb_c.so /usr/lib
 COPY --from=fdb /usr/bin/fdbcli /usr/bin/
 
 ## TODO: Delete requests
-RUN pip install requests httpx foundationdb 
+RUN pip install requests httpx foundationdb==6.3.23
 
 ## For Flask (only sync)
 # RUN pip install Flask gunicorn
@@ -31,4 +31,4 @@ COPY ${app_file} ./app.py
 # CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
 
 ## For Quart
-CMD exec hypercorn --bind :$PORT --workers 2 app:app
+CMD exec hypercorn --bind :$PORT --workers 4 app:app

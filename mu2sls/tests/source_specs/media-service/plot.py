@@ -10,7 +10,7 @@ class Plot(object):
         self.plots = {} # type: Persistent[dict]
 
     def write_plot(self, plot_id, plot):
-        self.plots.update([(plot_id, plot)])
+        self.plots[plot_id] = plot
 
     def read_plot(self, plot_id):
-        return self.plots.get(plot_id)
+        return self.plots[plot_id]
