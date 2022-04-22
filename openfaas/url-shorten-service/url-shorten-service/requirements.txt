@@ -1,3 +1,0 @@
-    thrift
-    jaeger-client
-    pymongo
