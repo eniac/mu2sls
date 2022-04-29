@@ -1,7 +1,9 @@
 #!/bin/bash
 
-./setup1.sh
+bash setup1.sh
+prev=$PWD
 
 sudo su - ${USER}
+cd prev
 
-./setup2.sh
+bash setup2.sh

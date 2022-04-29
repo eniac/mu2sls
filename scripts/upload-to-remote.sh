@@ -12,13 +12,14 @@ else
     key_flag="-i ${key}"
 fi
 
-export mu2sls_dir=${MU2SLS_TOP:-$(git rev-parse --show-toplevel --show-superproject-working-tree)/mu2sls}
+export mu2sls_dir=${MU2SLS_TOP:-$(git rev-parse --show-toplevel --show-superproject-working-tree)}
+export remote_dir=knative
 
 ## Upload the whole knproto directory to a remote machine
 if [ "${mode}" = "cloudlab" ]; then
-    rsync --rsh="ssh -p 22 ${key_flag}" --progress -p -r "${mu2sls_dir}/scripts/knative" "${user}@${ip}:/users/${user}"
-    rsync --rsh="ssh -p 22 ${key_flag}" --progress -p -r "${mu2sls_dir}/runtime" "${mu2sls_dir}/scripts" "${user}@${ip}:/users/${user}/knproto"
-    rsync --rsh="ssh -p 22 ${key_flag}" --progress -p "${mu2sls_dir}"/tests/* "${user}@${ip}:/users/${user}/knproto"
+    rsync --rsh="ssh -p 22 ${key_flag}" --progress -p -r "${mu2sls_dir}/scripts/${remote_dir}" "${user}@${ip}:/users/${user}"
+    rsync --rsh="ssh -p 22 ${key_flag}" --progress -p -r "${mu2sls_dir}/runtime" "${mu2sls_dir}/scripts" "${user}@${ip}:/users/${user}/${remote_dir}"
+    rsync --rsh="ssh -p 22 ${key_flag}" --progress -p "${mu2sls_dir}"/tests/* "${user}@${ip}:/users/${user}/${remote_dir}"
 else
     rsync --rsh="ssh -p 22 ${key_flag}" --progress -p -r ../knproto "${user}@${ip}:/home/${user}"
 fi
