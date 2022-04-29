@@ -20,6 +20,7 @@ if [ "${mode}" = "cloudlab" ]; then
     rsync --rsh="ssh -p 22 ${key_flag}" --progress -p -r "${mu2sls_dir}/scripts/${remote_dir}" "${user}@${ip}:/users/${user}"
     rsync --rsh="ssh -p 22 ${key_flag}" --progress -p -r "${mu2sls_dir}/runtime" "${mu2sls_dir}/scripts" "${user}@${ip}:/users/${user}/${remote_dir}"
     rsync --rsh="ssh -p 22 ${key_flag}" --progress -p "${mu2sls_dir}"/tests/* "${user}@${ip}:/users/${user}/${remote_dir}"
+    rsync --rsh="ssh -p 22 ${key_flag}" --progress -p "${mu2sls_dir}"/experiments/* "${user}@${ip}:/users/${user}/${remote_dir}"
 else
     rsync --rsh="ssh -p 22 ${key_flag}" --progress -p -r ../knproto "${user}@${ip}:/home/${user}"
 fi
