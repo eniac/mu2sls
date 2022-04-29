@@ -11,8 +11,7 @@ def run_collect_output(cmd):
     res = subprocess.run(cmd, stdout=subprocess.PIPE)
     return res.stdout.decode('utf-8').strip()
 
-HOME = run_collect_output(["git", "rev-parse", "--show-toplevel", "--show-superproject-working-tree"])
-MUSLS = os.path.join(HOME, "mu2sls")
+MUSLS = run_collect_output(["git", "rev-parse", "--show-toplevel", "--show-superproject-working-tree"])
 KNATIVE_DOCKERFILE = os.path.join(MUSLS, "scripts", "BasicKnativeDockerfile")
 
 ## TODO: Pass the csv as an argument and move that to a shell script maybe?

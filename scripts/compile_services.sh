@@ -8,7 +8,7 @@ deployment_file=${1?Deployment file not given}
 test_deploy_dir=${2?Target directory not given}
 ## The rest of the arguments are tranfered directly to mu2sls
 
-export MU2SLS_TOP=${MU2SLS_TOP:-$(git rev-parse --show-toplevel --show-superproject-working-tree)/mu2sls}
+export MU2SLS_TOP=${MU2SLS_TOP:-$(git rev-parse --show-toplevel --show-superproject-working-tree)}
 
 
 mkdir -p "${test_deploy_dir}"

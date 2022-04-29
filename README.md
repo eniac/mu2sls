@@ -77,3 +77,12 @@ Example usage of build script:
 ## Build and deploy the single-stateful application
 python3 scripts/knative_dev.py ${docker_io_username} tests/single-stateful.csv
 ```
+
+#### Deploying an application and running tests
+
+In order to deploy an application in the remote machine, you need to use the following script with the `.csv` file as the first argument. Change the `--docker_io_username` if you have built scripts in a different registry.
+
+```sh
+python3 test_services.py single-stateful.csv knative --docker_io_username konstantinoskallas
+```
+
