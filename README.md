@@ -86,3 +86,26 @@ In order to deploy an application in the remote machine, you need to use the fol
 python3 test_services.py single-stateful.csv knative --docker_io_username konstantinoskallas
 ```
 
+#### Running experiments
+
+You can run the experiments for all small applications using the following command remotely:
+
+```sh
+bash eval_small_applications.sh
+```
+
+Then you need to pull results locally using:
+
+```sh
+scp -i ${private_key} ${node_username}@${node_address}:knative/single_stateful.log ./results/single_stateful.log
+scp -i ${private_key} ${node_username}@${node_address}:knative/chain.log ./results/chain.log
+scp -i ${private_key} ${node_username}@${node_address}:knative/tree.log ./results/tree.log
+```
+
+and then you can plot the results using:
+
+```sh
+python3 experiments/plot-results.py
+```
+
+which generates plots in `plots`.

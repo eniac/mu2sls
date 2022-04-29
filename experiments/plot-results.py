@@ -2,6 +2,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import numpy as np
+from pprint import pprint
+
 
 class DataPoint:
     def __init__(self, rate, latencies = None, throughput = None, avg_latency = None):
@@ -258,13 +260,13 @@ def plot_fig(results, benchmark, plot_order, output_file_prefix="", debug=False)
     plt.savefig(filename)
 
 
-benchmarks = ["hotel-reservation"]
+# benchmarks = ["hotel-reservation"]
 
-for benchmark in benchmarks:
-    log_file = f"results/{benchmark}.log"
-    results = parse_raw_wrk_results(log_file)
-    from pprint import pprint
-    plot_fig(results, benchmark, plot_order, debug=True)
+# for benchmark in benchmarks:
+#     log_file = f"results/{benchmark}.log"
+#     results = parse_raw_wrk_results(log_file)
+#     from pprint import pprint
+#     plot_fig(results, benchmark, plot_order, debug=True)
 
 
 ##
@@ -277,14 +279,14 @@ plot_order = ["",
               " --enable_logging"]
 
 ## Separate
-for benchmark in benchmarks:
-    log_file = f"results/{benchmark}.log"
-    results = parse_raw_wrk_results(log_file)
-    from pprint import pprint
-    pprint(results)
-    pprint("-" * 20)
-    output_file_prefix = "logging_"
-    plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
+# for benchmark in benchmarks:
+#     log_file = f"results/{benchmark}.log"
+#     results = parse_raw_wrk_results(log_file)
+#     from pprint import pprint
+#     pprint(results)
+#     pprint("-" * 20)
+#     output_file_prefix = "logging_"
+#     plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
 
 figsize=(9,2.5)
 ## TODO: Can we get these results instead?
@@ -332,12 +334,12 @@ plot_order = [" --enable_logging",
               " --enable_logging --enable_txn",
               " --enable_logging --enable_txn --enable_custom_dict"]
 
-for benchmark in benchmarks:
-    log_file = f"results/{benchmark}.log"
-    results = parse_raw_wrk_results(log_file)
-    output_file_prefix = "txn_"
-    # print(results)
-    plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
+# for benchmark in benchmarks:
+#     log_file = f"results/{benchmark}.log"
+#     results = parse_raw_wrk_results(log_file)
+#     output_file_prefix = "txn_"
+#     # print(results)
+#     plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
 
 ##
 ## Combined
@@ -352,7 +354,6 @@ for i in range(n):
     benchmark = benchmarks[i]
     log_file = f"results/{benchmark}.log"
     results = parse_raw_wrk_results(log_file)
-    from pprint import pprint
     ax = axs[i]
 
     plot(ax, results, benchmark, plot_order[::-1])
@@ -397,12 +398,12 @@ benchmarks = ["media-service-test",
 plot_order = ["",
               " --enable_logging --enable_txn --enable_custom_dict"]
 
-for benchmark in benchmarks:
-    log_file = f"results/{benchmark}.log"
-    results = parse_raw_wrk_results(log_file)
-    output_file_prefix = "real_apps_"
-    # print(results)
-    plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
+# for benchmark in benchmarks:
+#     log_file = f"results/{benchmark}.log"
+#     results = parse_raw_wrk_results(log_file)
+#     output_file_prefix = "real_apps_"
+#     # print(results)
+#     plot_fig(results, benchmark, plot_order, output_file_prefix=output_file_prefix)
 
 n = len(benchmarks)
 fig, axs = plt.subplots(ncols=n, figsize=figsize,
@@ -418,7 +419,7 @@ for i in range(n):
         a.latencies={"50.000": 1010000, "90.000": 2890000}
         a.throughput = 76.68
         results[""].append(a)
-    pprint(results)
+    # pprint(results)
     ax = axs[i]
     plot(ax, results, benchmark, plot_order[::-1])
 
