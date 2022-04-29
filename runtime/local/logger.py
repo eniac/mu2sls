@@ -73,6 +73,9 @@ class LocalLogger(Logger):
             self.eos_write(key, value)
         self.CommitTx()
 
+    def eos_set_if_not_exists(self, key, value):
+        return self.set_if_not_exists(key, value)
+
     ## TODO: Maybe we need to implement this differently
     def in_txn(self):
         return False

@@ -3,7 +3,7 @@
 echo "Python tests"
 python3 -m pytest
 
-export MU2SLS_TOP=${MU2SLS_TOP:-$(git rev-parse --show-toplevel --show-superproject-working-tree)/mu2sls}
+export MU2SLS_TOP=${MU2SLS_TOP:-$(git rev-parse --show-toplevel --show-superproject-working-tree)}
 
 test_log_dir="${MU2SLS_TOP}/tests/logs/"
 mkdir -p "${test_log_dir}"

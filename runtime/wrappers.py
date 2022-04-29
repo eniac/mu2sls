@@ -488,7 +488,7 @@ def wrap_terminal(object_key, object_init_val, store):
         # print("Dictionary type:", object_init_val)
         wrapped_object = WrapperDict(object_key, object_init_val, store)
     else:
-        print("Default dictionary")
+        print("Default Wrapping")
         ## The general wrapping that adds the object behind a key
         wrapped_object = wrap_default(object_key, object_init_val, store)
 

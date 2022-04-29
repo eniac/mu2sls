@@ -142,7 +142,6 @@ def test_counter():
 
     _ = TestObject()
 
-## TODO: For this test to pass, we need to wrap integers (and other primitives differently)
 def test_int_counter():
     counter_key = "test-int-counter"
 

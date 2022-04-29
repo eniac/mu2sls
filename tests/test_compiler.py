@@ -38,6 +38,8 @@ def test_compiler_list_service():
     store = logger.LocalLogger()
     store.init_env()
     service = test_module.Service(store)
+    service.__init_per_objects__()
+
     service.test()
 
 def test_compiler_url_shortener_service():
@@ -50,6 +52,8 @@ def test_compiler_url_shortener_service():
     store = logger.LocalLogger()
     store.init_env()
     service = test_module.UrlShortener(store)
+    service.__init_per_objects__()
+
     url1 = "url1"
     ret1 = service.ShortenUrls(url1)
     assert(ret1[0] == "NotFound")
