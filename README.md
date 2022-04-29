@@ -1,3 +1,18 @@
+## Using mu2sls
+
+__TODO__
+
+You need to develop each service of your application using the programming model that mu2sls supports.
+For an example see __TODO__
+
+Then, you have to write a `csv` file that contains the information for all services for the compiler to compile them and to be able to build and deploy them.
+
+For an example of a csv file see __TODO__
+
+The source files of the application services are indicated in the `csv` files.
+
+Then you can use __TODO: XXX__ to deploy your services locally with a python interpreter. To deploy them remotely, you can follow the running experiments part of the README below that explains the full workflow for the experiments in our paper.
+
 ## Running experiments on cloudlab
 
 __TODO:__ Simplify those
