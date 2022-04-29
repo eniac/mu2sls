@@ -148,7 +148,12 @@ def main(args):
     ## For local or local-beldi testing, we need to deploy
     if(store_conf in ["local", "beldi"]):
         deployed_services = deploy_from_deployment_file(deployment_file, store_conf)
-        # print(deployed_services)
+        print(deployed_services)
+
+        ## In local deployment we need to manually init the persistent objects
+        for service_name, service in deployed_services.items():
+            service.__init_per_objects__()
+
 
         run_test_deployed_services(deployed_services, deployment_file, local_invoke_lib)
     elif(store_conf == "knative"):
