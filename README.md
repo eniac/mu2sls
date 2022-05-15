@@ -13,7 +13,7 @@ The source files of the application services are indicated in the `csv` files.
 
 Then you can use __TODO: XXX__ to deploy your services locally with a python interpreter. To deploy them remotely, you can follow the running experiments part of the README below that explains the full workflow for the experiments in our paper.
 
-## Running experiments on cloudlab
+## Running paper experiments on cloudlab
 
 __TODO:__ Simplify those
 
@@ -83,6 +83,11 @@ Then, you can start the `knative` cluster using:
 ./start-cluster.sh
 ```
 
+Then you need to setup all environment variables to be able to run experiments:
+```sh
+source setup_env_vars.sh
+```
+
 #### (Local) Building and pushing application docker images
 
 In order to run an application, you need to first build it on your local machine and push it to an image registry. If you need to do that, update the `$docker_io_username` variable in `vars.sh` to include your `docker_io_username`, alternatively, you can use the prebuilt images.
@@ -90,7 +95,7 @@ In order to run an application, you need to first build it on your local machine
 Example usage of build script:
 ```sh
 ## Build and deploy the single-stateful application
-python3 scripts/knative_dev.py ${docker_io_username} tests/single-stateful.csv
+python3 scripts/knative_dev.py ${docker_io_username} experiments/single-stateful.csv
 ```
 
 #### Deploying an application and running tests
