@@ -5,19 +5,22 @@ trap "exit" INT
 scale=2
 threads=4
 connections=16
-duration=30s
+duration=60s
+sleep_dur=30
 
 function run_wrk()
 {
 
     echo "Rate: 1"
-        ./wrk2/wrk -t1 -c1 -d${duration} -R1 --latency http://${LOAD_BALANCER_IP}/req -s ${wrk_file} #| grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
+    ./wrk2/wrk -t1 -c1 -d${duration} -R1 --latency http://${LOAD_BALANCER_IP}/req -s ${wrk_file} #| grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
+    sleep "${sleep_dur}"
 
     for rate in $rates
     do
         ## TODO: Also check for patterns of non 2xx responses
         echo "Rate: ${rate}"
         ./wrk2/wrk -t${threads} -c${connections} -d${duration} -R${rate} --latency http://${LOAD_BALANCER_IP}/req -s ${wrk_file} # | grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
+	sleep "${sleep_dur}"
     done
 }
 
