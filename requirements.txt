@@ -2,3 +2,5 @@ uncompyle6
 pytest
 jwt
 httpx
+numpy
+matplotlib
