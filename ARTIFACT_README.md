@@ -3,6 +3,7 @@ __TODO__:
 - Is there a way to give the exact Cloudlab configuration setup in a programatic way for them to start the cloudlab instance?
 - Should we provide source code on Zenodo or github?
 - TODO: Provide a virtual box with all dependencies for both local and remote development.
+- TODO: Make sure that running all experiments one after the other gives reasonable results (sometime it didn't when we run it on our own)
 
 # Artifact Documentation for "Executing Microservice Applications on Serverless, Correctly"
 
@@ -219,13 +220,13 @@ which generates plots in `plots`.
 
 You can use `mu2sls` for your application by developing its services using the programming model that `mu2sls` supports. 
 
-For an example of a service that simply __TODO__ see __TODO__.
+For an example of a service `Caller2` that simply forwards its results to a backend service (`Backend`) see `tests/source_specs/async-test/caller2.py`, and for the example of a backend service that tries to perform a transaction where it increments the counter for the input key see `tests/source_specs/async-test/backend.py`.
 
 Then, you have to write a `csv` file that contains the information for all services for the compiler to compile them and to be able to build and deploy them.
 
-For an example of a csv file see __TODO__
+For an example of a csv file that composes `Caller2`, `Backend`, and a frontend service `Caller1`, see `experiments/chain.csv`.
 
-The source files of the application services are indicated in the `csv` files.
+The names of the services (which need to correspond with their class definitions) are in the first field of the csv and the source files of the application services are indicated in the second field of the `csv` files.
 
 Then you can use __TODO: XXX__ to deploy your services locally with a python interpreter. To deploy them remotely, you need to __TODO__.
 
