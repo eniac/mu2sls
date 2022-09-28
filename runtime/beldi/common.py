@@ -12,6 +12,15 @@ fdb.api_version(630)
 
 ## TODO: Add a test that runs media with local deployment + Beldi store on FDB
 
+## Get time depending on the python version
+if hasattr(time, 'perf_counter_ns'):
+    get_time = time.perf_counter_ns
+    time_to_ms = lambda x: x / 1000000
+else:
+    get_time = time.perf_counter
+    time_to_ms = lambda x: int(x * 1000)
+
+
 def connect():
     """
     Open a connection to FDB. First tries to do it with a local file,
@@ -60,12 +69,14 @@ def get_load_balancer_ip():
 
 
 def log_timer(label):
+    global get_time
+    global time_to_ms
     def decorator(func):
         def wrapper(*args, **kwargs):
-            start = time.perf_counter_ns()
+            start = get_time()
             result = func(*args, **kwargs)
-            end = time.perf_counter_ns()
-            duration = (end - start) / 1000000
+            end = get_time()
+            duration = time_to_ms(end - start)
             logging.error(f'{label} {duration}')
             return result
         return wrapper
