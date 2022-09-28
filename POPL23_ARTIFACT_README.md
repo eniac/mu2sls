@@ -47,7 +47,7 @@ Once you have the account, set up a key to be able to connect to Cloudlab machin
 
 ### Downloading artifact and installing requirements
 
-The virtual box instance should contain all these requirements, but we are providing them here for completeness. Feel free to skip this section if you are using virtualbox.
+The virtual box instance should contain all these requirements, but we are providing them here for completeness. Skip this section if you are using virtualbox.
 
 Our artifact has the following requirements:
 - To run the local artifact tests:
