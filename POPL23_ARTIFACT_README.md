@@ -4,6 +4,13 @@ __TODO__:
 - Should we provide source code on Zenodo or github?
 - TODO: Provide a virtual box with all dependencies for both local and remote development.
 - TODO: Make sure that running all experiments one after the other gives reasonable results (sometime it didn't when we run it on our own)
+- TODO: Sometimes the fdb database gets stuck, and it requires restarting (semaphore issue) 
+```sh
+sudo service foundationdb stop
+sleep 60
+sudo service foundationdb start
+```
+- TODO: Maybe add the kill kn service between invocations `kn service delete --all`
 
 # Artifact Documentation for "Executing Microservice Applications on Serverless, Correctly"
 

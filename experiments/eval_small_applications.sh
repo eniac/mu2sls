@@ -162,5 +162,13 @@ function run_tree()
 }
 
 run_single_stateful | tee single_stateful.log
+
+## Cleanup services
+kn service delete --all
+
 run_chain | tee chain.log
+
+## Cleanup services
+kn service delete --all
+
 run_tree | tee tree.log
