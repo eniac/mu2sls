@@ -17,10 +17,9 @@ function run_wrk()
 
     for rate in $rates
     do
-        ## TODO: Also check for patterns of non 2xx responses
         echo "Rate: ${rate}"
         ./wrk2/wrk -t${threads} -c${connections} -d${duration} -R${rate} --latency http://${LOAD_BALANCER_IP}/req -s ${wrk_file} # | grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
-	sleep "${sleep_dur}"
+	    sleep "${sleep_dur}"
     done
 }
 
@@ -81,8 +80,6 @@ function run_single_stateful()
     export rates="20 60 100 140 180"
     deploy_and_run
 
-    ## unsage (w/ FT) (seq)
-    ## TODO: Add
 }
 
 function run_chain()
@@ -125,8 +122,6 @@ function run_chain()
     export rates="10 20 30 40 50 60 70 80 90 100 110"
     deploy_and_run
 
-    ## unsage (w/ FT) (seq)
-    ## TODO: Add
 }
 
 function run_tree()
@@ -164,8 +159,6 @@ function run_tree()
     export rates="5 10 15 20 25 30 40 50 60 70 80 90"
     deploy_and_run
 
-    ## unsage (w/ FT) (seq)
-    ## TODO: Add
 }
 
 run_single_stateful | tee single_stateful.log
