@@ -6,7 +6,7 @@ scale=2
 threads=4
 connections=16
 duration=60s
-sleep_dur=30
+sleep_dur=40
 
 function run_wrk()
 {
