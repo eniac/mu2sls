@@ -188,7 +188,7 @@ bash run_all_eval.sh
 ```
 
 __TODO: Write how much time are the experiments supposed to take__
-- About two hours for small experiments
+- About two-three hours for small experiments
 - about XXX hours for media
 - about XXX hours for hotel_reservation
 
