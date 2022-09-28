@@ -172,7 +172,7 @@ python3 test_services.py media-service-test.csv knative --docker_io_username kon
 # ERROR:root:sync_invoke 147
 ```
 
-The `ERROR`s in the end are just logs that show the time it took to execute the requests. This output shows that the test works
+The `ERROR`s in the end are just logs that show the time it took to execute the requests, so they might be slightly different. This output shows that the test works.
 
 ## Evaluation Instructions
 
@@ -180,7 +180,38 @@ TODO
 
 In order to get the same exact results, you can use the `c6525-25g` configuration on cloudlab. Just note that this is a powerful machine, so you might need to reserve it in advance before using it on Cloudlab.
 
+In the cloudlab machine, run all the experiments (Q1-Q3) using:
+
+```sh
+bash run_all_eval.sh
+```
+
 __TODO: Write how much time are the experiments supposed to take__
+- About two hours for small experiments
+- about XXX hours for media
+- about XXX hours for hotel_reservation
+
+
+This takes about __TODO: XXX__ so you can leave it running and come back later. It prints request statistics for each experiment while it runs. 
+
+Then you need to pull results locally using:
+
+__TODO: Add a script that pulls all results__
+
+```sh
+scp -i ${private_key} ${node_username}@${node_address}:knative/single_stateful.log ./results/single_stateful.log
+scp -i ${private_key} ${node_username}@${node_address}:knative/chain.log ./results/chain.log
+scp -i ${private_key} ${node_username}@${node_address}:knative/tree.log ./results/tree.log
+```
+
+and then you can plot the results using:
+
+```sh
+python3 experiments/plot-results.py
+```
+
+which generates plots in `plots`.
+
 
 
 
