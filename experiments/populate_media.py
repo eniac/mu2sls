@@ -9,9 +9,9 @@ import runtime.knative.invoke as knative_invoke_lib
 
 
 def populate(invoke_lib, deployed_services, input_file):
-    with open(input_file) as f:
-        # raw = f.read()
-        json_data = json.load(f)
+    # with open(input_file) as f:
+    #     # raw = f.read()
+    #     json_data = json.load(f)
 
 
     ## Populate movies
@@ -61,6 +61,8 @@ def populate(invoke_lib, deployed_services, input_file):
 ## TODO: Unharcode them
 deployment_file = "media-service-test.csv"
 docker_io_username = "konstantinoskallas"
+
+## This is not actually used.
 input_file = "compressed.json"
 
 clear_db.main()
