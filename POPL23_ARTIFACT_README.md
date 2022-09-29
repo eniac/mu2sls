@@ -192,7 +192,7 @@ This takes about __TODO: XXX__ so you can leave it running and come back later. 
 Then you need to pull results on your local machine (virtualbox) using:
 
 ```sh
-bash pull_results.sh "${private_key}" "${node_username}" "${node_address}"
+bash experiments/pull_results.sh "${private_key}" "${node_username}" "${node_address}"
 ```
 
 and then you can plot the results using:
@@ -230,11 +230,11 @@ Each experiment takes about a minute to run, and therefore if something gets stu
 ```sh
 kn service delete --all
 sudo service foundationdb stop
-sleep 60
+sleep 20
 sudo service foundationdb start
 ```
 
 Then you can rerun the rest of the evaluation by omiting the flags that have already successfully finished, e.g., if `single_stateful` has complete successfully, you can run:
 ```sh
-bash run_all_eval.sh --chain --tree --media --hotel # omiting `--single_stateful`
+bash run_all_eval.sh --chain --tree --media --hotel # omiting `--single_stateful` that has already executed
 ```
