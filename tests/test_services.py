@@ -138,8 +138,6 @@ TEST_FUNC_FROM_FILE = {
     'hotel-reservation.csv': run_test_hotel_reservation,
 }
 
-## TODO: Extend it to do the calls using SyncInvoke maybe?
-##       Then it would be possible to use it to test non-local deployments too.
 def main(args):
     store_conf = args.mode
     docker_io_username = args.docker_io_username
