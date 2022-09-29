@@ -250,12 +250,22 @@ python3 test_services.py "${csv_file}" knative --docker_io_username "${docker_io
 
 ## Additional Artifact Information
 
-TODO:
-- Explain how different parts in the paper correspond to the code in the artifact
+This section describes the code of the artifact and how it is split among directories. 
+- First of all, `experiments` and `tests` contain service definitions, workload definitions, and scripts related to experiment running. 
+- The `scripts` directory contains utility scripts.
+- The `compiler` directory contains the translation components.
+  + `service.py` defines what a service and its state is.
+  + `ast_utils.py` contains utility functions for manipulating python ASTs.
+  + `compiler.py` contains the end-to-end translation; it calls `frontend.py`, which finds services, it orchestrates them accordingly, and then calls `backend.py` to turn them back to python code.
+- The `runtime` directory contains the runtime components that wrap calls and provide storage functionality. The most important modules are described below:
+  + `runtime/beldi/logger.py` and `runtime/beldi/beldi.py` contain the implementation of the instrumentation (Sections 5 and 6) that ensures that method updates are atomic, and that implements transactions and logging on top of a key-value store.
+  + the `runtime/local` directory contains the local instrumentation that allows for local deployment and debugging.
+  + `runtime/wrappers.py` is the module that wraps arbitrary python objects and uses the `logger.py` to implement their method updates. It also contains the optimizer wrapper (described in Section 7 of the paper).
+
 
 ## Troubleshooting
 
-Each experiment takes about a minute to run, and therefore if something gets stuck for much longer than that (no new output), you could interrupt the experiments using CTRL+C, and then clean up the database and loaded serverless functions using:
+Each experiment takes about a few minutes to run, and therefore if something gets stuck for much longer than that (no new output), you could interrupt the experiments using CTRL+C, and then clean up the database and loaded serverless functions using:
 ```sh
 kn service delete --all
 sudo service foundationdb stop
