@@ -163,12 +163,18 @@ function run_tree()
 
 run_single_stateful | tee single_stateful.log
 
-## Cleanup services
+## Cleanup services and DB
 kn service delete --all
+sudo service foundationdb stop
+sleep 60
+sudo service foundationdb start
 
 run_chain | tee chain.log
 
 ## Cleanup services
 kn service delete --all
+sudo service foundationdb stop
+sleep 60
+sudo service foundationdb start
 
 run_tree | tee tree.log
