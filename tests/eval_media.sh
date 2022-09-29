@@ -5,7 +5,6 @@ trap "exit" INT
 ## Remember to set min-max scale
 
 benchmark="media-service-test"
-rates="2 4 6 8 10 12 14 16 18 20"
 
 threads=4
 connections=16
@@ -54,7 +53,8 @@ set_min_max_scale
 sleep 60
 
 
-extra_args="--enable_logging --enable_txn --enable_custom_dict"
+export extra_args="--enable_logging --enable_txn --enable_custom_dict"
+export rates="2 5 10 15 20 25 30 35 40"
 python3 test_services.py "${csv_file}" knative \
     --docker_io_username konstantinoskallas ${extra_args}
 echo "Populating database..."
@@ -62,31 +62,8 @@ python3 populate_media.py
 echo "Running with: ${extra_args}"
 run_wrk
 
-# extra_args="--enable_txn --enable_custom_dict"
-# python3 test_services.py "${csv_file}" knative \
-#     --docker_io_username konstantinoskallas ${extra_args}
-# echo "Populating database..."
-# python3 populate_media.py
-# echo "Running with: ${extra_args}"
-# run_wrk
-
-# extra_args="--enable_logging --enable_txn"
-# python3 test_services.py "${csv_file}" knative \
-#     --docker_io_username konstantinoskallas ${extra_args}
-# echo "Populating database..."
-# python3 populate_media.py
-# echo "Running with: ${extra_args}"
-# run_wrk
-
-# extra_args="--enable_txn"
-# python3 test_services.py "${csv_file}" knative \
-#     --docker_io_username konstantinoskallas ${extra_args}
-# echo "Populating database..."
-# python3 populate_media.py
-# echo "Running with: ${extra_args}"
-# run_wrk
-
-extra_args=""
+export extra_args=""
+export rates="2 5 10 20 30 40 50 60 70 80"
 python3 test_services.py "${csv_file}" knative \
     --docker_io_username konstantinoskallas ${extra_args}
 echo "Populating database..."
@@ -94,10 +71,12 @@ python3 populate_media.py
 echo "Running with: ${extra_args}"
 run_wrk
 
-extra_args="--enable_logging --enable_txn --enable_custom_dict"
-python3 test_services.py "${csv_file}" knative \
-    --docker_io_username konstantinoskallas ${extra_args}
-echo "Populating database..."
-python3 populate_media.py
-echo "Running with: ${extra_args}"
-run_wrk
+# export extra_args="--enable_logging --enable_txn --enable_custom_dict"
+# export rates="2 5 10 15 20 25 30 35 40"
+# extra_args="--enable_logging --enable_txn --enable_custom_dict"
+# python3 test_services.py "${csv_file}" knative \
+#     --docker_io_username konstantinoskallas ${extra_args}
+# echo "Populating database..."
+# python3 populate_media.py
+# echo "Running with: ${extra_args}"
+# run_wrk

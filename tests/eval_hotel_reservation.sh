@@ -5,7 +5,6 @@ trap "exit" INT
 ## Remember to set min-max scale
 
 benchmark="hotel-reservation"
-rates="2 4 6 8 10 12 14 16 18 20"
 
 threads=4
 connections=16
@@ -53,39 +52,8 @@ python3 test_services.py "${csv_file}" knative \
 sleep "${sleep_dur}"
 set_min_max_scale
 
-# extra_args="--enable_logging --enable_txn --enable_custom_dict"
-# python3 test_services.py "${csv_file}" knative \
-#     --docker_io_username tauta ${extra_args}
-# echo "Populating database..."
-# python3 populate_hotel.py
-# echo "Running with: ${extra_args}"
-# run_wrk
-
-# extra_args="--enable_txn --enable_custom_dict"
-# python3 test_services.py "${csv_file}" knative \
-#     --docker_io_username tauta ${extra_args}
-# echo "Populating database..."
-# python3 populate_hotel.py
-# echo "Running with: ${extra_args}"
-# run_wrk
-
-# extra_args="--enable_logging --enable_txn"
-# python3 test_services.py "${csv_file}" knative \
-#     --docker_io_username tauta ${extra_args}
-# echo "Populating database..."
-# python3 populate_hotel.py
-# echo "Running with: ${extra_args}"
-# run_wrk
-
-# extra_args="--enable_txn"
-# python3 test_services.py "${csv_file}" knative \
-#     --docker_io_username tauta ${extra_args}
-# echo "Populating database..."
-# python3 populate_hotel.py
-# echo "Running with: ${extra_args}"
-# run_wrk
-
-extra_args=""
+export extra_args=""
+export rates="2 5 10 15 20 25 30 35 40 45 50"
 python3 test_services.py "${csv_file}" knative \
     --docker_io_username tauta ${extra_args}
 echo "Populating database..."
@@ -93,7 +61,8 @@ python3 populate_hotel.py
 echo "Running with: ${extra_args}"
 run_wrk
 
-extra_args="--enable_logging --enable_txn --enable_custom_dict"
+export extra_args="--enable_logging --enable_txn --enable_custom_dict"
+export rates="2 5 10 20 30 40 50 60 70 80 90"
 python3 test_services.py "${csv_file}" knative \
     --docker_io_username tauta ${extra_args}
 echo "Populating database..."
