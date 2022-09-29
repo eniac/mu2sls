@@ -2,7 +2,7 @@
 __TODO__:
 - Is there a way to give the exact Cloudlab configuration setup in a programatic way for them to start the cloudlab instance?
 - Should we provide source code on Zenodo or github?
-- TODO: Provide a virtual box with all dependencies for both local and remote development.
+- TODO: Provide a virtual box with all dependencies for local development.
 
 # Artifact Documentation for "Executing Microservice Applications on Serverless, Correctly"
 
@@ -22,8 +22,8 @@ It contains 5 sections:
 Our artifact contains all claims made in the paper regarding the prototype and its evaluation. The proofs in the paper are not mechanized and therefore are not part of the artifact.
 
 The claims made in our paper are:
-- We have developed the `mu2sls` prototype that generates a serverless implementation from a set of service specifications. You can find information about this claim in the __Additional Artifact Information__ __TODO: Link__ section, where we describe the structure of the artifact code, and how it corresponds to the paper.
-- We have evaluated our prototype w.r.t. the three questions (Q1), (Q2), (Q3) described in Section 8. You can reproduce the experiments for this claim by following the __Evaluation Instructions Section__ __TODO: Link__.
+- We have developed the `mu2sls` prototype that generates a serverless implementation from a set of service specifications. You can find information about this claim in the "Additional Artifact Information" section, where we describe the structure of the artifact code, and how it corresponds to the paper.
+- We have evaluated our prototype w.r.t. the three questions (Q1), (Q2), (Q3) described in Section 8. You can reproduce the experiments for this claim by following the "Evaluation Instructions Section".
 
 ## Download, installation, and sanity-testing instructions
 
@@ -210,14 +210,43 @@ You can use `mu2sls` for your application by developing its services using the p
 
 For an example of a service `Caller2` that simply forwards its results to a backend service (`Backend`) see `tests/source_specs/async-test/caller2.py`, and for the example of a backend service that tries to perform a transaction where it increments the counter for the input key see `tests/source_specs/async-test/backend.py`.
 
-Then, you have to write a `csv` file that contains the information for all services for the compiler to compile them and to be able to build and deploy them.
+Then, you have to write a `csv` file that contains the information for all services for the compiler to compile them and to be able to build and deploy them. You should put this `csv` file in the `experiments` directory if you want to reuse our scripts for uploading it to the remote cluster.
 
 For an example of a csv file that composes `Caller2`, `Backend`, and a frontend service `Caller1`, see `experiments/chain.csv`.
 
 The names of the services (which need to correspond with their class definitions) are in the first field of the csv and the source files of the application services are indicated in the second field of the `csv` files.
 
-Then you can use __TODO: XXX__ to deploy your services locally with a python interpreter. To deploy them remotely, you need to __TODO__.
+Then you can add a test for your application by adding a function in `tests/test_services.py` and then adding a line in the `TEST_FUNC_FROM_FILE` definition (lines 132-139 in `tests/test_services.py`) to associate your `csv` application file with the test function name. To write the test function, see `run_test_async` (lines 118-130 in `tests/test_services.py`).
 
+You can add multiple calls to your test, first calling a few "update" methods and then calling some method that shows the state to test that it was updated correctly.
+
+Then you can run this test locally by calling the following:
+
+```sh
+export csv_file=# Your csv file
+python3 tests/test_services.py "${csv_file}" local
+```
+
+As a bonus, to run the test remotely, you first need to build and push the docker images and upload the csv to the remote machine using the following:
+
+```sh
+export csv_file=# Your csv file
+export docker_io_username=# your docker.io username so that you push the images
+python3 scripts/knative_dev.py "${docker_io_username}" "${csv_file}"
+
+## For the following to find your csv and upload it, it needs to be in the
+## experiments directory.
+./scripts/upload-to-remote.sh cloudlab ${node_address} ${node_username} ${private_key}
+```
+
+and then connect to the remote machine where the cluster is running (see the "Setup the Cloudlab machine" section above), and run:
+
+```sh
+## On the remote machine
+export csv_file=# The csv file path on the remote machine
+export docker_io_username=# your docker.io username where you have pushed the images
+python3 test_services.py "${csv_file}" knative --docker_io_username "${docker_io_username}"
+```
 
 ## Additional Artifact Information
 
