@@ -9,12 +9,12 @@ rates="2 4 6 8 10 12 14 16 18 20"
 
 threads=4
 connections=16
-duration=30s
-scale=5
+duration=60s
+scale=1
 method="req"
 wrk_file="${benchmark}.lua"
 csv_file="${benchmark}.csv"
-sleep_dur=30
+sleep_dur=60
 
 
 # services="composereview castinfo frontend movieid movieinfo moviereview page plot rating reviewstorage text uniqueid user userreview"
@@ -53,13 +53,13 @@ python3 test_services.py "${csv_file}" knative \
 sleep "${sleep_dur}"
 set_min_max_scale
 
-extra_args="--enable_logging --enable_txn --enable_custom_dict"
-python3 test_services.py "${csv_file}" knative \
-    --docker_io_username tauta ${extra_args}
-echo "Populating database..."
-python3 populate_hotel.py
-echo "Running with: ${extra_args}"
-run_wrk
+# extra_args="--enable_logging --enable_txn --enable_custom_dict"
+# python3 test_services.py "${csv_file}" knative \
+#     --docker_io_username tauta ${extra_args}
+# echo "Populating database..."
+# python3 populate_hotel.py
+# echo "Running with: ${extra_args}"
+# run_wrk
 
 # extra_args="--enable_txn --enable_custom_dict"
 # python3 test_services.py "${csv_file}" knative \
@@ -92,3 +92,12 @@ echo "Populating database..."
 python3 populate_hotel.py
 echo "Running with: ${extra_args}"
 run_wrk
+
+extra_args="--enable_logging --enable_txn --enable_custom_dict"
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username tauta ${extra_args}
+echo "Populating database..."
+python3 populate_hotel.py
+echo "Running with: ${extra_args}"
+run_wrk
+

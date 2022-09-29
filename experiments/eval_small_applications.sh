@@ -150,9 +150,9 @@ function run_tree()
     deploy_and_run
 
     ## mu2sls (w/o OD)
-    # export extra_args="--enable_logging --enable_txn"
-    # export rates="10"
-    # deploy_and_run
+    export extra_args="--enable_logging --enable_txn"
+    export rates="10"
+    deploy_and_run
 
     ## unsafe (w/ FT)
     export extra_args="--enable_logging"
