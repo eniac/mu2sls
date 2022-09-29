@@ -161,20 +161,38 @@ function run_tree()
 
 }
 
-run_single_stateful | tee single_stateful.log
 
-## Cleanup services and DB
-kn service delete --all
-sudo service foundationdb stop
-sleep 60
-sudo service foundationdb start
+if [ "$exec_single_stateful" -eq 1 ]; then
+    echo -e "Executing single_stateful....\n\n"
+    run_single_stateful | tee single_stateful.log
 
-run_chain | tee chain.log
+    ## Cleanup services and DB
+    kn service delete --all
+    sudo service foundationdb stop
+    sleep 60
+    sudo service foundationdb start
+    echo -e "Execution of single_stateful was completed!\n\n"
+fi
 
-## Cleanup services
-kn service delete --all
-sudo service foundationdb stop
-sleep 60
-sudo service foundationdb start
+if [ "$exec_chain" -eq 1 ]; then
+    echo -e "Executing chain....\n\n"
+    run_chain | tee chain.log
 
-run_tree | tee tree.log
+    ## Cleanup services
+    kn service delete --all
+    sudo service foundationdb stop
+    sleep 60
+    sudo service foundationdb start
+    echo -e "Execution of chain was completed!\n\n"
+fi
+
+if [ "$exec_tree" -eq 1 ]; then
+    echo -e "Executing tree....\n\n"
+    run_tree | tee tree.log
+    ## Cleanup services
+    kn service delete --all
+    sudo service foundationdb stop
+    sleep 60
+    sudo service foundationdb start
+    echo -e "Execution of tree was completed!\n\n"
+fi
