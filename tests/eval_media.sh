@@ -44,6 +44,9 @@ function set_min_max_scale()
 echo "Executing: -t${threads} -c${connections} -d${duration} -s ${wrk_file}"
 
 ## Only needs to be done once
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username konstantinoskallas ${extra_args}
+sleep 60
 set_min_max_scale
 
 extra_args="--enable_logging --enable_txn --enable_custom_dict"

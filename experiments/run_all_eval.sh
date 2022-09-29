@@ -31,16 +31,16 @@ done
 
 ## Run the small applications
 bash eval_small_applications.sh
-sleep 60
 
 ## Run the real-world applications
 if [ "$exec_media" -eq 1 ]; then
     echo -e "Executing media....\n\n"
     bash eval_media.sh | tee media-service-test.log
     ## Cleanup services
+    sleep 60
     kn service delete --all
     sudo service foundationdb stop
-    sleep 60
+    sleep 20
     sudo service foundationdb start
     echo -e "Execution of media was completed!\n\n"
 fi
@@ -48,11 +48,12 @@ fi
 ## Run the real-world applications
 if [ "$exec_hotel" -eq 1 ]; then
     echo -e "Executing hotel....\n\n"
-    bash eval_hotel_reservation.sh | hotel-reservation.log
+    bash eval_hotel_reservation.sh | tee hotel-reservation.log
     ## Cleanup services
+    sleep 60
     kn service delete --all
     sudo service foundationdb stop
-    sleep 60
+    sleep 20
     sudo service foundationdb start
     echo -e "Execution of hotel was completed!\n\n"
 fi

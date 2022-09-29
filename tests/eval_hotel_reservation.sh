@@ -48,8 +48,10 @@ function set_min_max_scale()
 echo "Executing: -t${threads} -c${connections} -d${duration} -s ${wrk_file}"
 
 ## Only needs to be done once
-set_min_max_scale
+python3 test_services.py "${csv_file}" knative \
+    --docker_io_username tauta ${extra_args}
 sleep "${sleep_dur}"
+set_min_max_scale
 
 extra_args="--enable_logging --enable_txn --enable_custom_dict"
 python3 test_services.py "${csv_file}" knative \

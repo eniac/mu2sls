@@ -167,9 +167,10 @@ if [ "$exec_single_stateful" -eq 1 ]; then
     run_single_stateful | tee single_stateful.log
 
     ## Cleanup services and DB
+    sleep 60
     kn service delete --all
     sudo service foundationdb stop
-    sleep 60
+    sleep 20
     sudo service foundationdb start
     echo -e "Execution of single_stateful was completed!\n\n"
 fi
@@ -179,9 +180,10 @@ if [ "$exec_chain" -eq 1 ]; then
     run_chain | tee chain.log
 
     ## Cleanup services
+    sleep 60
     kn service delete --all
     sudo service foundationdb stop
-    sleep 60
+    sleep 20
     sudo service foundationdb start
     echo -e "Execution of chain was completed!\n\n"
 fi
@@ -190,9 +192,10 @@ if [ "$exec_tree" -eq 1 ]; then
     echo -e "Executing tree....\n\n"
     run_tree | tee tree.log
     ## Cleanup services
+    sleep 60
     kn service delete --all
     sudo service foundationdb stop
-    sleep 60
+    sleep 20
     sudo service foundationdb start
     echo -e "Execution of tree was completed!\n\n"
 fi
