@@ -6,7 +6,7 @@ scale=2
 threads=4
 connections=16
 duration=60s
-sleep_dur=40
+sleep_dur=60
 
 function run_wrk()
 {
@@ -138,25 +138,25 @@ function run_tree()
     echo "Deploying for the first time and running tests (if they exist)..."
     python3 test_services.py "${csv_file}" knative \
         --docker_io_username konstantinoskallas ${extra_args}
-    sleep 15
+    sleep 30
 
     echo "Setting scale"
     set_min_max_scale
-    sleep 10
+    sleep 30
 
     ## mu2sls
     export extra_args="--enable_logging --enable_txn --enable_custom_dict"
-    export rates="5 10 15 20 25 30"
+    export rates="10 15 20 25 30"
     deploy_and_run
 
     ## mu2sls (w/o OD)
-    export extra_args="--enable_logging --enable_txn"
-    export rates="5 10"
-    deploy_and_run
+    # export extra_args="--enable_logging --enable_txn"
+    # export rates="10"
+    # deploy_and_run
 
-    ## unsage (w/ FT)
+    ## unsafe (w/ FT)
     export extra_args="--enable_logging"
-    export rates="5 10 15 20 25 30 40 50 60 70 80 90"
+    export rates="10 15 20 25 30 40 50 60 70 80 90"
     deploy_and_run
 
 }
