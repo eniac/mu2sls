@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from pprint import pprint
+import shutil
 
 
 class DataPoint:
@@ -321,6 +322,7 @@ fig.supxlabel('Throughput (requests/second)')
 fig.set_tight_layout(True)
 filename = f"plots/logging_combined.pdf"
 plt.savefig(filename)
+shutil.copyfile(filename, "plots/figure9.pdf")
 
 
 ##
@@ -387,6 +389,7 @@ fig.set_tight_layout(True)
 plt.subplots_adjust(wspace=0)
 filename = f"plots/txn_combined.pdf"
 plt.savefig(filename)
+shutil.copyfile(filename, "plots/figure10.pdf")
 
 ##
 ## Real apps
@@ -450,6 +453,7 @@ fig.supxlabel('Throughput (requests/second)')
 fig.set_tight_layout(True)
 filename = f"plots/apps_combined.pdf"
 plt.savefig(filename)
+shutil.copyfile(filename, "plots/figure11.pdf")
 
 
 ## TODO: Make sure that we rerun experiments that look funky (maybe with 60s) and also make sure we reach limits of all apps.
