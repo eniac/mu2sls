@@ -3,14 +3,6 @@ __TODO__:
 - Is there a way to give the exact Cloudlab configuration setup in a programatic way for them to start the cloudlab instance?
 - Should we provide source code on Zenodo or github?
 - TODO: Provide a virtual box with all dependencies for both local and remote development.
-- TODO: Make sure that running all experiments one after the other gives reasonable results (sometime it didn't when we run it on our own)
-- TODO: Sometimes the fdb database gets stuck, and it requires restarting (semaphore issue) 
-```sh
-sudo service foundationdb stop
-sleep 60
-sudo service foundationdb start
-```
-- TODO: Maybe add the kill kn service between invocations `kn service delete --all`
 
 # Artifact Documentation for "Executing Microservice Applications on Serverless, Correctly"
 
@@ -22,6 +14,7 @@ It contains 5 sections:
 - Evaluation instructions
 - Reusability instructions
 - Additional Description
+- Troubleshooting
 
 
 ## List of Claims
@@ -184,32 +177,22 @@ The `ERROR`s in the end are just logs that show the time it took to execute the 
 
 ## Evaluation Instructions
 
-TODO
-
 In order to get the same exact results, you can use the `c6525-25g` configuration on cloudlab. Just note that this is a powerful machine, so you might need to reserve it in advance before using it on Cloudlab.
 
 In the cloudlab machine, run all the experiments (Q1-Q3) using:
 
 ```sh
-bash run_all_eval.sh
+bash run_all_eval.sh --single_stateful --chain --tree --media --hotel
 ```
 
 __TODO: Write how much time are the experiments supposed to take__
-- About two-three hours for small experiments
-- about XXX hours for media
-- about XXX hours for hotel_reservation
-
 
 This takes about __TODO: XXX__ so you can leave it running and come back later. It prints request statistics for each experiment while it runs. 
 
-Then you need to pull results locally using:
-
-__TODO: Add a script that pulls all results__
+Then you need to pull results on your local machine (virtualbox) using:
 
 ```sh
-scp -i ${private_key} ${node_username}@${node_address}:knative/single_stateful.log ./results/single_stateful.log
-scp -i ${private_key} ${node_username}@${node_address}:knative/chain.log ./results/chain.log
-scp -i ${private_key} ${node_username}@${node_address}:knative/tree.log ./results/tree.log
+bash pull_results.sh "${private_key}" "${node_username}" "${node_address}"
 ```
 
 and then you can plot the results using:
@@ -218,9 +201,7 @@ and then you can plot the results using:
 python3 experiments/plot-results.py
 ```
 
-which generates plots in `plots`.
-
-
+which generates three plots in the `plots` directory, named `figure9.pdf`, `figure10.pdf`, and `figure11.pdf`, corresponding to the ones in the paper.
 
 
 ## Reusability Instructions
@@ -242,3 +223,18 @@ Then you can use __TODO: XXX__ to deploy your services locally with a python int
 
 TODO:
 - Explain how different parts in the paper correspond to the code in the artifact
+
+## Troubleshooting
+
+Each experiment takes about a minute to run, and therefore if something gets stuck for much longer than that (no new output), you could interrupt the experiments using CTRL+C, and then clean up the database and loaded serverless functions using:
+```sh
+kn service delete --all
+sudo service foundationdb stop
+sleep 60
+sudo service foundationdb start
+```
+
+Then you can rerun the rest of the evaluation by omiting the flags that have already successfully finished, e.g., if `single_stateful` has complete successfully, you can run:
+```sh
+bash run_all_eval.sh --chain --tree --media --hotel # omiting `--single_stateful`
+```
