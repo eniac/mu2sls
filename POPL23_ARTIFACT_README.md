@@ -109,7 +109,7 @@ ssh -i ${private_key} ${node_username}@${node_address}
 
 ## On the remote machine:
 sudo apt update
-sudo apt install mosh
+sudo apt install mosh -y
 ```
 
 Now you can log in the remote node and setup knative:
