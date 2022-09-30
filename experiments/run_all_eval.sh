@@ -29,8 +29,23 @@ do
     fi
 done
 
+
 ## Run the small applications
 bash eval_small_applications.sh
+
+if [ "$exec_tree" -eq 1 ]; then
+    echo -e "Executing Cross Service Txn (tree)....\n\n"
+    bash eval_tree.sh | tee tree.log
+    ## Cleanup services
+    sleep 60
+    kn service delete --all
+    python3 scripts/clear_db.py
+    sudo service foundationdb stop
+    sleep 20
+    sudo service foundationdb start
+    echo -e "Execution of Cross Service Txn (tree) was completed!\n\n"
+fi
+
 
 ## Run the real-world applications
 if [ "$exec_media" -eq 1 ]; then
