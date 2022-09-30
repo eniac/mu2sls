@@ -10,4 +10,5 @@ function wait_until_pods()
         echo -n "."
         sleep 2
     done
+    echo ""
 }

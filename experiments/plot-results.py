@@ -105,6 +105,11 @@ def parse_raw_wrk_results(log_file):
             # print(line)
             pass
     
+    if curr_res is not None:
+        # print(curr_res)
+        curr_results.append(curr_res)
+        curr_res = None
+    
     if curr_toggles is not None:
         # print("Results:", curr_results)
         results[curr_toggles] = curr_results
@@ -432,7 +437,8 @@ for i in range(n):
     #specify order of items in legend
     order = [1,0,2]
     #add legend to plot
-    ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+    ax.legend([handles[idx] for idx in order],
+              [labels[idx] for idx in order])
 
     ax.set_xlabel(None)
     ax.set_title(benchmark_map[benchmark])
