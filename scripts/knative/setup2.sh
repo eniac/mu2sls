@@ -9,6 +9,8 @@ sudo apt-get install -y kubectl
 
 # minikube
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+## This was the actual version that was available at the time of the experiments but that should not matter
+# curl -LO https://storage.googleapis.com/minikube/releases/v1.25.2/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
 rm minikube-linux-amd64
 
