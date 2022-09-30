@@ -58,6 +58,7 @@ def docker_push(docker_username, image_namespace, service_name):
     return res 
 
 def deploy_services(docker_username, service_list, deployment_file,
+                    scale=1,
                     enable_logging=True,
                     enable_txn=True,
                     enable_custom_dict=False):
@@ -70,6 +71,7 @@ def deploy_services(docker_username, service_list, deployment_file,
                               docker_username,
                               knative_service_name,
                               f'{image_namespace}-{docker_io_name}',
+                              str(scale),
                               '--env', f'ENABLE_LOGGING={enable_logging}',
                               '--env', f'ENABLE_TXN={enable_txn}',
                               '--env', f'ENABLE_CUSTOM_DICT={enable_custom_dict}'])

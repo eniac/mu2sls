@@ -159,7 +159,8 @@ def main(args):
         clear_db.main()
 
         deployment_list, service_list = deployment_list_from_deployment_file(deployment_file)
-        knative_dev.deploy_services(docker_io_username, deployment_list, deployment_file, 
+        knative_dev.deploy_services(docker_io_username, deployment_list, deployment_file,
+                                    scale=args.scale,
                                     enable_logging=args.enable_logging,
                                     enable_txn=args.enable_txn,
                                     enable_custom_dict=args.enable_custom_dict)
@@ -222,6 +223,10 @@ def parse_arguments():
     parser.add_argument("--enable_custom_dict", 
                         help="whether to enable custom logging",
                         action='store_true')
+    parser.add_argument("--scale",
+                        help="the number of pods per service",
+                        type=int,
+                        default=1)
     args = parser.parse_args()
     return args
 
