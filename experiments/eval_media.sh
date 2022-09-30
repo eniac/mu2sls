@@ -2,11 +2,12 @@
 
 trap "exit" INT
 
-## Remember to set min-max scale
+## Source a shell library with useful components
+source utils.sh
 
 benchmark="media-service-test"
 
-threads=4
+threads=2
 connections=16
 duration=60s
 scale=2
@@ -37,13 +38,35 @@ function run_wrk()
     done
 }
 
-function set_min_max_scale()
+function deploy_and_run()
 {
-    for service in $services
+    echo "Running with: ${extra_args}" # necessary for the plotting script
+    ## Deploy the services with correct scale
+    python3 test_services.py "${csv_file}" knative \
+        --docker_io_username konstantinoskallas --scale "${scale}" ${extra_args}
+    kn service update composereview --scale-min 5 --scale-max 5 --annotation "autoscaling.knative.dev/target=500"
+    wait_until_pods 21
+    
+    echo "Populating database..."
+    python3 populate_media.py > /dev/null 2>&1
+
+    echo "Rate: 1"
+    ./wrk2/wrk -t1 -c1 -d${duration} -R1 --latency http://${LOAD_BALANCER_IP}/req -s ${wrk_file} #| grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
+    python3 scripts/clear_db.py
+
+    for rate in $rates
     do
-        kn service update "$service" --scale-min ${scale} --scale-max ${scale} --annotation "autoscaling.knative.dev/target=500"
+        python3 test_services.py "${csv_file}" knative \
+            --docker_io_username konstantinoskallas --scale "${scale}" ${extra_args}
+        wait_until_pods 6
+        echo "Rate: ${rate}"
+        ./wrk2/wrk -t${threads} -c${connections} -d${duration} -R${rate} --latency http://${LOAD_BALANCER_IP}/req -s ${wrk_file} # | grep -e "Thread Stats" -e "Latency" -e "^Requests/sec:" -e "Non-2xx or 3xx responses:"
+        kn service delete --all
+        python3 scripts/clear_db.py
+        wait_until_pods 0
     done
 }
+
 
 echo "Executing: -t${threads} -c${connections} -d${duration} -s ${wrk_file}"
 
@@ -56,17 +79,6 @@ echo "Executing: -t${threads} -c${connections} -d${duration} -s ${wrk_file}"
 ## kill services
 ## wait until pods 0
 
-function wait_until_pods()
-{
-    local target=$1
-
-    echo "Waiting for rollout (target: $target)..."
-    while [ "$(kubectl get pods --no-headers | wc -l)" -eq $target ]
-    do
-        echo -n "."
-        sleep 2
-    done
-}
 
 ## Only needs to be done once
 ##

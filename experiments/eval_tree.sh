@@ -2,27 +2,19 @@
 
 trap "exit" INT
 
+## Source a shell library with useful components
+source utils.sh
+
 scale=2
 threads=4
 connections=16
 duration=60s
 sleep_dur=30
 
-function wait_until_pods()
+
+function deploy_and_run()
 {
-    local target=$1
-
-    echo "Waiting for rollout (target: $target)..."
-    while [ "$(kubectl get pods --no-headers | wc -l)" -ne $target ]
-    do
-        echo -n "."
-        sleep 2
-    done
-}
-
-
-function run_wrk()
-{
+    echo "Running with: ${extra_args}" # necessary for the plotting script
     python3 test_services.py "${csv_file}" knative \
         --docker_io_username konstantinoskallas --scale "${scale}" ${extra_args}
     wait_until_pods 6
@@ -41,14 +33,6 @@ function run_wrk()
         python3 scripts/clear_db.py
         wait_until_pods 0
     done
-}
-
-
-function deploy_and_run()
-{
-    echo "Running with: ${extra_args}" # necessary for the plotting script
-    run_wrk
-    
 }
 
 

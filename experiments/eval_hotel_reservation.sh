@@ -2,7 +2,8 @@
 
 trap "exit" INT
 
-## Remember to set min-max scale
+## Source a shell library with useful components
+source utils.sh
 
 benchmark="hotel-reservation"
 

@@ -2,23 +2,14 @@
 
 trap "exit" INT
 
+## Source a shell library with useful components
+source utils.sh
+
 scale=2
 threads=4
 connections=16
 duration=60s
 sleep_dur=30
-
-function wait_until_pods()
-{
-    local target=$1
-
-    echo "Waiting for rollout (target: $target)..."
-    while [ "$(kubectl get pods --no-headers | wc -l)" -ne $target ]
-    do
-        echo -n "."
-        sleep 2
-    done
-}
 
 
 function run_wrk()
