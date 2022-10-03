@@ -23,7 +23,7 @@ function deploy_and_run_media()
     python3 test_services.py "${csv_file}" knative \
         --docker_io_username konstantinoskallas --scale 1 ${extra_args}
     wait_until_pods "${npods}"
-    python3 populate_media.py
+    python3 populate_media.py > /dev/null 2>&1
     sleep 10
     python3 seq.py --name "${benchmark}"
     python3 scripts/clear_db.py
@@ -35,7 +35,7 @@ function deploy_and_run_hotel() {
     python3 test_services.py "${csv_file}" knative \
         --docker_io_username konstantinoskallas --scale 1 ${extra_args}
     wait_until_pods "${npods}"
-    python3 populate_hotel.py
+    python3 populate_hotel.py > /dev/null 2>&1
     sleep 10
     python3 seq.py --name "${benchmark}"
     python3 scripts/clear_db.py
