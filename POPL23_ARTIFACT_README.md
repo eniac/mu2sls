@@ -1,8 +1,8 @@
+# Artifact Location
 
-__TODO__:
-- Is there a way to give the exact Cloudlab configuration setup in a programatic way for them to start the cloudlab instance?
-- Should we provide source code on Zenodo or github?
-- TODO: Provide a virtual box with all dependencies for local development.
+The following Zenodo link contains a virtual machine image that can be used to run the local experiments and orchestrate the evaluation on cloudlab (TODO: Add link).
+
+The source code of our artifact can be found here (https://github.com/angelhof/mu2sls) and the artifact README can also be found here (https://github.com/angelhof/mu2sls/blob/main/POPL23_ARTIFACT_README.md).
 
 # Artifact Documentation for "Executing Microservice Applications on Serverless, Correctly"
 
