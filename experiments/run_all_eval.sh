@@ -5,6 +5,7 @@ export exec_chain=0
 export exec_tree=0
 export exec_media=0
 export exec_hotel=0
+export exec_seq=0
 
 for item in "$@"
 do
@@ -26,6 +27,10 @@ do
 
     if [ "--hotel" == "$item" ]; then
         export exec_hotel=1
+    fi
+
+    if [ "--seq" == "$item" ]; then
+        export exec_seq=1
     fi
 done
 
@@ -71,4 +76,16 @@ if [ "$exec_hotel" -eq 1 ]; then
     sleep 20
     sudo service foundationdb start
     echo -e "Execution of hotel was completed!\n\n"
+fi
+
+if [ "$exec_seq" -eq 1 ]; then
+    echo -e "Executing sequential experiments....\n\n"
+    bash eval_seq.sh | tee seq.log
+    ## Cleanup services
+    sleep 60
+    kn service delete --all
+    sudo service foundationdb stop
+    sleep 20
+    sudo service foundationdb start
+    echo -e "Execution of sequential experiments was completed!\n\n"
 fi

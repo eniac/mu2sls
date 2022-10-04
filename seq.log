@@ -1,0 +1,647 @@
+No services found.
+Waiting for rollout (target: 0)...
+
+Running with: --enable_logging
+Deploying backend with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/single-stateful-backend...
+Creating service 'backend' in namespace 'default':
+
+  0.021s The Route is still working to reflect the latest desired specification.
+  0.053s ...
+  0.079s Configuration "backend" is waiting for a Revision to become ready.
+ 18.916s ...
+ 18.944s Ingress has not yet been reconciled.
+ 18.976s Waiting for load balancer to be ready
+ 19.163s Ready to serve.
+
+Service 'backend' created to latest revision 'backend-00001' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Waiting for rollout (target: 1)...
+
+
+throughput: 12.068282734482443
+Running with: 
+Deploying backend with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/single-stateful-backend...
+Updating Service 'backend' in namespace 'default':
+
+  0.017s The Configuration is still working to reflect the latest desired specification.
+  3.666s Traffic is not yet migrated to the latest revision.
+  3.683s Ingress has not yet been reconciled.
+  3.701s Waiting for load balancer to be ready
+  3.873s Ready to serve.
+
+Service 'backend' updated to latest revision 'backend-00002' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Waiting for rollout (target: 1)...
+..........................................................
+
+throughput: 18.076982599595205
+Service 'backend' successfully deleted in namespace 'default'.
+Waiting for rollout (target: 0)...
+................
+Running with: --enable_logging
+Deploying caller1 with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/chain-caller1...
+Creating service 'caller1' in namespace 'default':
+
+  0.029s The Route is still working to reflect the latest desired specification.
+  0.064s Configuration "caller1" is waiting for a Revision to become ready.
+  0.091s ...
+  5.942s ...
+  5.967s Ingress has not yet been reconciled.
+  5.998s Waiting for load balancer to be ready
+  6.176s Ready to serve.
+
+Service 'caller1' created to latest revision 'caller1-00001' is available at URL:
+http://caller1.default.example.com
+Deploying caller2 with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/chain-caller2...
+Creating service 'caller2' in namespace 'default':
+
+  0.028s The Route is still working to reflect the latest desired specification.
+  0.034s ...
+  0.050s Configuration "caller2" is waiting for a Revision to become ready.
+  5.706s ...
+  5.723s Ingress has not yet been reconciled.
+  5.785s Waiting for load balancer to be ready
+  5.940s Ready to serve.
+
+Service 'caller2' created to latest revision 'caller2-00001' is available at URL:
+http://caller2.default.example.com
+Deploying backend with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/chain-backend...
+Creating service 'backend' in namespace 'default':
+
+  0.018s The Route is still working to reflect the latest desired specification.
+  0.054s ...
+  0.088s Configuration "backend" is waiting for a Revision to become ready.
+  3.728s ...
+  3.745s Ingress has not yet been reconciled.
+  3.799s Waiting for load balancer to be ready
+  3.975s Ready to serve.
+
+Service 'backend' created to latest revision 'backend-00001' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Waiting for rollout (target: 3)...
+
+
+throughput: 12.893351358449197
+Running with: 
+Deploying caller1 with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/chain-caller1...
+Updating Service 'caller1' in namespace 'default':
+
+  0.018s The Configuration is still working to reflect the latest desired specification.
+  4.094s Traffic is not yet migrated to the latest revision.
+  4.137s Ingress has not yet been reconciled.
+  4.184s Waiting for load balancer to be ready
+  4.335s Ready to serve.
+
+Service 'caller1' updated to latest revision 'caller1-00002' is available at URL:
+http://caller1.default.example.com
+Deploying caller2 with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/chain-caller2...
+Updating Service 'caller2' in namespace 'default':
+
+  0.014s The Configuration is still working to reflect the latest desired specification.
+  3.653s Traffic is not yet migrated to the latest revision.
+  3.678s Ingress has not yet been reconciled.
+  3.694s Waiting for load balancer to be ready
+  3.871s Ready to serve.
+
+Service 'caller2' updated to latest revision 'caller2-00002' is available at URL:
+http://caller2.default.example.com
+Deploying backend with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/chain-backend...
+Updating Service 'backend' in namespace 'default':
+
+  0.017s The Configuration is still working to reflect the latest desired specification.
+  3.667s Traffic is not yet migrated to the latest revision.
+  3.691s Ingress has not yet been reconciled.
+  3.726s Waiting for load balancer to be ready
+  3.885s Ready to serve.
+
+Service 'backend' updated to latest revision 'backend-00002' is available at URL:
+http://backend.default.example.com
+No test for this app, just deployed!
+Waiting for rollout (target: 3)...
+......................................................
+
+throughput: 14.16392962483462
+Service 'backend' successfully deleted in namespace 'default'.
+Service 'caller1' successfully deleted in namespace 'default'.
+Service 'caller2' successfully deleted in namespace 'default'.
+Waiting for rollout (target: 0)...
+.................
+Running with: --enable_logging
+Deploying callertxn with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/tree-callertxn...
+Creating service 'callertxn' in namespace 'default':
+
+  0.021s The Route is still working to reflect the latest desired specification.
+  0.050s ...
+  0.079s Configuration "callertxn" is waiting for a Revision to become ready.
+ 11.084s ...
+ 11.101s Ingress has not yet been reconciled.
+ 11.134s Waiting for load balancer to be ready
+ 11.320s Ready to serve.
+
+Service 'callertxn' created to latest revision 'callertxn-00001' is available at URL:
+http://callertxn.default.example.com
+Deploying backend1 with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/tree-backend1...
+Creating service 'backend1' in namespace 'default':
+
+  0.018s The Route is still working to reflect the latest desired specification.
+  0.031s ...
+  0.054s Configuration "backend1" is waiting for a Revision to become ready.
+  6.093s ...
+  6.117s Ingress has not yet been reconciled.
+  6.150s Waiting for load balancer to be ready
+  6.328s Ready to serve.
+
+Service 'backend1' created to latest revision 'backend1-00001' is available at URL:
+http://backend1.default.example.com
+Deploying backend2 with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/tree-backend2...
+Creating service 'backend2' in namespace 'default':
+
+  0.014s The Route is still working to reflect the latest desired specification.
+  0.020s ...
+  0.041s Configuration "backend2" is waiting for a Revision to become ready.
+  5.728s ...
+  5.761s Ingress has not yet been reconciled.
+  5.797s Waiting for load balancer to be ready
+  5.970s Ready to serve.
+
+Service 'backend2' created to latest revision 'backend2-00001' is available at URL:
+http://backend2.default.example.com
+No test for this app, just deployed!
+Waiting for rollout (target: 3)...
+
+
+throughput: 13.248464586865579
+Running with: 
+Deploying callertxn with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/tree-callertxn...
+Updating Service 'callertxn' in namespace 'default':
+
+  0.015s The Configuration is still working to reflect the latest desired specification.
+  3.763s Traffic is not yet migrated to the latest revision.
+  3.789s Ingress has not yet been reconciled.
+  3.801s Waiting for load balancer to be ready
+  3.980s Ready to serve.
+
+Service 'callertxn' updated to latest revision 'callertxn-00002' is available at URL:
+http://callertxn.default.example.com
+Deploying backend1 with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/tree-backend1...
+Updating Service 'backend1' in namespace 'default':
+
+  0.016s The Configuration is still working to reflect the latest desired specification.
+  3.608s Traffic is not yet migrated to the latest revision.
+  3.640s Ingress has not yet been reconciled.
+  3.650s Waiting for load balancer to be ready
+  3.828s Ready to serve.
+
+Service 'backend1' updated to latest revision 'backend1-00002' is available at URL:
+http://backend1.default.example.com
+Deploying backend2 with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/tree-backend2...
+Updating Service 'backend2' in namespace 'default':
+
+  0.014s The Configuration is still working to reflect the latest desired specification.
+  3.647s Traffic is not yet migrated to the latest revision.
+  3.672s Ingress has not yet been reconciled.
+  3.694s Waiting for load balancer to be ready
+  3.873s Ready to serve.
+
+Service 'backend2' updated to latest revision 'backend2-00002' is available at URL:
+http://backend2.default.example.com
+No test for this app, just deployed!
+Waiting for rollout (target: 3)...
+......................................................
+
+throughput: 14.355505219066854
+Service 'backend1' successfully deleted in namespace 'default'.
+Service 'backend2' successfully deleted in namespace 'default'.
+Service 'callertxn' successfully deleted in namespace 'default'.
+Waiting for rollout (target: 0)...
+.................
+Running with: --enable_logging
+Deploying composereview with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-compose_review...
+Creating service 'composereview' in namespace 'default':
+
+  0.014s The Route is still working to reflect the latest desired specification.
+  0.029s ...
+  0.044s Configuration "composereview" is waiting for a Revision to become ready.
+  5.455s ...
+  5.488s Ingress has not yet been reconciled.
+  5.521s Waiting for load balancer to be ready
+  5.698s Ready to serve.
+
+Service 'composereview' created to latest revision 'composereview-00001' is available at URL:
+http://composereview.default.example.com
+Deploying frontend with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-frontend...
+Creating service 'frontend' in namespace 'default':
+
+  0.019s The Route is still working to reflect the latest desired specification.
+  0.033s ...
+  0.056s Configuration "frontend" is waiting for a Revision to become ready.
+  5.985s ...
+  6.010s Ingress has not yet been reconciled.
+  6.043s Waiting for load balancer to be ready
+  6.221s Ready to serve.
+
+Service 'frontend' created to latest revision 'frontend-00001' is available at URL:
+http://frontend.default.example.com
+Deploying movieid with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-movie_id...
+Creating service 'movieid' in namespace 'default':
+
+  0.013s The Route is still working to reflect the latest desired specification.
+  0.027s ...
+  0.044s Configuration "movieid" is waiting for a Revision to become ready.
+  5.940s ...
+  5.964s Ingress has not yet been reconciled.
+  5.992s Waiting for load balancer to be ready
+  6.174s Ready to serve.
+
+Service 'movieid' created to latest revision 'movieid-00001' is available at URL:
+http://movieid.default.example.com
+Deploying moviereview with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-movie_review...
+Creating service 'moviereview' in namespace 'default':
+
+  0.019s The Route is still working to reflect the latest desired specification.
+  0.032s ...
+  0.052s Configuration "moviereview" is waiting for a Revision to become ready.
+  5.731s ...
+  5.747s Ingress has not yet been reconciled.
+  5.804s Waiting for load balancer to be ready
+  5.965s Ready to serve.
+
+Service 'moviereview' created to latest revision 'moviereview-00001' is available at URL:
+http://moviereview.default.example.com
+Deploying reviewstorage with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-review_storage...
+Creating service 'reviewstorage' in namespace 'default':
+
+  0.019s The Route is still working to reflect the latest desired specification.
+  0.034s ...
+  0.053s Configuration "reviewstorage" is waiting for a Revision to become ready.
+  5.846s ...
+  5.870s Ingress has not yet been reconciled.
+  5.911s Waiting for load balancer to be ready
+  6.088s Ready to serve.
+
+Service 'reviewstorage' created to latest revision 'reviewstorage-00001' is available at URL:
+http://reviewstorage.default.example.com
+Deploying text with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-text...
+Creating service 'text' in namespace 'default':
+
+  0.027s The Route is still working to reflect the latest desired specification.
+  0.033s ...
+  0.043s Configuration "text" is waiting for a Revision to become ready.
+  5.706s ...
+  5.741s Ingress has not yet been reconciled.
+  5.780s Waiting for load balancer to be ready
+  5.956s Ready to serve.
+
+Service 'text' created to latest revision 'text-00001' is available at URL:
+http://text.default.example.com
+Deploying uniqueid with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-unique_id...
+Creating service 'uniqueid' in namespace 'default':
+
+  0.018s The Route is still working to reflect the latest desired specification.
+  0.025s ...
+  0.051s Configuration "uniqueid" is waiting for a Revision to become ready.
+  5.993s ...
+  6.011s Ingress has not yet been reconciled.
+  6.051s Waiting for load balancer to be ready
+  6.229s Ready to serve.
+
+Service 'uniqueid' created to latest revision 'uniqueid-00001' is available at URL:
+http://uniqueid.default.example.com
+Deploying user with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-user...
+Creating service 'user' in namespace 'default':
+
+  0.020s The Route is still working to reflect the latest desired specification.
+  0.034s ...
+  0.051s Configuration "user" is waiting for a Revision to become ready.
+  5.831s ...
+  5.857s Ingress has not yet been reconciled.
+  5.890s Waiting for load balancer to be ready
+  6.074s Ready to serve.
+
+Service 'user' created to latest revision 'user-00001' is available at URL:
+http://user.default.example.com
+Deploying userreview with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-user_review...
+Creating service 'userreview' in namespace 'default':
+
+  0.014s The Route is still working to reflect the latest desired specification.
+  0.028s ...
+  0.044s Configuration "userreview" is waiting for a Revision to become ready.
+  5.990s ...
+  6.007s Ingress has not yet been reconciled.
+  6.048s Waiting for load balancer to be ready
+  6.226s Ready to serve.
+
+Service 'userreview' created to latest revision 'userreview-00001' is available at URL:
+http://userreview.default.example.com
+Waiting for rollout (target: 9)...
+
+
+throughput: 4.052820053430672
+Running with: 
+Deploying composereview with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-compose_review...
+Updating Service 'composereview' in namespace 'default':
+
+  0.016s The Configuration is still working to reflect the latest desired specification.
+  3.970s Traffic is not yet migrated to the latest revision.
+  4.002s Ingress has not yet been reconciled.
+  4.045s Waiting for load balancer to be ready
+  4.205s Ready to serve.
+
+Service 'composereview' updated to latest revision 'composereview-00002' is available at URL:
+http://composereview.default.example.com
+Deploying frontend with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-frontend...
+Updating Service 'frontend' in namespace 'default':
+
+  0.021s The Configuration is still working to reflect the latest desired specification.
+  3.811s Traffic is not yet migrated to the latest revision.
+  3.827s Ingress has not yet been reconciled.
+  3.842s Waiting for load balancer to be ready
+  4.030s Ready to serve.
+
+Service 'frontend' updated to latest revision 'frontend-00002' is available at URL:
+http://frontend.default.example.com
+Deploying movieid with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-movie_id...
+Updating Service 'movieid' in namespace 'default':
+
+  0.018s The Configuration is still working to reflect the latest desired specification.
+  3.691s Traffic is not yet migrated to the latest revision.
+  3.716s Ingress has not yet been reconciled.
+  3.750s Waiting for load balancer to be ready
+  3.920s Ready to serve.
+
+Service 'movieid' updated to latest revision 'movieid-00002' is available at URL:
+http://movieid.default.example.com
+Deploying moviereview with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-movie_review...
+Updating Service 'moviereview' in namespace 'default':
+
+  0.025s The Configuration is still working to reflect the latest desired specification.
+  3.790s Traffic is not yet migrated to the latest revision.
+  3.816s Ingress has not yet been reconciled.
+  3.846s Waiting for load balancer to be ready
+  4.027s Ready to serve.
+
+Service 'moviereview' updated to latest revision 'moviereview-00002' is available at URL:
+http://moviereview.default.example.com
+Deploying reviewstorage with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-review_storage...
+Updating Service 'reviewstorage' in namespace 'default':
+
+  0.016s The Configuration is still working to reflect the latest desired specification.
+  3.782s Traffic is not yet migrated to the latest revision.
+  3.807s Ingress has not yet been reconciled.
+  3.829s Waiting for load balancer to be ready
+  4.009s Ready to serve.
+
+Service 'reviewstorage' updated to latest revision 'reviewstorage-00002' is available at URL:
+http://reviewstorage.default.example.com
+Deploying text with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-text...
+Updating Service 'text' in namespace 'default':
+
+  0.015s The Configuration is still working to reflect the latest desired specification.
+  3.615s Traffic is not yet migrated to the latest revision.
+  3.640s Ingress has not yet been reconciled.
+  3.664s Waiting for load balancer to be ready
+  3.845s Ready to serve.
+
+Service 'text' updated to latest revision 'text-00002' is available at URL:
+http://text.default.example.com
+Deploying uniqueid with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-unique_id...
+Updating Service 'uniqueid' in namespace 'default':
+
+  0.016s The Configuration is still working to reflect the latest desired specification.
+  3.679s Traffic is not yet migrated to the latest revision.
+  3.701s Ingress has not yet been reconciled.
+  3.717s Waiting for load balancer to be ready
+  3.893s Ready to serve.
+
+Service 'uniqueid' updated to latest revision 'uniqueid-00002' is available at URL:
+http://uniqueid.default.example.com
+Deploying user with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-user...
+Updating Service 'user' in namespace 'default':
+
+  0.016s The Configuration is still working to reflect the latest desired specification.
+  3.723s Traffic is not yet migrated to the latest revision.
+  3.739s Ingress has not yet been reconciled.
+  3.774s Waiting for load balancer to be ready
+  3.943s Ready to serve.
+
+Service 'user' updated to latest revision 'user-00002' is available at URL:
+http://user.default.example.com
+Deploying userreview with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/media-service-test-user_review...
+Updating Service 'userreview' in namespace 'default':
+
+  0.017s The Configuration is still working to reflect the latest desired specification.
+  3.668s Traffic is not yet migrated to the latest revision.
+  3.692s Ingress has not yet been reconciled.
+  3.703s Waiting for load balancer to be ready
+  3.901s Ready to serve.
+
+Service 'userreview' updated to latest revision 'userreview-00002' is available at URL:
+http://userreview.default.example.com
+Waiting for rollout (target: 9)...
+..........................................
+
+throughput: 7.235890118140836
+Service 'composereview' successfully deleted in namespace 'default'.
+Service 'frontend' successfully deleted in namespace 'default'.
+Service 'movieid' successfully deleted in namespace 'default'.
+Service 'moviereview' successfully deleted in namespace 'default'.
+Service 'reviewstorage' successfully deleted in namespace 'default'.
+Service 'text' successfully deleted in namespace 'default'.
+Service 'uniqueid' successfully deleted in namespace 'default'.
+Service 'user' successfully deleted in namespace 'default'.
+Service 'userreview' successfully deleted in namespace 'default'.
+Waiting for rollout (target: 0)...
+....................
+Running with: --enable_logging
+Deploying frontend with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/hotel-reservation-frontend...
+Creating service 'frontend' in namespace 'default':
+
+  0.018s The Route is still working to reflect the latest desired specification.
+  0.048s Configuration "frontend" is waiting for a Revision to become ready.
+  5.969s ...
+  6.001s Ingress has not yet been reconciled.
+  6.041s Waiting for load balancer to be ready
+  6.210s Ready to serve.
+
+Service 'frontend' created to latest revision 'frontend-00001' is available at URL:
+http://frontend.default.example.com
+Deploying hotel with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/hotel-reservation-hotel...
+Creating service 'hotel' in namespace 'default':
+
+  0.027s The Route is still working to reflect the latest desired specification.
+  0.049s ...
+  0.073s Configuration "hotel" is waiting for a Revision to become ready.
+  5.891s ...
+  5.916s Ingress has not yet been reconciled.
+  5.965s Waiting for load balancer to be ready
+  6.133s Ready to serve.
+
+Service 'hotel' created to latest revision 'hotel-00001' is available at URL:
+http://hotel.default.example.com
+Deploying flight with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/hotel-reservation-flight...
+Creating service 'flight' in namespace 'default':
+
+  0.028s The Route is still working to reflect the latest desired specification.
+  0.053s Configuration "flight" is waiting for a Revision to become ready.
+  5.832s ...
+  5.849s Ingress has not yet been reconciled.
+  5.881s Waiting for load balancer to be ready
+  6.070s Ready to serve.
+
+Service 'flight' created to latest revision 'flight-00001' is available at URL:
+http://flight.default.example.com
+Deploying order with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=True --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/hotel-reservation-order...
+Creating service 'order' in namespace 'default':
+
+  0.019s The Route is still working to reflect the latest desired specification.
+  0.043s ...
+  0.068s Configuration "order" is waiting for a Revision to become ready.
+  5.769s ...
+  5.786s Ingress has not yet been reconciled.
+  5.820s Waiting for load balancer to be ready
+  6.003s Ready to serve.
+
+Service 'order' created to latest revision 'order-00001' is available at URL:
+http://order.default.example.com
+Waiting for rollout (target: 4)...
+
+
+throughput: 10.85298677578084
+Running with: 
+Deploying frontend with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/hotel-reservation-frontend...
+Updating Service 'frontend' in namespace 'default':
+
+  0.014s The Configuration is still working to reflect the latest desired specification.
+  3.873s Traffic is not yet migrated to the latest revision.
+  3.889s Ingress has not yet been reconciled.
+  3.906s Waiting for load balancer to be ready
+  4.079s Ready to serve.
+
+Service 'frontend' updated to latest revision 'frontend-00002' is available at URL:
+http://frontend.default.example.com
+Deploying hotel with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/hotel-reservation-hotel...
+Updating Service 'hotel' in namespace 'default':
+
+  0.016s The Configuration is still working to reflect the latest desired specification.
+  3.666s Traffic is not yet migrated to the latest revision.
+  3.698s Ingress has not yet been reconciled.
+  3.707s Waiting for load balancer to be ready
+  3.888s Ready to serve.
+
+Service 'hotel' updated to latest revision 'hotel-00002' is available at URL:
+http://hotel.default.example.com
+Deploying flight with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/hotel-reservation-flight...
+Updating Service 'flight' in namespace 'default':
+
+  0.016s The Configuration is still working to reflect the latest desired specification.
+  3.645s Traffic is not yet migrated to the latest revision.
+  3.673s Ingress has not yet been reconciled.
+  3.698s Waiting for load balancer to be ready
+  3.884s Ready to serve.
+
+Service 'flight' updated to latest revision 'flight-00002' is available at URL:
+http://flight.default.example.com
+Deploying order with scale=1...
+|-- Configuration arguments: --env ENABLE_LOGGING=False --env ENABLE_TXN=False --env ENABLE_CUSTOM_DICT=False
+Downloading image from docker.io/konstantinoskallas/hotel-reservation-order...
+Updating Service 'order' in namespace 'default':
+
+  0.026s The Configuration is still working to reflect the latest desired specification.
+  3.692s Traffic is not yet migrated to the latest revision.
+  3.716s Ingress has not yet been reconciled.
+  3.751s Waiting for load balancer to be ready
+  3.916s Ready to serve.
+
+Service 'order' updated to latest revision 'order-00002' is available at URL:
+http://order.default.example.com
+Waiting for rollout (target: 4)...
+....................................................
+
+throughput: 11.789392896737029
+Service 'flight' successfully deleted in namespace 'default'.
+Service 'frontend' successfully deleted in namespace 'default'.
+Service 'hotel' successfully deleted in namespace 'default'.
+Service 'order' successfully deleted in namespace 'default'.
+Waiting for rollout (target: 0)...
+..................

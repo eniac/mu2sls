@@ -163,28 +163,60 @@ plot_order = ["",
               " --enable_txn --enable_custom_dict",
               " --enable_logging --enable_txn --enable_custom_dict"]
 
-single_threaded_results = {
-    "single_stateful": {
-            "": DataPoint(None, {"50.000":52.1}, throughput=19.08, avg_latency=52.4),
-            " --enable_logging": DataPoint(None, {"50.000":52.0}, throughput=18.27, avg_latency=54.7),
+def parse_seq():
+    res = []
+    with open("seq.log") as f:
+        for l in f.readlines():
+            if "throughput" in l:
+                res.append(l)
+    res = [float(x.split()[-1]) for x in res]
+    return {
+        "single_stateful": {
+            "": DataPoint(None, {"50.000":None}, throughput=res[1], avg_latency=None),
+            " --enable_logging": DataPoint(None, {"50.000": None}, throughput=res[0], avg_latency=None),
         },
-    "chain": {
-            "": DataPoint(None, {"50.000":67.6}, throughput=16.60, avg_latency=60.2),
-            " --enable_logging": DataPoint(None, {"50.000": 71.7}, throughput=15.92, avg_latency=62.8),
+        "chain": {
+            "": DataPoint(None, {"50.000":None}, throughput=res[3], avg_latency=None),
+            " --enable_logging": DataPoint(None, {"50.000": None}, throughput=res[2], avg_latency=None),
         },
-    "tree": {
-            "": DataPoint(None, {"50.000":65.1}, throughput=16.97, avg_latency=58.9),
-            " --enable_logging": DataPoint(None, {"50.000":69.5}, throughput=15.51, avg_latency=64.4),
+        "tree": {
+            "": DataPoint(None, {"50.000":None}, throughput=res[5], avg_latency=None),
+            " --enable_logging": DataPoint(None, {"50.000": None}, throughput=res[4], avg_latency=None),
         },
-    "media-service-test": {
-            "": DataPoint(None, {"50.000":154.8}, throughput=6.9, avg_latency=144.8),
-            " --enable_logging": DataPoint(None, {"50.000":152.1}, throughput=5.46, avg_latency=183.1),
+        "media-service-test": {
+            "": DataPoint(None, {"50.000":None}, throughput=res[7], avg_latency=None),
+            " --enable_logging": DataPoint(None, {"50.000": None}, throughput=res[6], avg_latency=None),
         },
-    "hotel-reservation": {
-            "": DataPoint(None, {"50.000":57.8}, throughput=14.58, avg_latency=68.5),
-            " --enable_logging": DataPoint(None, {"50.000":75.4}, throughput=14.28, avg_latency=69.9),
+        "hotel-reservation": {
+            "": DataPoint(None, {"50.000":None}, throughput=res[9], avg_latency=None),
+            " --enable_logging": DataPoint(None, {"50.000": None}, throughput=res[8], avg_latency=None),
         },
-}
+    }
+
+
+# single_threaded_results = {
+#     "single_stateful": {
+#             "": DataPoint(None, {"50.000":52.1}, throughput=19.08, avg_latency=52.4),
+#             " --enable_logging": DataPoint(None, {"50.000":52.0}, throughput=18.27, avg_latency=54.7),
+#         },
+#     "chain": {
+#             "": DataPoint(None, {"50.000":67.6}, throughput=16.60, avg_latency=60.2),
+#             " --enable_logging": DataPoint(None, {"50.000": 71.7}, throughput=15.92, avg_latency=62.8),
+#         },
+#     "tree": {
+#             "": DataPoint(None, {"50.000":65.1}, throughput=16.97, avg_latency=58.9),
+#             " --enable_logging": DataPoint(None, {"50.000":69.5}, throughput=15.51, avg_latency=64.4),
+#         },
+#     "media-service-test": {
+#             "": DataPoint(None, {"50.000":154.8}, throughput=6.9, avg_latency=144.8),
+#             " --enable_logging": DataPoint(None, {"50.000":152.1}, throughput=5.46, avg_latency=183.1),
+#         },
+#     "hotel-reservation": {
+#             "": DataPoint(None, {"50.000":57.8}, throughput=14.58, avg_latency=68.5),
+#             " --enable_logging": DataPoint(None, {"50.000":75.4}, throughput=14.28, avg_latency=69.9),
+#         },
+# }
+single_threaded_results = parse_seq()
 
 label_colors = {}
 cmap = matplotlib.cm.get_cmap('terrain')
