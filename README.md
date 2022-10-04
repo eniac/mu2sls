@@ -2,13 +2,15 @@
 
 This is the repository for the `mu2sls` prototype, described in the POPL23 paper titled "Executing Microservice Applications on Serverless, Correctly".
 
-
 ## Running POPL23 paper experiments
 
 See the [POPL23_ARTIFACT_README.md](https://github.com/angelhof/mu2sls/blob/main/POPL23_ARTIFACT_README.md).
 
+## Requirements
 
-#### Deploying an application and running tests
+The `mu2sls` framework requires `python3.8` and above.
+
+## Deploying an application and running tests
 
 In order to deploy an application on your local machine, you need to use the following script with the `.csv` file as the first argument. For example, for an application that contains a single-stateful service, you can use the `experiments/single-stateful.csv` as follows:
 
@@ -18,7 +20,7 @@ python3 test_services.py experiments/single-stateful.csv local
 The test that will be run is defined in the `TEST_FUNC_FROM_FILE` dictionary in file `tests/test_services.py`.
 
 
-#### (Local) Building and pushing application docker images
+## (Local) Building and pushing application docker images
 
 In order to run an application, you need to first build it on your local machine and push it to an image registry. If you need to do that, update the `$docker_io_username` variable in `vars.sh` to include your `docker_io_username`, alternatively, you can use the prebuilt images.
 

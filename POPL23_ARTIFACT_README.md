@@ -44,23 +44,45 @@ The virtual box instance should contain all these requirements, but we are provi
 
 Our artifact has the following requirements:
 - To run the local artifact tests:
-  + `git`, `python3` 
+  + `git`, `python3.8` 
   + Python3 packages as shown in `requirements.txt`
   + Download the artifact code from [github](https://github.com/angelhof/mu2sls.git)
+  + foundationdb client and python API
 - To run the experiments on cloudlab:
   + `rsync` and `mosh`
 - To modify the code and run your own microservice applications on cloudlab:
-  + `docker` so that you can push images to docker.io 
+  + `docker` so that you can push images to docker.io (if you want to rebuild the images yourself, which is not necessary to run the evaluation)
 
 On most Ubuntu distributions you can install all of them using:
 ```sh
 sudo apt update
-sudo apt install git python3 rsync mosh
+sudo apt install git rsync mosh
 
+## Install pyenv to install python3.8
+sudo apt update; sudo apt install make build-essential libssl-dev zlib1g-dev \
+libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
+libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+curl https://pyenv.run | bash
+
+## Add the necessary pyenv post-installation commands in .bashrc
+echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+source ~/.bashrc
+## Note that after this point we need to source /root/.bashrc before executing something with python3.8 in the Dockerfile
+
+## Install and set python 3.8.13 as the global python version
+pyenv install -v 3.8.13 && pyenv global 3.8.13
+
+
+## Download the project and install its requirements
 git clone https://github.com/angelhof/mu2sls.git
 
 cd mu2sls
+python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
+bash scripts/install_fdb_client.sh
 
 ## To install docker on Ubuntu follow this guide: https://docs.docker.com/desktop/install/ubuntu/
 ```
@@ -119,6 +141,7 @@ mosh --ssh="ssh -p 22 -i ${private_key}" ${node_username}@${node_address}
 
 ## On the remote machine:
 tmux # Use tmux to be able to detach
+## Reattach using: `tmux attach-session`
 
 ## In the tmux session
 ## Copy each of the following lines separately, because they cannot all be pasted at once

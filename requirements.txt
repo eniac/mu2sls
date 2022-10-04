@@ -4,3 +4,5 @@ jwt
 httpx
 numpy
 matplotlib
+foundationdb==6.3.23
+requests
