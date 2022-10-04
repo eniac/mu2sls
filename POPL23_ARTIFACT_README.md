@@ -80,7 +80,7 @@ You need to follow these instructions from the virtual box image (or a machine t
 First, create a cloudlab experiment. As a profile, select `small-lan`, and as parametrization choose (see also image in `docs/cloudlab_parametrization.PNG`):
 - Number of Nodes: 1
 - OS image: UBUNTU 18.04
-- Physical node type: c6525-25g (if available to get the same results as the ones we got in the paper)
+- Physical node type: c6525-25g (if available to get the same results as the ones we got in the paper). If that is not available, you should use an AMD node so that the installation works.
 
 Leave the rest of the parameters as they are. Then pick a name for the experiment and a project and start the experiment.
 
