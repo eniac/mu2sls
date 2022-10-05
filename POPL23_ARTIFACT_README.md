@@ -205,7 +205,7 @@ In order to get the same exact results, you can use the `c6525-25g` configuratio
 In the cloudlab machine, run all the experiments (Q1-Q3) using:
 
 ```sh
-bash run_all_eval.sh --single_stateful --chain --tree --media --hotel
+bash run_all_eval.sh --seq --single_stateful --chain --tree --media --hotel
 ```
 
 This takes about 6 hours so you can leave it running and come back later. It prints request statistics for each experiment while it runs. 

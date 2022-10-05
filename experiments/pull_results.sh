@@ -9,3 +9,4 @@ scp -i ${private_key} ${node_username}@${node_address}:knative/chain.log ./resul
 scp -i ${private_key} ${node_username}@${node_address}:knative/tree.log ./results/tree.log
 scp -i ${private_key} ${node_username}@${node_address}:knative/media-service-test.log ./results/media-service-test.log
 scp -i ${private_key} ${node_username}@${node_address}:knative/hotel-reservation.log ./results/hotel-reservation.log
+scp -i ${private_key} ${node_username}@${node_address}:knative/seq.log ./results/seq.log
