@@ -8,13 +8,13 @@ The source code of our artifact can be found here (https://github.com/angelhof/m
 
 This document describes the artifact for the POPL 23 paper titled "Executing Microservice Applications on Serverless, Correctly".
 
-It contains 5 sections:
+It contains 6 sections:
 - List of Claims
 - Download, installation, and sanity-testing instructions
 - Evaluation instructions
 - Reusability instructions
 - Additional Description
-- Troubleshooting
+- Troubleshooting (check if something is off)
 
 
 ## List of Claims
@@ -226,6 +226,7 @@ python3 experiments/plot-results.py
 
 which generates three plots in the `plots` directory, named `figure9.pdf`, `figure10.pdf`, and `figure11.pdf`, corresponding to the ones in the paper.
 
+Note that both the plots and the results (in the `results` directory) already exist in the repository and VM image.
 
 ## Reusability Instructions
 
@@ -306,3 +307,11 @@ bash run_all_eval.sh --chain --tree --media --hotel # omiting `--single_stateful
 ### First test timeout
 
 Rarely, the first test will timeout and not actually finish. We have not completely understood why this problem happens, but it has to do with the initialization of knative. In the rare case that this happens, please terminate and restart the cloudlab machine that you are running on so that the experiment works.
+
+### Performance inconsistency for stateful counter
+
+Rarely, some of the points of stateful counter (in figures 9 and 10) have higher latency than expected. This usually happens with the points in the middle (for rates 50-200), even though the points in the higher rates still have reasonable latencies. In that case, you can simply rerun the evaluation for the stateful counter as follows:
+
+```sh
+bash run_all_eval.sh --single_stateful
+```
