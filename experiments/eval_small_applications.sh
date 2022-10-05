@@ -53,12 +53,12 @@ function run_single_stateful()
 
     ## mu2sls
     export extra_args="--enable_logging --enable_txn --enable_custom_dict"
-    export rates="20 100 180 220 260 300"
+    export rates="20 60 100 140 180 220 260 300"
     deploy_and_run 2
 
     ## mu2sls (no FT)
     export extra_args="--enable_txn --enable_custom_dict"
-    export rates="20 100 180 220 260 300 340"
+    export rates="20 60 100 140 180 220 260 300 340"
     deploy_and_run 2
 
     ## mu2sls (w/o OD)
