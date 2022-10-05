@@ -198,6 +198,8 @@ python3 test_services.py media-service-test.csv knative --docker_io_username kon
 
 The `ERROR`s in the end are just logs that show the time it took to execute the requests, so they might be slightly different. This output shows that the test works.
 
+**NOTE:** Rarely, the test will timeout and not actually finish. We have not completely understood why this problem happens, but it has to do with the initialization of knative. In the rare case that this happens, please terminate and restart the cloudlab machine that you are running on so that the experiment works.
+
 ## Evaluation Instructions
 
 In order to get the same exact results, you can use the `c6525-25g` configuration on cloudlab. Just note that this is a powerful machine, so you might need to reserve it in advance before using it on Cloudlab.
@@ -286,6 +288,8 @@ This section describes the code of the artifact and how it is split among direct
 
 ## Troubleshooting
 
+### Experiment getting stuck
+
 Each experiment takes about a few minutes to run, and therefore if something gets stuck for much longer than that (no new output), you could interrupt the experiments using CTRL+C, and then clean up the database and loaded serverless functions using:
 ```sh
 kn service delete --all
@@ -298,3 +302,7 @@ Then you can rerun the rest of the evaluation by omiting the flags that have alr
 ```sh
 bash run_all_eval.sh --chain --tree --media --hotel # omiting `--single_stateful` that has already executed
 ```
+
+### First test timeout
+
+Rarely, the first test will timeout and not actually finish. We have not completely understood why this problem happens, but it has to do with the initialization of knative. In the rare case that this happens, please terminate and restart the cloudlab machine that you are running on so that the experiment works.
