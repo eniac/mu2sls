@@ -208,9 +208,7 @@ In the cloudlab machine, run all the experiments (Q1-Q3) using:
 bash run_all_eval.sh --single_stateful --chain --tree --media --hotel
 ```
 
-__TODO: Write how much time are the experiments supposed to take__
-
-This takes about __TODO: XXX__ so you can leave it running and come back later. It prints request statistics for each experiment while it runs. 
+This takes about 6 hours so you can leave it running and come back later. It prints request statistics for each experiment while it runs. 
 
 Then you need to pull results on your local machine (virtualbox) using:
 

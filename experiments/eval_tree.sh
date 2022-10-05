@@ -50,7 +50,7 @@ function run_tree()
 
     ## mu2sls
     export extra_args="--enable_logging --enable_txn --enable_custom_dict"
-    export rates="10 15 20 25"
+    export rates="10 20 25 30 35"
     deploy_and_run
     python3 scripts/clear_db.py
 
@@ -62,7 +62,7 @@ function run_tree()
 
     ## unsafe (w/ FT)
     export extra_args="--enable_logging"
-    export rates="10 15 20 25 30 40 50 60 70 80 90"
+    export rates="10 15 20 25 30 50 70 90 100"
     deploy_and_run
     python3 scripts/clear_db.py
 }
