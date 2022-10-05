@@ -1,6 +1,6 @@
 # Artifact Location
 
-The following Zenodo link contains a virtual machine image that can be used to run the local experiments and orchestrate the evaluation on cloudlab (TODO: Add link).
+The following Zenodo link contains a virtual machine image that can be used to run the local experiments and orchestrate the evaluation on cloudlab (https://zenodo.org/record/7145217).
 
 The source code of our artifact can be found here (https://github.com/angelhof/mu2sls) and the artifact README can also be found here (https://github.com/angelhof/mu2sls/blob/main/POPL23_ARTIFACT_README.md).
 
