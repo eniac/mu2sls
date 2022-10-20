@@ -222,7 +222,7 @@ In the cloudlab machine, run all the experiments (Q1-Q3) using:
 bash run_all_eval.sh --seq --single_stateful --chain --tree --media --hotel
 ```
 
-This takes about 6 hours so you can leave it running and come back later. If you are connected using `mosh` you don't need to do anything (since it preserves the connection for arbitrary periods), however you could also detach from `tmux` using `Ctrl+b d` and then reconnect and reattach using `tmux attach-session`.
+This takes about 6 hours so you can leave it running and come back later. If you are connected using `mosh` you don't need to do anything (since it preserves the connection for arbitrary periods), however you could also detach from `tmux` using `Ctrl+b d` and then reconnect and reattach using `tmux attach-session` (a `tmux` cheatsheet can also be found [here](https://tmuxcheatsheet.com/)).
 
 The experiment script prints request statistics for each experiment while it runs. 
 
