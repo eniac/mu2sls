@@ -38,6 +38,18 @@ All of the experiments on our paper run on [Cloudlab](https://www.cloudlab.us/) 
 
 Once you have the account, set up a key to be able to connect to Cloudlab machines using `ssh` and make sure that you can start a machine and connect to it.
 
+#### Creating an ssh key
+
+In order to create an ssh key, you can run the following instruction:
+
+```sh
+## Generate a 2048 bit RSA key
+ssh-keygen -b 2048 -t rsa
+## It will prompt you for a file to store the key (if you leave empty, it will store the private part in `~/.ssh/id_rsa` and the public part in `~/.ssh/is_rsa.pub`). Remember the file that you set because you will need to set it in a file later.
+
+## It will then prompt you for a passphrase. You do not need to set any for this usage.
+```
+
 ### Downloading artifact and installing requirements
 
 The virtual box instance should contain all these requirements, but we are providing them here for completeness. Skip this section if you are using virtualbox.
@@ -102,7 +114,7 @@ You need to follow these instructions from the virtual box image (or a machine t
 First, create a cloudlab experiment. As a profile, select `small-lan`, and as parametrization choose (see also image in `docs/cloudlab_parametrization.PNG`):
 - Number of Nodes: 1
 - OS image: UBUNTU 18.04
-- Physical node type: c6525-25g (if available to get the same results as the ones we got in the paper). If that is not available, you should use an AMD node so that the installation works.
+- Physical node type: c6525-25g (if available to get the same results as the ones we got in the paper). If that is not available, you should use an AMD node so that the installation works (though we have not tested on other machine types). If the machine is not available but you want to run experiments on it, you could reserve it by clicking on the `Reserve Nodes` option of the `Experiments` tab (see image in `docs/cloudlab_reserve_nodes.PNG`).
 
 Leave the rest of the parameters as they are. Then pick a name for the experiment and a project and start the experiment.
 
@@ -110,7 +122,7 @@ You then have to wait until your experiment is ready, at which point you should 
 
 ##### Setup the Cloudlab machine
 
-Create a `vars.sh` file based on `vars_template.sh` and modify the node address and username (as copied from cloudlab) and the location of your ssh key. Leave the docker_io_username as is.
+Create a `vars.sh` file based on `vars_template.sh` and modify the node address and username (as copied from cloudlab) and the location of your ssh key (the one you used when generating a key with `ssh-keygen`). Leave the docker_io_username as is.
 
 Source the vars file to be able to easily run the following scripts.
 ```sh
@@ -210,7 +222,9 @@ In the cloudlab machine, run all the experiments (Q1-Q3) using:
 bash run_all_eval.sh --seq --single_stateful --chain --tree --media --hotel
 ```
 
-This takes about 6 hours so you can leave it running and come back later. It prints request statistics for each experiment while it runs. 
+This takes about 6 hours so you can leave it running and come back later. If you are connected using `mosh` you don't need to do anything (since it preserves the connection for arbitrary periods), however you could also detach from `tmux` using `Ctrl+b d` and then reconnect and reattach using `tmux attach-session`.
+
+The experiment script prints request statistics for each experiment while it runs. 
 
 Then you need to pull results on your local machine (virtualbox) using:
 
