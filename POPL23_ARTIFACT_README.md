@@ -2,7 +2,7 @@
 
 The following Zenodo link contains a virtual machine image that can be used to run the local experiments and orchestrate the evaluation on cloudlab (https://zenodo.org/record/7145217).
 
-The source code of our artifact can be found here (https://github.com/angelhof/mu2sls) and the artifact README can also be found here (https://github.com/angelhof/mu2sls/blob/main/POPL23_ARTIFACT_README.md).
+The source code of our artifact can be found here (https://github.com/eniac/mu2sls) and the artifact README can also be found here (https://github.com/eniac/mu2sls/blob/main/POPL23_ARTIFACT_README.md).
 
 # Artifact Documentation for "Executing Microservice Applications on Serverless, Correctly"
 
@@ -58,7 +58,7 @@ Our artifact has the following requirements:
 - To run the local artifact tests:
   + `git`, `python3.8` 
   + Python3 packages as shown in `requirements.txt`
-  + Download the artifact code from [github](https://github.com/angelhof/mu2sls.git)
+  + Download the artifact code from [github](https://github.com/eniac/mu2sls.git)
   + foundationdb client and python API
 - To run the experiments on cloudlab:
   + `rsync` and `mosh`
@@ -89,7 +89,7 @@ pyenv install -v 3.8.13 && pyenv global 3.8.13
 
 
 ## Download the project and install its requirements
-git clone https://github.com/angelhof/mu2sls.git
+git clone https://github.com/eniac/mu2sls.git
 
 cd mu2sls
 python3 -m pip install --upgrade pip

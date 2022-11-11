@@ -4,7 +4,7 @@ This is the repository for the `mu2sls` prototype, described in the POPL23 paper
 
 ## Running POPL23 paper experiments
 
-See the [POPL23_ARTIFACT_README.md](https://github.com/angelhof/mu2sls/blob/main/POPL23_ARTIFACT_README.md).
+See the [POPL23_ARTIFACT_README.md](./POPL23_ARTIFACT_README.md).
 
 ## Requirements
 
