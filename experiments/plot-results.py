@@ -1,6 +1,9 @@
 import matplotlib
 import matplotlib.pyplot as plt
 
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
+
 import numpy as np
 from pprint import pprint
 import shutil
